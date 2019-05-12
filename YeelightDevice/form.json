@@ -1,0 +1,19 @@
+{
+    "elements": [
+        {
+            "name": "SetSmooth",
+            "type": "CheckBox",
+            "caption": "Change light smooth"
+        }, {
+            "name": "HUESlider",
+            "type": "CheckBox",
+            "caption": "Display HSL-Slider (only Webfront)"
+        }
+    ],
+    "actions":
+            [
+                {
+                    "type": "TestCenter"
+                }
+            ]
+}

@@ -1,0 +1,11 @@
+{
+    "id": "{7AABB3D2-3D24-4F2C-86CE-A56FB09D188A}",
+    "name": "Yeelight Discovery",
+    "type": 5,
+    "vendor": "Xiaomi",
+    "aliases": ["Yeelight Discovery"],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "Yeelight"
+}

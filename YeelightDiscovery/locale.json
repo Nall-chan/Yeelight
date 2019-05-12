@@ -1,0 +1,12 @@
+{
+    "translations": {
+        "de": {
+            "IP Address": "IP Adresse",
+            "Device ID": "Ger\u00e4te ID",
+            "Model": "Model",
+            "Name": "Name",
+            "Background discovery of Yeelight devices": "Hintergrundsuche nach Yeelight Ger\u00e4ten",
+            "Yeelight Devices": "Yeelight Geräte"
+        }
+    }
+}

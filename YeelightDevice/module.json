@@ -1,0 +1,14 @@
+{
+    "id": "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}",
+    "name": "YeelightDevice",
+    "type": 3,
+    "vendor": "Xiaomi",
+    "aliases":
+            [
+                "Yeelight Device"
+            ],
+    "parentRequirements": ["{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"],
+    "childRequirements": [],
+    "implemented": ["{018EF6B5-AB94-40C6-AA53-46943E824ACF}"],
+    "prefix": "Yeelight"
+}

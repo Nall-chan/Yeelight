@@ -1,0 +1,31 @@
+{
+    "translations": {
+        "de": {
+            "Change light smooth": "Licht sanft \u00e4ndern",
+            "Display HSL-Slider (only Webfront)": "HSL-Slider anzeigen (nur Webfront)",
+            "Request state": "Zustand lesen",
+            "Name": "Name",
+            "Invalid Ident: %s": "Ung\u00fcltiger Ident: %s",
+            "Invalid parameter.": "Ung\u00fcltiger Parameter.",
+            "Device not support this command.": "Ger\u00e4t unterst\u00fctzt den Befehl nicht.",
+            "%s out of range.": "%s au\u00dferhalb des zul\u00e4ssigen Bereich.",
+            "%s is invalid.": "%s ist ung\u00fcltig.",
+            "Invalid event method received.": "Ung\u00fclte Event Funktion empfangen.",
+            "Property %s actually not supported.": "Eigenschaft %s wird aktuell nicht unterst\u00fctzt.",
+            "State": "Status",
+            "Brightness": "Helligkeit",
+            "RGB Color": "RGB Farbe",
+            "HSV Saturation": "HSV S\u00e4ttigung",
+            "White": "Wei\u00df",
+            "Current mode": "Aktueller Modus",
+            "HSV Hue": "HSV Hue",
+            "State Background": "Status Hintergrund",
+            "Brightness Background": "Helligkeit Hintergrund",
+            "RGB Color Background": "RGB Farbe Hintergrund",
+            "HSV Saturation Background": "HSV S\u00e4ttigung Hintergrund",
+            "White Background": "Wei\u00df Hintergrund",
+            "Current mode Background": "Aktueller Modus Hintergrund",
+            "HSV Hue Background": "HSV Hue Hintergrund"
+        }
+    }
+}
