@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 /*
  * @addtogroup yeelight
  * @{
@@ -19,7 +18,7 @@ eval('declare(strict_types=1);namespace YeelightDiscovery {?>' . file_get_conten
 require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
 
 /**
- * YeelightDiscovery Klasse implementiert
+ * YeelightDiscovery Klasse implementiert.
  *
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2019 Michael Tröger
@@ -28,13 +27,14 @@ require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
  * @version       1.0
  *
  * @example <b>Ohne</b>
+ *
  * @property array $Devices
  */
 class YeelightDiscovery extends ipsmodule
 {
-
     use \Yeelight\DebugHelper,
         \YeelightDiscovery\BufferHelper;
+
     /**
      * Interne Funktion des SDK.
      */
@@ -220,8 +220,6 @@ class YeelightDiscovery extends ipsmodule
         $this->Devices = $this->DiscoverDevices();
         // Alt neu vergleich fehlt, sowie die Events an IPS senden wenn neues Gerät im Netz gefunden wurde.
     }
-
 }
 
 /* @} */
-    
