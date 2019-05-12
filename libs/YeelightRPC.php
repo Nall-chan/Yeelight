@@ -24,79 +24,77 @@ class YeelightRPCException extends \Exception
     {
         parent::__construct($message, $code, $previous);
     }
-
 }
 
 /**
  * Enthält einen Yeelight-RPC Datensatz.
- * 
+ *
  * @method null send(array $Params (mixed)) Sendet einen eBus-Request an das SyLa.
- * @property-read integer $Id Id des RPC-Objektes
+ *
+ * @property-read int $Id Id des RPC-Objektes
  * @property-read string $Method Command des RPC-Objektes
  * @property-read array $Params Params des RPC-Objektes
- * @property-read integer $Typ Typ des RPC-Objektes
+ * @property-read int $Typ Typ des RPC-Objektes
  */
 class YeelightRPC_Data
 {
-
     use \Yeelight\UTF8Coder;
-    static $isEvent = 3;
-    static $isCommand = 1;
-    static $isResult = 2;
+    public static $isEvent = 3;
+    public static $isCommand = 1;
+    public static $isResult = 2;
 
     /**
-     * Typ der Daten
-     * @access private
+     * Typ der Daten.
+     *
      * @var enum [ YeelightRPC_Data::isCommand, YeelightRPC_Data::isResult, YeelightRPC_Data::isEvent]
      */
     private $Typ;
 
     /**
-     * Name der Methode
-     * @access private
+     * Name der Methode.
+     *
      * @var string
      */
     private $Method;
 
     /**
-     * Enthält Fehlermeldungen der Methode
-     * @access private
+     * Enthält Fehlermeldungen der Methode.
+     *
      * @var object
      */
     private $Error;
 
     /**
-     * Parameter der Methode
-     * @access private
+     * Parameter der Methode.
+     *
      * @var object
      */
     private $Params;
 
     /**
-     * Antwort der Methode
-     * @access private
+     * Antwort der Methode.
+     *
      * @var object
      */
     private $Result;
 
     /**
-     * Enthält den Typ eines Event
-     * @access private
+     * Enthält den Typ eines Event.
+     *
      * @var object
      */
     private $Event;
 
     /**
-     * Id des RPC-Objektes
-     * @access private
-     * @var integer
+     * Id des RPC-Objektes.
+     *
+     * @var int
      */
     private $Id;
 
     /**
-     * 
-     * @access public
      * @param string $name Propertyname
+     *
      * @return mixed Value of Name
      */
     public function __get($name)
@@ -106,18 +104,18 @@ class YeelightRPC_Data
 
     /**
      * Erstellt ein YeelightRPC_Data Objekt.
-     * 
-     * @access public
+     *
      * @param string $Method [optional] Name der RPC-Methode
      * @param object $Params [optional] Parameter der Methode
-     * @param integer $Id [optional] Id des RPC-Objektes
+     * @param int    $Id     [optional] Id des RPC-Objektes
+     *
      * @return YeelightRPC_Data
      */
     public function __construct($Method = null, $Params = null, $Id = null)
     {
         if (!is_null($Method)) {
             $this->Method = $Method;
-            $this->Typ = YeelightRPC_Data::$isCommand;
+            $this->Typ = self::$isCommand;
         }
         $this->Params = [];
 
@@ -136,10 +134,9 @@ class YeelightRPC_Data
 
     /**
      * Führt eine RPC-Methode aus.
-     * 
-     * @access public
-     * @param string $name Auszuführende RPC-Methode
-     * @param array $arguments Parameter der RPC-Methode.
+     *
+     * @param string $name      Auszuführende RPC-Methode
+     * @param array  $arguments Parameter der RPC-Methode.
      */
     public function __call($name, $arguments)
     {
@@ -150,13 +147,12 @@ class YeelightRPC_Data
             $this->Params = $arguments[0];
         }
         $this->Id = (int) round((explode(' ', microtime())[0] * 10000) + rand(0, 999));
-        $this->Typ = YeelightRPC_Data::$isCommand;
+        $this->Typ = self::$isCommand;
     }
 
     /**
-     * Gibt die RPC Antwort auf eine Anfrage zurück
-     * 
-     * @access public
+     * Gibt die RPC Antwort auf eine Anfrage zurück.
+     *
      * @return array|object|mixed|YeelightRPCException Enthält die Antwort des RPC-Server. Im Fehlerfall wird ein Objekt vom Typ YeelightRPCException zurückgegeben.
      */
     public function GetResult()
@@ -172,28 +168,25 @@ class YeelightRPC_Data
 
     /**
      * Gibt die Daten eines RPC-Event zurück.
-     * 
-     * @access public
-     * @return object|mixed  Enthält die Daten eines RPC-Event des RPC-Server.
+     *
+     * @return object|mixed Enthält die Daten eines RPC-Event des RPC-Server.
      */
     public function GetEvent()
     {
         if (property_exists($this, 'Event')) {
             return $this->Event;
         } else {
-            return NULL;
+            return null;
         }
     }
 
     /**
      * Gibt ein Objekt SyLaRPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
-     * 
-     * @access private
-     * @return SyLaRPCException  Enthält die Daten der Fehlermeldung des RPC-Server.
+     *
+     * @return SyLaRPCException Enthält die Daten der Fehlermeldung des RPC-Server.
      */
     private function GetErrorObject()
     {
-
         if (property_exists($this->Error, 'code')) {
             $code = (int) $this->Error->code;
         } else {
@@ -209,8 +202,7 @@ class YeelightRPC_Data
 
     /**
      * Schreibt die Daten aus $Data in das YeelightRPC_Data-Objekt.
-     * 
-     * @access public
+     *
      * @param string $Data Ein JSON-kodierter RPC-String vom RPC-Server.
      */
     public function CreateFromJSONString($Data)
@@ -233,26 +225,25 @@ class YeelightRPC_Data
             $this->Id = $Json->id;
         } else {
             $this->Id = null;
-            $this->Typ = YeelightRPC_Data::$isEvent;
+            $this->Typ = self::$isEvent;
         }
 
         if (property_exists($Json, 'error')) {
             $this->Error = $Json->error;
-            $this->Typ = YeelightRPC_Data::$isResult;
+            $this->Typ = self::$isResult;
         }
 
         if (property_exists($Json, 'result')) {
             $this->Result = $Json->result;
             $this->DecodeUTF8($this->Result);
-            $this->Typ = YeelightRPC_Data::$isResult;
+            $this->Typ = self::$isResult;
         }
         return true;
     }
 
     /**
      * Erzeugt einen, mit der GUDI versehenen, JSON-kodierten String zum versand an den RPC-Server.
-     * 
-     * @access public
+     *
      * @return string JSON-kodierter String für IPS-Dateninterface.
      */
     public function ToJSONString()
@@ -269,7 +260,6 @@ class YeelightRPC_Data
         $this->EncodeUTF8($RPC->params);
         return json_encode($RPC);
     }
-
 }
 
-/** @} */
+/* @} */
