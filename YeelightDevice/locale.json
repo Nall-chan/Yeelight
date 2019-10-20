@@ -3,6 +3,10 @@
         "de": {
             "Change light smooth": "Licht sanft \u00e4ndern",
             "Display HSL-Slider (only Webfront)": "HSL-Slider anzeigen (nur Webfront)",
+            "possible modes:":"Mögliche Modi:",
+            "color": "Farbe",
+            "color and nightlight": "Farbe und Nachtlicht",
+            "white and nightlight": "Wei\u00df und Nachtlicht",
             "Request state": "Zustand lesen",
             "Name": "Name",
             "Invalid Ident: %s": "Ung\u00fcltiger Ident: %s",
@@ -17,6 +21,7 @@
             "RGB Color": "RGB Farbe",
             "HSV Saturation": "HSV S\u00e4ttigung",
             "White": "Wei\u00df",
+            "Nightlight":"Nachtlicht",
             "Current mode": "Aktueller Modus",
             "HSV Hue": "HSV Hue",
             "State Background": "Status Hintergrund",

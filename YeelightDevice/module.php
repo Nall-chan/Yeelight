@@ -44,6 +44,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  */
 class YeelightDevice extends IPSModule
 {
+
     use \YeelightDevice\BufferHelper,
         \YeelightDevice\VariableProfileHelper,
         \YeelightDevice\Semaphore,
@@ -120,14 +121,18 @@ class YeelightDevice extends IPSModule
         'color_mode' => [
             'Name'         => 'Current mode',
             'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => 'Yeelight.Mode',
-            'enableAction' => false
+            'Profile0'     => 'Yeelight.ModeColor',
+            'Profile1'     => 'Yeelight.ModeColorWNight',
+            'Profile2'     => 'Yeelight.ModeWNight',
+            'enableAction' => true
         ],
         'bg_lmode'   => [
             'Name'         => 'Current mode Background',
             'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => 'Yeelight.Mode',
-            'enableAction' => false
+            'Profile0'     => 'Yeelight.ModeColor',
+            'Profile1'     => 'Yeelight.ModeColorWNight',
+            'Profile2'     => 'Yeelight.ModeWNight',
+            'enableAction' => true
         ],
         'hue'        => [
             'Name'    => 'HSV Hue',
@@ -150,6 +155,7 @@ class YeelightDevice extends IPSModule
         $this->RequireParent('{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}');
         $this->RegisterPropertyBoolean('HUESlider', true);
         $this->RegisterPropertyBoolean('SetSmooth', false);
+        $this->RegisterPropertyInteger('Mode', 0);
 
         $this->ReplyJSONData = [];
         $this->BufferIN = '';
@@ -187,12 +193,22 @@ class YeelightDevice extends IPSModule
         $this->Capabilitys = [];
         $this->Propertys = [];
         $this->RegisterProfileInteger('Yeelight.WhiteTemp', 'Intensity', '', ' %', 1700, 6500, 1, 0);
-        $this->RegisterProfileIntegerEx('Yeelight.Mode', '', '', '', [
+        $this->RegisterProfileIntegerEx('Yeelight.ModeColor', '', '', '', [
             [1, 'RGB', '', -1],
             [2, $this->Translate('White'), '', -1],
             [3, 'HSV', '', -1],
         ]);
 
+        $this->RegisterProfileIntegerEx('Yeelight.ModeColorWNight', '', '', '', [
+            [1, 'RGB', '', -1],
+            [2, $this->Translate('White'), '', -1],
+            [3, 'HSV', '', -1],
+            [5, $this->Translate('Nightlight'), '', -1],
+        ]);
+        $this->RegisterProfileIntegerEx('Yeelight.ModeWNight', '', '', '', [
+            [2, $this->Translate('White'), '', -1],
+            [5, $this->Translate('Nightlight'), '', -1],
+        ]);
         if (IPS_GetKernelRunlevel() != KR_READY) {
             return;
         }
@@ -303,7 +319,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Helper
-
     /**
      * Sendet set_rgb an das Gerät.
      *
@@ -405,7 +420,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Instanz-Funktionen
-
     /**
      * Liest den Zustand des Gerätes und führt alle Statusvariablen nach.
      *
@@ -421,6 +435,9 @@ class YeelightDevice extends IPSModule
         }
 
         foreach ($this->Propertys as $Index => $Property) {
+            if ($Result[$Index] == '') {
+                continue;
+            }
             $this->SetStatusVariable($Property, $Result[$Index]);
         }
         return true;
@@ -501,7 +518,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetRGB(int $Red, int $Green, int $Blue): bool
     {
-        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
+        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -519,7 +536,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBgRGB(int $Red, int $Green, int $Blue): bool
     {
-        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
+        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -538,7 +555,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetRGBSmooth(int $Red, int $Green, int $Blue, int $Duration): bool
     {
-        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
+        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -556,7 +573,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBgRGBSmooth(int $Red, int $Green, int $Blue, int $Duration): bool
     {
-        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
+        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -601,11 +618,11 @@ class YeelightDevice extends IPSModule
             trigger_error($this->Translate('Device not support this command.'), E_USER_WARNING);
             return false;
         }
-        if (($HUE < 0) or ($HUE > 359)) {
+        if (($HUE < 0) or ( $HUE > 359)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
             return false;
         }
-        if (($Saturation < 1) or ($Saturation > 100)) {
+        if (($Saturation < 1) or ( $Saturation > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Value'), E_USER_WARNING);
             return false;
         }
@@ -637,11 +654,11 @@ class YeelightDevice extends IPSModule
             trigger_error($this->Translate('Device not support this command.'), E_USER_WARNING);
             return false;
         }
-        if (($HUE < 0) or ($HUE > 359)) {
+        if (($HUE < 0) or ( $HUE > 359)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
             return false;
         }
-        if (($Saturation < 1) or ($Saturation > 100)) {
+        if (($Saturation < 1) or ( $Saturation > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Value'), E_USER_WARNING);
             return false;
         }
@@ -690,7 +707,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBrightnessSmooth(int $Level, int $Duration): bool
     {
-        if (($Level < 0) or ($Level > 100)) {
+        if (($Level < 0) or ( $Level > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Level'), E_USER_WARNING);
             return false;
         }
@@ -718,7 +735,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBgBrightnessSmooth(int $Level, int $Duration): bool
     {
-        if (($Level < 0) or ($Level > 100)) {
+        if (($Level < 0) or ( $Level > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Level'), E_USER_WARNING);
             return false;
         }
@@ -798,6 +815,46 @@ class YeelightDevice extends IPSModule
         return $this->Send($YeelightData);
     }
 
+    public function SetMode(int $Mode): bool
+    {
+
+        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
+        return $this->SetModeSmooth($Mode, $Duration);
+    }
+
+    public function SetModeSmooth(int $Mode, int $Duration): bool
+    {
+        $Power = $this->GetValue('power');
+        if ($Duration < 30) {
+            $Params = [$Power ? 'on' : 'off', 'sudden', 0, $Mode];
+        } else {
+            $Params = [$Power ? 'on' : 'off', 'smooth', $Duration, $Mode];
+        }
+        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData->set_power($Params);
+        return $this->Send($YeelightData);
+    }
+
+    public function SetBgMode(int $Mode): bool
+    {
+
+        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
+        return $this->SetBgModeSmooth($Mode, $Duration);
+    }
+
+    public function SetBgModeSmooth(int $Mode, int $Duration): bool
+    {
+        $Power = $this->GetValue('bg_power');
+        if ($Duration < 30) {
+            $Params = [$Power ? 'on' : 'off', 'sudden', 0, $Mode];
+        } else {
+            $Params = [$Power ? 'on' : 'off', 'smooth', $Duration, $Mode];
+        }
+        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData->bg_set_power($Params);
+        return $this->Send($YeelightData);
+    }
+
     /**
      * @return bool
      */
@@ -859,7 +916,6 @@ class YeelightDevice extends IPSModule
       When this value is -1, brightness in this tuple is ignored (only color or CT change takes
       effect).
      */
-
     /**
      * @param int    $Loops
      * @param int    $RecoverState
@@ -1091,7 +1147,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# GetCapabilitys
-
     /**
      * Parse HTTP-Header.
      *
@@ -1172,7 +1227,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Decode / StatusVariables
-
     /**
      * Decodiert ein Event und führt die Statusvariablen nach.
      *
@@ -1240,6 +1294,10 @@ class YeelightDevice extends IPSModule
             }
             $this->BG_SAT = (int) $Value;
         }
+        if (($Ident == 'color_mode') or ( $Ident == 'bg_lmode')) {
+            $StatusVariable['Profile'] = $StatusVariable['Profile' . $this->ReadPropertyInteger('Mode')];
+        }
+
         $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
         if ($StatusVariable['enableAction']) {
             $this->EnableAction($Ident);
@@ -1251,7 +1309,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Send / Receive
-
     /**
      * Error-Handler für die Send-Routine. Gibt die Fehlermeldung an den Aufrufer als Klartext zurück.
      *
@@ -1353,7 +1410,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# SENDQUEUE
-
     /**
      * Wartet auf eine RPC-Antwort.
      *
@@ -1443,7 +1499,6 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Webhook
-
     /**
      * Interne Funktion des SDK.
      */
@@ -1560,4 +1615,5 @@ class YeelightDevice extends IPSModule
         header('Content-Type: text/plain');
         echo 'File not found!';
     }
+
 }

@@ -8,6 +8,25 @@
             "name": "HUESlider",
             "type": "CheckBox",
             "caption": "Display HSL-Slider (only Webfront)"
+        },
+        {
+            "type": "Select",
+            "name": "Mode",
+            "caption": "possible modes:",
+            "options": [
+                {
+                    "caption": "color",
+                    "value": 0
+                },
+                {
+                    "caption": "color and nightlight",
+                    "value": 1
+                },
+                {
+                    "caption": "white and nightlight",
+                    "value": 2
+                }
+            ]
         }
     ],
     "actions":
