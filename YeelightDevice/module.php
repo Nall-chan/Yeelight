@@ -143,6 +143,12 @@ class YeelightDevice extends IPSModule
             'Name'    => 'HSV Hue Background',
             'Type'    => VARIABLETYPE_STRING,
             'Profile' => '~HTMLBox'
+        ],
+        'nl_br'      => [
+            'Name'         => 'Brightness Nightlight',
+            'Type'         => VARIABLETYPE_INTEGER,
+            'Profile'      => '~Intensity.100',
+            'enableAction' => true
         ]
     ];
 
@@ -312,6 +318,12 @@ class YeelightDevice extends IPSModule
                 break;
             case 'bg_ct':
                 $this->SetBgWhite((int) $Value);
+                break;
+            case 'color_mode':
+                $this->SetMode((int) $Value);
+                break;
+            case 'bg_lmode':
+                $this->SetBgMode((int) $Value);
                 break;
             default:
                 echo sprintf($this->Translate('Invalid Ident: %s'), $Ident);
@@ -1294,6 +1306,15 @@ class YeelightDevice extends IPSModule
             }
             $this->BG_SAT = (int) $Value;
         }
+        if ($Ident == 'active_mode') {
+            $Ident = 'color_mode';
+            if ((int) $Value == 1) {
+                $Value = 5;
+            } else {
+                $Value = 2;
+            }
+        }
+
         if (($Ident == 'color_mode') or ( $Ident == 'bg_lmode')) {
             $StatusVariable['Profile'] = $StatusVariable['Profile' . $this->ReadPropertyInteger('Mode')];
         }

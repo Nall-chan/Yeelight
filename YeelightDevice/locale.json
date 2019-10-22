@@ -30,7 +30,8 @@
             "HSV Saturation Background": "HSV S\u00e4ttigung Hintergrund",
             "White Background": "Wei\u00df Hintergrund",
             "Current mode Background": "Aktueller Modus Hintergrund",
-            "HSV Hue Background": "HSV Hue Hintergrund"
+            "HSV Hue Background": "HSV Hue Hintergrund",
+            "Brightness Nightlight":"Helligkeit Nachtlicht"
         }
     }
 }
