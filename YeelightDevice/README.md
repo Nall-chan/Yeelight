@@ -1,5 +1,5 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-1.5-blue.svg)]()
+[![Version](https://img.shields.io/badge/Modul%20Version-1.6-blue.svg)]()
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
 [![StyleCI](https://styleci.io/repos/186269467/shield?style=flat)](https://styleci.io/repos/186269467)  
@@ -61,6 +61,7 @@ Folgende Parameter sind in der 'Yeelight Device' Instanz zu konfigurieren:
 | :---------------: | :-----: | :----------: | :---------------------------------------------------------------------------------: |
 | SetSmooth         | bool    | false        | Bei true wird immer eine Transitionzeit von 500ms bei Ansteuerung gesetzt           |
 | HUESlider         | bool    | true         | Aktiviert zwei Variablen für das WebFront welche einen HUE und Sat Slider enthalten |
+| Mode              | integer | 0            | Varianten für den Modus, 0=Farbe, 1=Farbe + Nachtlicht, 2=Weiß + Nachtlicht         |
 
 ## 5. Statusvariablen und Profile
 
@@ -75,13 +76,16 @@ Folgende Statusvariablen werden automatisch angelegt, je nach Gerät können es 
 | Aktueller Modus            | integer | color_mode | 1 = RGB, 2 = Weiß, 3 = HSV                     |
 | HSV Sättigung              | integer | sat        | Sättigung in Prozent für HUE                   |
 | HSV Hue                    | string  | hue        | JavaScript für den HUE-Slider im WebFront      |
-
+| Helligkeit Nachtlicht      | integer | nl_br      | Vom Gerät gemeldete Helligkeit Nachtlicht      |
+ 
 **Profile**:
 
-| Name               | Typ     | verwendet von Statusvariablen |
-| :----------------: | :-----: | :---------------------------: |
-| Yeelight.WhiteTemp | integer | Weiß                          |
-| Yeelight.Mode      | integer | Aktueller Modus               |
+| Name                     | Typ     | verwendet von Statusvariablen |
+| :----------------------: | :-----: | :---------------------------: |
+| Yeelight.WhiteTemp       | integer | Weiß                          |
+| Yeelight.Mode            | integer | Aktueller Modus               |
+| Yeelight.ModeWNight      | integer | Aktueller Modus               |
+| Yeelight.ModeColorWNight | integer | Aktueller Modus               |
 
 ## 6. WebFront
 
@@ -158,6 +162,10 @@ Setzt die in '$Level' übergebene Helligkeit mit der in '$Duration' übergebenen
 Erlaubter Wertebereich ist 0 bis 100.  
 
 ```php
+bool YeeLight_SetMode(integer $InstanzID, integer $Mode)
+```
+
+```php
 bool YeeLight_SetPower(integer $InstanzID, bool $Value)
 ```
 Schaltet das Gerät ein oder aus.  
@@ -228,6 +236,9 @@ bool YeeLight_SetName(integer $InstanzID, string $Name)
 ## 8. Anhang
 
 **Changlog:**  
+
+Version 1.6:  
+ - Erweiterung für den Nachtlicht-Modus  
 
 Version 1.5:  
  - Release für IPS 5.1 und den Module-Store  

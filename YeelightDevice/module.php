@@ -211,7 +211,7 @@ class YeelightDevice extends IPSModule
             [5, $this->Translate('Nightlight'), '', -1],
         ]);
         $this->RegisterProfileIntegerEx('Yeelight.ModeWNight', '', '', '', [
-            [2, $this->Translate('White'), '', -1],
+            [1, $this->Translate('White'), '', -1],
             [5, $this->Translate('Nightlight'), '', -1],
         ]);
         if (IPS_GetKernelRunlevel() != KR_READY) {
