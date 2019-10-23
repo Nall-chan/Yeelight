@@ -147,7 +147,7 @@ class YeelightDevice extends IPSModule
             'Name'         => 'Brightness Nightlight',
             'Type'         => VARIABLETYPE_INTEGER,
             'Profile'      => '~Intensity.100',
-            'enableAction' => true
+            'enableAction' => false
         ]
     ];
 
