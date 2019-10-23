@@ -1318,7 +1318,7 @@ class YeelightDevice extends IPSModule
             }
         }
 
-        if (($Ident == 'color_mode') or ( $Ident == 'bg_lmode')) {
+        if (($Ident == 'color_mode') or ($Ident == 'bg_lmode')) {
             $StatusVariable['Profile'] = $StatusVariable['Profile' . $this->ReadPropertyInteger('Mode')];
         }
 
