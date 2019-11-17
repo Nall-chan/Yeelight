@@ -44,7 +44,6 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  */
 class YeelightDevice extends IPSModule
 {
-
     use \YeelightDevice\BufferHelper,
         \YeelightDevice\VariableProfileHelper,
         \YeelightDevice\Semaphore,
@@ -336,6 +335,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Helper
+
     /**
      * Sendet set_rgb an das Gerät.
      *
@@ -437,6 +437,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Instanz-Funktionen
+
     /**
      * Liest den Zustand des Gerätes und führt alle Statusvariablen nach.
      *
@@ -535,7 +536,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetRGB(int $Red, int $Green, int $Blue): bool
     {
-        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
+        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -553,7 +554,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBgRGB(int $Red, int $Green, int $Blue): bool
     {
-        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
+        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -572,7 +573,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetRGBSmooth(int $Red, int $Green, int $Blue, int $Duration): bool
     {
-        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
+        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -590,7 +591,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBgRGBSmooth(int $Red, int $Green, int $Blue, int $Duration): bool
     {
-        if (($Red < 0) or ( $Red > 255) or ( $Green < 0) or ( $Green > 255) or ( $Blue < 0) or ( $Blue > 255)) {
+        if (($Red < 0) or ($Red > 255) or ($Green < 0) or ($Green > 255) or ($Blue < 0) or ($Blue > 255)) {
             trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
             return false;
         }
@@ -635,11 +636,11 @@ class YeelightDevice extends IPSModule
             trigger_error($this->Translate('Device not support this command.'), E_USER_WARNING);
             return false;
         }
-        if (($HUE < 0) or ( $HUE > 359)) {
+        if (($HUE < 0) or ($HUE > 359)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
             return false;
         }
-        if (($Saturation < 1) or ( $Saturation > 100)) {
+        if (($Saturation < 1) or ($Saturation > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Value'), E_USER_WARNING);
             return false;
         }
@@ -671,11 +672,11 @@ class YeelightDevice extends IPSModule
             trigger_error($this->Translate('Device not support this command.'), E_USER_WARNING);
             return false;
         }
-        if (($HUE < 0) or ( $HUE > 359)) {
+        if (($HUE < 0) or ($HUE > 359)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
             return false;
         }
-        if (($Saturation < 1) or ( $Saturation > 100)) {
+        if (($Saturation < 1) or ($Saturation > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Value'), E_USER_WARNING);
             return false;
         }
@@ -724,7 +725,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBrightnessSmooth(int $Level, int $Duration): bool
     {
-        if (($Level < 0) or ( $Level > 100)) {
+        if (($Level < 0) or ($Level > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Level'), E_USER_WARNING);
             return false;
         }
@@ -752,7 +753,7 @@ class YeelightDevice extends IPSModule
      */
     public function SetBgBrightnessSmooth(int $Level, int $Duration): bool
     {
-        if (($Level < 0) or ( $Level > 100)) {
+        if (($Level < 0) or ($Level > 100)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'Level'), E_USER_WARNING);
             return false;
         }
@@ -930,6 +931,7 @@ class YeelightDevice extends IPSModule
       When this value is -1, brightness in this tuple is ignored (only color or CT change takes
       effect).
      */
+
     /**
      * @param int    $Loops
      * @param int    $RecoverState
@@ -1161,6 +1163,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# GetCapabilitys
+
     /**
      * Parse HTTP-Header.
      *
@@ -1241,6 +1244,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Decode / StatusVariables
+
     /**
      * Decodiert ein Event und führt die Statusvariablen nach.
      *
@@ -1318,7 +1322,7 @@ class YeelightDevice extends IPSModule
             }
         }
 
-        if (($Ident == 'color_mode') or ( $Ident == 'bg_lmode')or ( $Ident == 'ct') or ( $Ident == 'bg_ct')) {
+        if (($Ident == 'color_mode') or ($Ident == 'bg_lmode') or ($Ident == 'ct') or ($Ident == 'bg_ct')) {
             $StatusVariable['Profile'] = $StatusVariable['Profile' . $this->ReadPropertyInteger('Mode')];
         }
 
@@ -1333,6 +1337,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Send / Receive
+
     /**
      * Error-Handler für die Send-Routine. Gibt die Fehlermeldung an den Aufrufer als Klartext zurück.
      *
@@ -1434,6 +1439,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# SENDQUEUE
+
     /**
      * Wartet auf eine RPC-Antwort.
      *
@@ -1523,6 +1529,7 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Webhook
+
     /**
      * Interne Funktion des SDK.
      */
@@ -1642,5 +1649,4 @@ class YeelightDevice extends IPSModule
         header('Content-Type: text/plain');
         echo 'File not found!';
     }
-
 }
