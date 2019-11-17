@@ -56,7 +56,7 @@ class YeelightDiscovery extends ipsmodule
         if (IPS_GetKernelRunlevel() != KR_READY) {
             return;
         }
-        $this->Devices = $this->DiscoverDevices();
+        $this->Devices = @$this->DiscoverDevices();
         $this->SetTimerInterval('Discovery', 300000);
     }
 

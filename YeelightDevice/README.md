@@ -1,5 +1,5 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-1.6-blue.svg)]()
+[![Version](https://img.shields.io/badge/Modul%20Version-1.7-blue.svg)]()
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
 [![StyleCI](https://styleci.io/repos/186269467/shield?style=flat)](https://styleci.io/repos/186269467)  
@@ -236,6 +236,10 @@ bool YeeLight_SetName(integer $InstanzID, string $Name)
 ## 8. Anhang
 
 **Changlog:**  
+
+Version 1.7:  
+ - YeeLight_SetMode schaltet Gerät immer an.  
+ - Zweites Profil für die Farbtemperatur bei Modus 'Weiß mit Nachtlicht'.  
 
 Version 1.6:  
  - Erweiterung für den Nachtlicht-Modus  
