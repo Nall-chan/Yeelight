@@ -9,31 +9,28 @@ declare(strict_types=1);
  * @package       yeelight
  * @file          module.php
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2019 Michael Tröger
+ * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       1.0
+ * @version       1.80
  *
  */
-eval('declare(strict_types=1);namespace YeelightDiscovery {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
 require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
 
 /**
  * YeelightDiscovery Klasse implementiert.
  *
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2019 Michael Tröger
+ * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  *
- * @version       1.0
+ * @version       1.80
  *
  * @example <b>Ohne</b>
  *
- * @property array $Devices
  */
 class YeelightDiscovery extends ipsmodule
 {
     use \Yeelight\DebugHelper;
-    use \YeelightDiscovery\BufferHelper;
 
     /**
      * Interne Funktion des SDK.
@@ -41,8 +38,6 @@ class YeelightDiscovery extends ipsmodule
     public function Create()
     {
         parent::Create();
-        $this->Devices = [];
-        $this->RegisterTimer('Discovery', 0, 'YeeLight_Discover($_IPS[\'TARGET\']);');
     }
 
     /**
@@ -50,32 +45,7 @@ class YeelightDiscovery extends ipsmodule
      */
     public function ApplyChanges()
     {
-        $this->RegisterMessage(0, IPS_KERNELSTARTED);
         parent::ApplyChanges();
-
-        if (IPS_GetKernelRunlevel() != KR_READY) {
-            return;
-        }
-        $this->Devices = @$this->DiscoverDevices();
-        $this->SetTimerInterval('Discovery', 300000);
-    }
-
-    /**
-     * Interne Funktion des SDK.
-     * Verarbeitet alle Nachrichten auf die wir uns registriert haben.
-     *
-     * @param int       $TimeStamp
-     * @param int       $SenderID
-     * @param int       $Message
-     * @param array|int $Data
-     */
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
-    {
-        switch ($Message) {
-            case IPS_KERNELSTARTED:
-                $this->ApplyChanges();
-                break;
-        }
     }
 
     /**
@@ -86,7 +56,9 @@ class YeelightDiscovery extends ipsmodule
         $Devices = $this->DiscoverDevices();
         $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
         $IPSDevices = $this->GetIPSInstances();
-
+        if (count($Devices) == 0) {
+            $Form['actions'][1]['visible'] = true;
+        }
         $Values = [];
 
         foreach ($Devices as $IPAddress => $Device) {
@@ -128,7 +100,6 @@ class YeelightDiscovery extends ipsmodule
                 'IPAddress'  => $IPAddress,
                 'id'         => '',
                 'model'      => '',
-                //                'name'       => IPS_GetLocation($InstanceID),
                 'name'       => IPS_GetName($InstanceID),
                 'location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true),
                 'instanceID' => $InstanceID
@@ -138,13 +109,6 @@ class YeelightDiscovery extends ipsmodule
         $this->SendDebug('FORM', json_encode($Form), 0);
         $this->SendDebug('FORM', json_last_error_msg(), 0);
         return json_encode($Form);
-    }
-
-    public function Discover()
-    {
-        $this->LogMessage($this->Translate('Background discovery of Yeelight devices'), KL_NOTIFY);
-        $this->Devices = $this->DiscoverDevices();
-        // Alt neu vergleich fehlt, sowie die Events an IPS senden wenn neues Gerät im Netz gefunden wurde.
     }
 
     private function GetIPSInstances(): array
@@ -176,6 +140,7 @@ class YeelightDiscovery extends ipsmodule
 
     private function DiscoverDevices(): array
     {
+        $this->LogMessage($this->Translate('Background discovery of Yeelight devices'), KL_NOTIFY);
         $DeviceData = [];
         $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if (!$socket) {

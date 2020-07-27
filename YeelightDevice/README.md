@@ -1,5 +1,5 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-1.7-blue.svg)]()
+[![Version](https://img.shields.io/badge/Modul%20Version-1.80-blue.svg)]()
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
@@ -18,7 +18,7 @@ Einbindung eines Yeelight-Gerätes in IPS.
 - [5. Statusvariablen und Profile](#5-statusvariablen-und-profile)
 - [6. WebFront](#6-webfront)
 - [7. PHP-Befehlsreferenz](#7-php-befehlsreferenz)
-- [8. Anhang](#8-anhang)
+- [8. Changelog](#8-changelog)
 - [9. Lizenz](#9-lizenz)
 
 ## 1. Funktionsumfang
@@ -233,22 +233,9 @@ bool YeeLight_CircleColor(integer $InstanzID)
 bool YeeLight_SetName(integer $InstanzID, string $Name)
 ```
 
-## 8. Anhang
+## 8. Changelog
 
-**Changelog:**  
-
-Version 1.7:  
- - YeeLight_SetMode schaltet Gerät immer an.  
- - Zweites Profil für die Farbtemperatur bei Modus 'Weiß mit Nachtlicht'.  
-
-Version 1.6:  
- - Erweiterung für den Nachtlicht-Modus  
-
-Version 1.5:  
- - Release für IPS 5.1 und den Module-Store  
-
-Version 1.0:  
- - Erstes offizielles Release  
+[Changelog der Library](../README.md#3-changelog)
 
 ## 9. Lizenz
 

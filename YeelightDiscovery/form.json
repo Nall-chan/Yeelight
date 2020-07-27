@@ -37,6 +37,25 @@
                 }
             ],
             "values": []
+        },
+        {
+            "name": "ErrorPopup",
+            "type": "PopupAlert",
+            "visible": false,
+            "popup": {
+                "items": [
+                    {
+                        "name": "ErrorTitle",
+                        "type": "Label",
+                        "caption": "No Devices found!"
+                    },
+                    {
+                        "name": "ErrorText",
+                        "type": "Label",
+                        "caption": "No devices were found.\r\nTo recognize devices, incoming port 1982 must be available in IPS.\r\nPlease configure the firewall or routing accordingly."
+                    }
+                ]
+            }
         }
     ]
 }

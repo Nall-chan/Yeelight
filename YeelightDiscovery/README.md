@@ -1,5 +1,5 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-1.5-blue.svg)]()
+[![Version](https://img.shields.io/badge/Modul%20Version-1.80-blue.svg)]()
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)   
@@ -18,7 +18,7 @@ Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.
 - [5. Statusvariablen und Profile](#5-statusvariablen-und-profile)
 - [6. WebFront](#6-webfront)
 - [7. PHP-Befehlsreferenz](#7-php-befehlsreferenz)
-- [8. Anhang](#8-anhang)
+- [8. Changelog](#8-changelog)
 - [9. Lizenz](#9-lizenz)
 
 ## 1. Funktionsumfang
@@ -64,15 +64,9 @@ Die Instanz besitzt keine im WebFront darstellbaren Elemente.
 
 Die Instanz besitzt keine Instanz-Funktionen.  
 
-## 8. Anhang
+## 8. Changelog
 
-**Changelog:**  
-
-Version 1.5:  
- - Release für IPS 5.1 und den Module-Store  
-
-Version 1.0:  
- - Erstes offizielles Release  
+[Changelog der Library](../README.md#3-changelog)
 
 ## 9. Lizenz
 

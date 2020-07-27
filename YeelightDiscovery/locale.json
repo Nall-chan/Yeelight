@@ -6,7 +6,9 @@
             "Model": "Model",
             "Name": "Name",
             "Background discovery of Yeelight devices": "Hintergrundsuche nach Yeelight Ger\u00e4ten",
-            "Yeelight Devices": "Yeelight Geräte"
+            "Yeelight Devices": "Yeelight Geräte",
+            "No Devices found!": "Keine Geräte gefunden!",
+            "No devices were found.\r\nTo recognize devices, incoming port 1982 must be available in IPS.\r\nPlease configure the firewall or routing accordingly.": "Es wurden keine Geräte gefunden.\r\nUm Geräte zu erkennen muss ankommend Port 1982 in IPS verfügbar sein.\r\nBitte Firewall oder Routing entsprechend konfigurieren."
         }
     }
 }
