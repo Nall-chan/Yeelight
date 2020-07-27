@@ -3,7 +3,7 @@
         "de": {
             "Change light smooth": "Licht sanft \u00e4ndern",
             "Display HSL-Slider (only Webfront)": "HSL-Slider anzeigen (nur Webfront)",
-            "possible modes:":"Mögliche Modi:",
+            "possible modes:": "Mögliche Modi:",
             "color": "Farbe",
             "color and nightlight": "Farbe und Nachtlicht",
             "white and nightlight": "Wei\u00df und Nachtlicht",
@@ -21,7 +21,7 @@
             "RGB Color": "RGB Farbe",
             "HSV Saturation": "HSV S\u00e4ttigung",
             "White": "Wei\u00df",
-            "Nightlight":"Nachtlicht",
+            "Nightlight": "Nachtlicht",
             "Current mode": "Aktueller Modus",
             "HSV Hue": "HSV Hue",
             "State Background": "Status Hintergrund",
@@ -31,7 +31,7 @@
             "White Background": "Wei\u00df Hintergrund",
             "Current mode Background": "Aktueller Modus Hintergrund",
             "HSV Hue Background": "HSV Hue Hintergrund",
-            "Brightness Nightlight":"Helligkeit Nachtlicht"
+            "Brightness Nightlight": "Helligkeit Nachtlicht"
         }
     }
 }

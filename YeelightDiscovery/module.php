@@ -32,8 +32,8 @@ require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
  */
 class YeelightDiscovery extends ipsmodule
 {
-    use \Yeelight\DebugHelper,
-        \YeelightDiscovery\BufferHelper;
+    use \Yeelight\DebugHelper;
+    use \YeelightDiscovery\BufferHelper;
 
     /**
      * Interne Funktion des SDK.
@@ -76,20 +76,6 @@ class YeelightDiscovery extends ipsmodule
                 $this->ApplyChanges();
                 break;
         }
-    }
-
-    private function GetIPSInstances(): array
-    {
-        $InstanceIDList = IPS_GetInstanceListByModuleID('{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}');
-        $Devices = [];
-        foreach ($InstanceIDList as $InstanceID) {
-            $IO = IPS_GetInstance($InstanceID)['ConnectionID'];
-            if ($IO > 0) {
-                $Devices[$InstanceID] = IPS_GetProperty($IO, 'Host');
-            }
-        }
-        $this->SendDebug('IPS Devices', $Devices, 0);
-        return $Devices;
     }
 
     /**
@@ -142,7 +128,7 @@ class YeelightDiscovery extends ipsmodule
                 'IPAddress'  => $IPAddress,
                 'id'         => '',
                 'model'      => '',
-//                'name'       => IPS_GetLocation($InstanceID),
+                //                'name'       => IPS_GetLocation($InstanceID),
                 'name'       => IPS_GetName($InstanceID),
                 'location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true),
                 'instanceID' => $InstanceID
@@ -152,6 +138,27 @@ class YeelightDiscovery extends ipsmodule
         $this->SendDebug('FORM', json_encode($Form), 0);
         $this->SendDebug('FORM', json_last_error_msg(), 0);
         return json_encode($Form);
+    }
+
+    public function Discover()
+    {
+        $this->LogMessage($this->Translate('Background discovery of Yeelight devices'), KL_NOTIFY);
+        $this->Devices = $this->DiscoverDevices();
+        // Alt neu vergleich fehlt, sowie die Events an IPS senden wenn neues Gerät im Netz gefunden wurde.
+    }
+
+    private function GetIPSInstances(): array
+    {
+        $InstanceIDList = IPS_GetInstanceListByModuleID('{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}');
+        $Devices = [];
+        foreach ($InstanceIDList as $InstanceID) {
+            $IO = IPS_GetInstance($InstanceID)['ConnectionID'];
+            if ($IO > 0) {
+                $Devices[$InstanceID] = IPS_GetProperty($IO, 'Host');
+            }
+        }
+        $this->SendDebug('IPS Devices', $Devices, 0);
+        return $Devices;
     }
 
     private function parseHeader(string $Data): array
@@ -212,13 +219,6 @@ class YeelightDiscovery extends ipsmodule
         }
         socket_close($socket);
         return $DeviceData;
-    }
-
-    public function Discover()
-    {
-        $this->LogMessage($this->Translate('Background discovery of Yeelight devices'), KL_NOTIFY);
-        $this->Devices = $this->DiscoverDevices();
-        // Alt neu vergleich fehlt, sowie die Events an IPS senden wenn neues Gerät im Netz gefunden wurde.
     }
 }
 

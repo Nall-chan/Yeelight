@@ -2,24 +2,24 @@
 [![Version](https://img.shields.io/badge/Modul%20Version-1.7-blue.svg)]()
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
-[![StyleCI](https://styleci.io/repos/186269467/shield?style=flat)](https://styleci.io/repos/186269467)  
+[![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
 
-# Yeelight Device
+# Yeelight Device <!-- omit in toc -->
 Einbindung eines Yeelight-Gerätes in IPS.  
 
-## Dokumentation
+## Dokumentation <!-- omit in toc -->
 
 **Inhaltsverzeichnis**
 
-1. [Funktionsumfang](#1-funktionsumfang)  
-2. [Voraussetzungen](#2-voraussetzungen)  
-3. [Software-Installation](#3-software-installation) 
-4. [Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
-5. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
-6. [WebFront](#6-webfront)
-7. [PHP-Befehlsreferenz](#7-php-befehlsreferenz) 
-8. [Anhang](#8-anhang)  
-9. [Lizenz](#9-lizenz)
+- [1. Funktionsumfang](#1-funktionsumfang)
+- [2. Voraussetzungen](#2-voraussetzungen)
+- [3. Software-Installation](#3-software-installation)
+- [4. Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
+- [5. Statusvariablen und Profile](#5-statusvariablen-und-profile)
+- [6. WebFront](#6-webfront)
+- [7. PHP-Befehlsreferenz](#7-php-befehlsreferenz)
+- [8. Anhang](#8-anhang)
+- [9. Lizenz](#9-lizenz)
 
 ## 1. Funktionsumfang
 
@@ -44,7 +44,7 @@ Einbindung eines Yeelight-Gerätes in IPS.
 
 Das Anlegen von neuen Instanzen kann komfortabel über die Instanz [Yeelight Discovery:](../YeelightDiscovery/) erfolgen.  
 
-Alternativ ist das Modul im Dialog 'Instanz hinzufügen' unter dem Hersteller 'Xaiomi' oder dem Schnellfilter 'Yeelight' zufinden.  
+Alternativ ist das Modul im Dialog 'Instanz hinzufügen' unter dem Hersteller 'Xiaomi' oder dem Schnellfilter 'Yeelight' zu finden.  
 ![Instanz hinzufügen](imgs/add.png)  
 
 Es wird automatisch eine 'Client Socket' Instanz erzeugt.  
@@ -57,35 +57,35 @@ Folgende Parameter sind in der 'Yeelight Device' Instanz zu konfigurieren:
 ![Konfigurator](imgs/conf.png)  
 **Konfigurationsseite:**  
 
-| Eigenschaft       | Typ     | Standardwert | Funktion                                                                            |
-| :---------------: | :-----: | :----------: | :---------------------------------------------------------------------------------: |
-| SetSmooth         | bool    | false        | Bei true wird immer eine Transitionzeit von 500ms bei Ansteuerung gesetzt           |
-| HUESlider         | bool    | true         | Aktiviert zwei Variablen für das WebFront welche einen HUE und Sat Slider enthalten |
-| Mode              | integer | 0            | Varianten für den Modus, 0=Farbe, 1=Farbe + Nachtlicht, 2=Weiß + Nachtlicht         |
+| Eigenschaft |   Typ   | Standardwert |                                      Funktion                                       |
+| :---------: | :-----: | :----------: | :---------------------------------------------------------------------------------: |
+|  SetSmooth  |  bool   |    false     |      Bei true wird immer eine Transitionzeit von 500ms bei Ansteuerung gesetzt      |
+|  HUESlider  |  bool   |     true     | Aktiviert zwei Variablen für das WebFront welche einen HUE und Sat Slider enthalten |
+|    Mode     | integer |      0       |     Varianten für den Modus, 0=Farbe, 1=Farbe + Nachtlicht, 2=Weiß + Nachtlicht     |
 
 ## 5. Statusvariablen und Profile
 
 Folgende Statusvariablen werden automatisch angelegt, je nach Gerät können es auch weniger sein.  
 
-| Name                       | Typ     | Ident      | Beschreibung                                   |
-| :------------------------: | :-----: | :--------: | :--------------------------------------------: |
-| Status                     | bool    | power      | Status des Gerätes                             |
-| Helligkeit                 | integer | bright     | Helligkeit in Prozent                          |
-| RGB Farbe                  | integer | rgb        | RGB Farbwert                                   |
-| Weiß                       | integer | ct         | Weißton im Modus 'Weiß'  von 1700K bis 6500K   |
-| Aktueller Modus            | integer | color_mode | 1 = RGB, 2 = Weiß, 3 = HSV                     |
-| HSV Sättigung              | integer | sat        | Sättigung in Prozent für HUE                   |
-| HSV Hue                    | string  | hue        | JavaScript für den HUE-Slider im WebFront      |
-| Helligkeit Nachtlicht      | integer | nl_br      | Vom Gerät gemeldete Helligkeit Nachtlicht      |
+|         Name          |   Typ   |   Ident    |                 Beschreibung                 |
+| :-------------------: | :-----: | :--------: | :------------------------------------------: |
+|        Status         |  bool   |   power    |              Status des Gerätes              |
+|      Helligkeit       | integer |   bright   |            Helligkeit in Prozent             |
+|       RGB Farbe       | integer |    rgb     |                 RGB Farbwert                 |
+|         Weiß          | integer |     ct     | Weißton im Modus 'Weiß'  von 1700K bis 6500K |
+|    Aktueller Modus    | integer | color_mode |          1 = RGB, 2 = Weiß, 3 = HSV          |
+|     HSV Sättigung     | integer |    sat     |         Sättigung in Prozent für HUE         |
+|        HSV Hue        | string  |    hue     |  JavaScript für den HUE-Slider im WebFront   |
+| Helligkeit Nachtlicht | integer |   nl_br    |  Vom Gerät gemeldete Helligkeit Nachtlicht   |
  
 **Profile**:
 
-| Name                     | Typ     | verwendet von Statusvariablen |
+|           Name           |   Typ   | verwendet von Statusvariablen |
 | :----------------------: | :-----: | :---------------------------: |
-| Yeelight.WhiteTemp       | integer | Weiß                          |
-| Yeelight.Mode            | integer | Aktueller Modus               |
-| Yeelight.ModeWNight      | integer | Aktueller Modus               |
-| Yeelight.ModeColorWNight | integer | Aktueller Modus               |
+|    Yeelight.WhiteTemp    | integer |             Weiß              |
+|      Yeelight.Mode       | integer |        Aktueller Modus        |
+|   Yeelight.ModeWNight    | integer |        Aktueller Modus        |
+| Yeelight.ModeColorWNight | integer |        Aktueller Modus        |
 
 ## 6. WebFront
 
@@ -235,7 +235,7 @@ bool YeeLight_SetName(integer $InstanzID, string $Name)
 
 ## 8. Anhang
 
-**Changlog:**  
+**Changelog:**  
 
 Version 1.7:  
  - YeeLight_SetMode schaltet Gerät immer an.  

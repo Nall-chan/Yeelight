@@ -93,7 +93,7 @@ class YeelightRPC_Data
     private $Id;
 
     /**
-     * @param string $name Propertyname
+     * @param string $name PropertyName
      *
      * @return mixed Value of Name
      */
@@ -242,7 +242,7 @@ class YeelightRPC_Data
     }
 
     /**
-     * Erzeugt einen, mit der GUDI versehenen, JSON-kodierten String zum versand an den RPC-Server.
+     * Erzeugt einen, mit der GUID versehenen, JSON-kodierten String zum versand an den RPC-Server.
      *
      * @return string JSON-kodierter String für IPS-Dateninterface.
      */

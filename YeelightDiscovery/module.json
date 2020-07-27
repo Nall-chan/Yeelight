@@ -3,9 +3,12 @@
     "name": "Yeelight Discovery",
     "type": 5,
     "vendor": "Xiaomi",
-    "aliases": ["Yeelight Discovery"],
+    "aliases": [
+        "Yeelight Discovery"
+    ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "Yeelight"
+    "prefix": "Yeelight",
+    "url": "https://github.com/Nall-chan/Yeelight/blob/master/YeelightDiscovery/"
 }

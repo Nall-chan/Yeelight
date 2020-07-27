@@ -2,24 +2,24 @@
 [![Version](https://img.shields.io/badge/Modul%20Version-1.5-blue.svg)]()
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
-[![StyleCI](https://styleci.io/repos/186269467/shield?style=flat)](https://styleci.io/repos/186269467)  
+[![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)   
 
-# Yeelight Discovery  
+# Yeelight Discovery <!-- omit in toc -->  
 Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.  
 
-## Dokumentation
+## Dokumentation <!-- omit in toc -->
 
 **Inhaltsverzeichnis**
 
-1. [Funktionsumfang](#1-funktionsumfang)  
-2. [Voraussetzungen](#2-voraussetzungen)  
-3. [Software-Installation](#3-software-installation) 
-4. [Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
-5. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
-6. [WebFront](#6-webfront)
-7. [PHP-Befehlsreferenz](#7-php-befehlsreferenz) 
-8. [Anhang](#8-anhang)  
-9. [Lizenz](#9-lizenz)
+- [1. Funktionsumfang](#1-funktionsumfang)
+- [2. Voraussetzungen](#2-voraussetzungen)
+- [3. Software-Installation](#3-software-installation)
+- [4. Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
+- [5. Statusvariablen und Profile](#5-statusvariablen-und-profile)
+- [6. WebFront](#6-webfront)
+- [7. PHP-Befehlsreferenz](#7-php-befehlsreferenz)
+- [8. Anhang](#8-anhang)
+- [9. Lizenz](#9-lizenz)
 
 ## 1. Funktionsumfang
 
@@ -66,7 +66,7 @@ Die Instanz besitzt keine Instanz-Funktionen.
 
 ## 8. Anhang
 
-**Changlog:**  
+**Changelog:**  
 
 Version 1.5:  
  - Release für IPS 5.1 und den Module-Store  
