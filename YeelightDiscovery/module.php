@@ -56,7 +56,7 @@ class YeelightDiscovery extends ipsmodule
         $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
 
         $DisplayNATWarning = false;
-        if (IPS_GetOption('NATSupport') && str_contains(IPS_GetKernelPlatform(), 'Docker')) {
+        if (IPS_GetOption('NATSupport') && strpos(IPS_GetKernelPlatform(), 'Docker')) {
             // not supported. Docker cannot forward Multicast :(
             $Form['actions'][1]['popup']['items'][1]['caption'] = 'The combination of Docker and NAT is not supported because Docker does not support multicast.\r\nPlease run the container in the host network.';
             $Form['actions'][1]['visible'] = true;
