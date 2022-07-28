@@ -93,16 +93,6 @@ class YeelightRPC_Data
     private $Id;
 
     /**
-     * @param string $name PropertyName
-     *
-     * @return mixed Value of Name
-     */
-    public function __get($name)
-    {
-        return $this->{$name};
-    }
-
-    /**
      * Erstellt ein YeelightRPC_Data Objekt.
      *
      * @param string $Method [optional] Name der RPC-Methode
@@ -130,6 +120,16 @@ class YeelightRPC_Data
                 $this->Id = $Id;
             }
         }
+    }
+
+    /**
+     * @param string $name PropertyName
+     *
+     * @return mixed Value of Name
+     */
+    public function __get($name)
+    {
+        return $this->{$name};
     }
 
     /**
@@ -178,26 +178,6 @@ class YeelightRPC_Data
         } else {
             return null;
         }
-    }
-
-    /**
-     * Gibt ein Objekt SyLaRPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
-     *
-     * @return SyLaRPCException Enthält die Daten der Fehlermeldung des RPC-Server.
-     */
-    private function GetErrorObject()
-    {
-        if (property_exists($this->Error, 'code')) {
-            $code = (int) $this->Error->code;
-        } else {
-            $code = 0;
-        }
-        if (property_exists($this->Error, 'message')) {
-            $message = (string) $this->Error->message;
-        } else {
-            $message = '';
-        }
-        return new YeelightRPCException($message, $code);
     }
 
     /**
@@ -259,6 +239,26 @@ class YeelightRPC_Data
         $this->EncodeUTF8($RPC->method);
         $this->EncodeUTF8($RPC->params);
         return json_encode($RPC);
+    }
+
+    /**
+     * Gibt ein Objekt SyLaRPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
+     *
+     * @return SyLaRPCException Enthält die Daten der Fehlermeldung des RPC-Server.
+     */
+    private function GetErrorObject()
+    {
+        if (property_exists($this->Error, 'code')) {
+            $code = (int) $this->Error->code;
+        } else {
+            $code = 0;
+        }
+        if (property_exists($this->Error, 'message')) {
+            $message = (string) $this->Error->message;
+        } else {
+            $message = '';
+        }
+        return new YeelightRPCException($message, $code);
     }
 }
 

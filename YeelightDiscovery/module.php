@@ -53,8 +53,19 @@ class YeelightDiscovery extends ipsmodule
      */
     public function GetConfigurationForm()
     {
-        $Devices = $this->DiscoverDevices();
         $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+
+        $DisplayNATWarning = false;
+        if (IPS_GetOption('NATSupport') && str_contains(IPS_GetKernelPlatform(), 'Docker')) {
+            // not supported. Docker cannot forward Multicast :(
+            $Form['actions'][1]['popup']['items'][1]['caption'] = 'The combination of Docker and NAT is not supported because Docker does not support multicast.\r\nPlease run the container in the host network.';
+            $Form['actions'][1]['visible'] = true;
+            $this->SendDebug('FORM', json_encode($Form), 0);
+            $this->SendDebug('FORM', json_last_error_msg(), 0);
+            return json_encode($Form);
+        }
+
+        $Devices = $this->DiscoverDevices();
         $IPSDevices = $this->GetIPSInstances();
         if (count($Devices) == 0) {
             $Form['actions'][1]['visible'] = true;
@@ -146,16 +157,20 @@ class YeelightDiscovery extends ipsmodule
         if (!$socket) {
             return $DeviceData;
         }
-        socket_bind($socket, '0.0.0.0', 0);
-        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]);
+
+        socket_bind($socket, '0', 0);
+        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 2, 'usec' => 100000]);
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
+        socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
         $message = [
             'M-SEARCH * HTTP/1.1',
             'HOST: 239.255.255.250:1982',
             'MAN: "ssdp:discover"',
-            'ST: wifi_bulb'
+            'ST: wifi_bulb',
+            '',
+            ''
         ];
-        $SendData = implode("\r\n", $message) . "\r\n\r\n";
+        $SendData = implode("\r\n", $message);
         $this->SendDebug('Search', $SendData, 0);
         if (@socket_sendto($socket, $SendData, strlen($SendData), 0, '239.255.255.250', 1982) === false) {
             return $DeviceData;
@@ -174,9 +189,9 @@ class YeelightDiscovery extends ipsmodule
                 $i--;
                 continue;
             }
+            $this->SendDebug($IPAddress, $buf, 0);
             $Data = $this->parseHeader($buf);
             $Data['port'] = (int) explode(':', $Data['Location'])[2];
-            $this->SendDebug($IPAddress, $Data, 0);
             if ($Data['name'] == '') {
                 $Data['name'] = 'unnamed Yeelight Device';
             }

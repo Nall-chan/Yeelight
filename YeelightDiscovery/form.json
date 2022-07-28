@@ -52,7 +52,7 @@
                     {
                         "name": "ErrorText",
                         "type": "Label",
-                        "caption": "No devices were found.\r\nTo recognize devices, incoming port 1982 must be available in IPS.\r\nPlease configure the firewall or routing accordingly."
+                        "caption": "No devices were found.\r\nTo recognize devices, incoming multicast on port 1982 (UDP) must be forwarded to IPS.\r\nPlease configure the firewall or routing accordingly."
                     }
                 ]
             }
