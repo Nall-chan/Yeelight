@@ -1265,11 +1265,7 @@ class YeelightDevice extends IPSModule
         }
         $YeelightData = new \Yeelight\YeelightRPC_Data();
         $YeelightData->set_rgb($Params);
-        $Result = $this->Send($YeelightData);
-        if ($Result === null) {
-            return false;
-        }
-        return $Result[0] === 'ok';
+        return $this->Send($YeelightData);
     }
 
     /**
@@ -1289,11 +1285,7 @@ class YeelightDevice extends IPSModule
         }
         $YeelightData = new \Yeelight\YeelightRPC_Data();
         $YeelightData->bg_set_rgb($Params);
-        $Result = $this->Send($YeelightData);
-        if ($Result === null) {
-            return false;
-        }
-        return $Result[0] === 'ok';
+        return $this->Send($YeelightData);
     }
 
     /**
