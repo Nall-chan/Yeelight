@@ -1384,7 +1384,7 @@ class YeelightDevice extends IPSModule
         if (!$socket) {
             return;
         }
-        socket_bind($socket, '0.0.0.0', 0);
+        socket_bind($socket, '0', 1983);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]);
         $message = [
             'M-SEARCH * HTTP/1.1',
@@ -1394,7 +1394,7 @@ class YeelightDevice extends IPSModule
         ];
         $SendData = implode("\r\n", $message) . "\r\n\r\n";
         $this->SendDebug('Ask capabilities', $SendData, 0);
-        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, '239.255.255.250', 1982) === false) {
+        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, $this->Host , 1982) === false) {
             return;
         }
         usleep(100000);
