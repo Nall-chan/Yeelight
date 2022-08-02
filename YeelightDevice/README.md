@@ -41,7 +41,7 @@ Einbindung eines Yeelight-Gerätes in IPS.
 ## 4. Einrichten der Instanzen in IP-Symcon
 
 Das Anlegen von neuen Instanzen kann komfortabel über die Instanz [Yeelight Discovery Instanz](../YeelightDiscovery/) erfolgen.  
-<span style="color:red">**Wird Symcon allerdings unter Docker mit aktivem NAT betrieben, so müssen die Geräte Instanze per Hand angelegt werden!**</span>  
+<span style="color:red">**Wird Symcon allerdings unter Docker mit aktivem NAT betrieben, so müssen die Geräte Instanzen per Hand angelegt werden!**</span>  
 
 Entsprechend ist das Modul im Dialog 'Instanz hinzufügen' unter dem Hersteller 'Xiaomi' oder dem Schnellfilter 'Yeelight' zu finden.  
 ![Instanz hinzufügen](imgs/add.png)  

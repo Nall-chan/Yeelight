@@ -37,7 +37,10 @@
             "caption": "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to IPS. Please check firewall or NAT forwarding."
         }
     ],
-    "actions":[
+    "actions": [
+        {
+            "type": "TestCenter"
+        },
         {
             "type": "RowLayout",
             "items": [

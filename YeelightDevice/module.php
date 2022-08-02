@@ -153,8 +153,16 @@ class YeelightDevice extends IPSModule
             'Profile'      => '~Intensity.100',
             'enableAction' => false
         ],
-        'flowing'           => [],
-        'bg_flowing'        => [],
+        'flowing'           => [
+            'Name'         => 'Sequenz active',
+            'Type'         => VARIABLETYPE_BOOLEAN,
+            'Profile'      => '',
+            'enableAction' => false],
+        'bg_flowing'        => [
+            'Name'         => 'Sequenz active Background',
+            'Type'         => VARIABLETYPE_BOOLEAN,
+            'Profile'      => '',
+            'enableAction' => false]
     ];
 
     /**
@@ -214,15 +222,13 @@ class YeelightDevice extends IPSModule
         $this->RegisterProfileIntegerEx('Yeelight.ModeColor', '', '', '', [
             [1, 'RGB', '', -1],
             [2, $this->Translate('White'), '', -1],
-            [3, 'HSV', '', -1],
-            [4, 'Flow', '', -1]
+            [3, 'HSV', '', -1]
         ]);
 
         $this->RegisterProfileIntegerEx('Yeelight.ModeColorWNight', '', '', '', [
             [1, 'RGB', '', -1],
             [2, $this->Translate('White'), '', -1],
             [3, 'HSV', '', -1],
-            [4, 'Flow', '', -1],
             [5, $this->Translate('Nightlight'), '', -1],
         ]);
         $this->RegisterProfileIntegerEx('Yeelight.ModeWNight', '', '', '', [
@@ -1501,14 +1507,6 @@ class YeelightDevice extends IPSModule
             } else {
                 $Value = 2;
             }
-        }
-        if (($Ident == 'flowing') && ($Value == 1)) {
-            $Ident = 'color_mode';
-            $Value = 4;
-        }
-        if (($Ident == 'bg_flowing') && ($Value == 1)) {
-            $Ident = 'bg_lmode';
-            $Value = 4;
         }
         $StatusVariable = self::$DataPoints[$Ident];
         if ($Ident == 'hue') {
