@@ -1,0 +1,37 @@
+{
+    "id": "{19983D77-0909-A859-FA78-B77D19CAB88E}",
+    "caption": "Set sleep timer",
+    "form": [
+        {
+            "type": "NumberSpinner",
+            "name": "SLEEP",
+            "suffix": "minutes",
+            "caption": "minutes to turn off"
+        }
+    ],
+    "action": "YEELIGHT_SetSleep($_IPS['TARGET'],$_IPS['SLEEP']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set sleep timer": "Schlaf Timer setzen",
+            "minutes to turn off": "Minuten bis zum Ausschalten",
+            "minutes": "Minuten",
+            "Sets the sleep timer before the lamp turns off": "Stellt den Einschlaf-Timer ein, bevor sich die Lampe ausschaltet",
+            "Sets the sleep time to {SLEEP, number} minutes": "Setzt die Einschlafzeit auf {SLEEP, number} Minuten"
+        }
+    },
+    "format": "Sets the sleep time to {SLEEP, number} minutes",
+    "description": "Sets the sleep timer before the lamp turns off"
+}

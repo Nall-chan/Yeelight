@@ -1,7 +1,7 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-1.80-blue.svg)]()
+[![Version](https://img.shields.io/badge/Modul%20Version-2.00-blue.svg)](https://community.symcon.de/t/modul-xiaomi-yeelight-color-bulb/45887)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
-[![Version](https://img.shields.io/badge/Symcon%20Version-5.1%20%3E-green.svg)](https://www.symcon.de/forum/threads/30857-IP-Symcon-5-1-%28Stable%29-Changelog)
+[![Version](https://img.shields.io/badge/Symcon%20Version-6.1%20%3E-green.svg)](https://www.symcon.de/service/dokumentation/installation/migrationen/v60-v61-q1-2022/)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)   
 
 # Yeelight Discovery <!-- omit in toc -->  
@@ -28,29 +28,28 @@ Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.
 
 ## 2. Voraussetzungen
 
- - IPS 5.1 oder höher  
- - Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](../#2-hinweise)  
+ - IPS 6.1 oder höher  
+ - Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](../README.md#1-lan-steuerung-aktiveren) 
 
 ## 3. Software-Installation
 
- Dieses Modul ist Bestandteil der [IPSYeelight-Library](../).  
-
-**IPS 5.1:**  
-   Bei privater Nutzung:
-     Über den 'Module-Store' in IPS.  
-   **Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
+ Dieses Modul ist Bestandteil der [Yeelight-Library](../README.md#3-software-installation).  
 
 ## 4. Einrichten der Instanzen in IP-Symcon
 
-Das Modul ist direkt im Objektbaum unter den Discovery Instanzen zu finden.  
+Die Yeelight Discovery Instanz ist direkt im Objektbaum unter den Discovery Instanzen zu finden, sofern sie bei der Installation des Modules mit angelegt wurde.  
 
-Beim öffnen der Discovery Instanz oder nach dem betätigen der Schaltfläche 'Aktualisieren', dauert es wenige Sekunden bis alle im Netzwerk gefunden Geräte angezeigt werden.  
-Über das selektieren eines Eintrages in der Tabelle und betätigen des dazugehörigen 'Erstellen' Button,  können einzelne Instanzen in IPS angelegt werden.  
+Beim öffnen der Yeelight Discovery Instanz oder nach dem betätigen der Schaltfläche 'Aktualisieren', dauert es wenige Sekunden bis alle im Netzwerk gefunden Geräte angezeigt werden.  
+
+<span style="color:red">**Wird Symcon in einen Docker Container welcher per NAT angebunden ist betrieben, so wird eine Fehlermeldung ausgegeben. Diese Konstellation wird aufgrund der fehlenden Multicast Fähigkeiten von Docker nicht unterstützt.**</span>  
+
+Über das selektieren eines Eintrages in der Tabelle und betätigen des dazugehörigen 'Erstellen' Button können einzelne Instanzen in IPS angelegt werden.  
+
 Alternativ können auch alle fehlenden Instanzen auf einmal erstellt werden.  
-Erstelle Instanzen werden direkt im root des logischen Baums erstellt.  
-![Discovery](imgs/conf.png)  
 
-Diese Instanz wird immer automatisch neu erstellt.  
+Erstellte Instanzen werden in der Kategorie 'Yeelight Geräte' des Objektbaum erstellt. Die Instanzen können anschließend frei verschoben werden.  
+
+![Discovery](imgs/conf.png)  
 
 ## 5. Statusvariablen und Profile
 

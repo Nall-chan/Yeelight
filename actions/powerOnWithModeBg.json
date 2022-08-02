@@ -1,0 +1,98 @@
+{
+    "id": "{2A1524C0-B827-4164-A985-A82FFB79CA33}",
+    "caption": "Turn on background / Set Mode",
+    "form": [
+        {
+            "caption": "Operation mode",
+            "name": "MODE",
+            "type": "Select",
+            "options": [
+                {
+                    "value": -1,
+                    "caption": "Default"
+                },
+                {
+                    "value": 1,
+                    "caption": "Color (RGB)"
+                },
+                {
+                    "value": 4,
+                    "caption": "Color (HSV)"
+                },
+                {
+                    "value": 2,
+                    "caption": "White"
+                }
+            ]
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "if ($_IPS['MODE'] == -1){",
+        "   if ($_IPS['DURATION'] < 0.03){",
+        "       YEELIGHT_SetBgPower($_IPS['TARGET'], true);",
+        "   } else {",
+        "       YEELIGHT_SetBgPowerSmooth($_IPS['TARGET'], true, $_IPS['DURATION'] * 1000);",
+        "   }",
+        "} else {",
+        "   if ($_IPS['DURATION'] < 0.03){",
+        "       YEELIGHT_SetBgMode($_IPS['TARGET'], $_IPS['MODE']);",
+        "   } else {",
+        "       YEELIGHT_SetBgModeSmooth($_IPS['TARGET'], $_IPS['MODE'], $_IPS['DURATION'] * 1000);",
+        "       }",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['MODE'] == -1){",
+        "   if ($_IPS['DURATION'] < 0.03){",
+        "       $OUT = 'YEELIGHT_SetBgPower('.$_IPS['TARGET'].', true);';",
+        "   } else {",
+        "       $OUT = 'YEELIGHT_SetBgPowerSmooth('.$_IPS['TARGET'].', true, '.$_IPS['DURATION'] * 1000.');';",
+        "   }",
+        "} else {",
+        "   if ($_IPS['DURATION'] < 0.03){",
+        "       $OUT = 'YEELIGHT_SetBgMode('.$_IPS['TARGET'].', '.$_IPS['MODE'].');';",
+        "   } else {",
+        "       $OUT = 'YEELIGHT_SetBgModeSmooth('.$_IPS['TARGET'].', '.$_IPS['MODE'].', '.$_IPS['DURATION'] * 1000.');';",
+        "   }",
+        "}",
+        "echo $OUT;"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Turn on background / Set Mode": "Hintergrund einschalten / Modus setzen",
+            "Operation mode": "Betriebsmodus",
+            "Default": "Standard",
+            "Color (RGB)": "Farbe (RGB)",
+            "Color (HSV)": "Farbe (HSV)",
+            "White": "Weiß",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Turn the lamp background on with oder without specific parameters": "Schaltet den Hintergrund der Lampe mit oder ohne bestimmte Parameter ein",
+            "Turn background on {DURATION, select, 0 {} other {with {DURATION} seconds fading }}{MODE, select, -1 {} 1 {in colormode (RGB)} 4 {in colormode (HSV)} other {with white}}": "Schalte Hintergrund ein {DURATION, select, 0 {} other {mit {DURATION} Sekunden fading }}{MODE, select, -1 {} 1 {im Farbmodus (RGB)} 4 {im Farbmodus (HSV)} other {in Weiß}}"
+        }
+    },
+    "format": "Turn background on {DURATION, select, 0 {} other {with {DURATION} seconds fading }}{MODE, select, -1 {} 1 {in colormode (RGB)} 4 {in colormode (HSV)} other {with white}}",
+    "description": "Turn the lamp background on with oder without specific parameters"
+}

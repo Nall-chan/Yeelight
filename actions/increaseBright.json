@@ -1,0 +1,27 @@
+{
+    "id": "{2706CDD9-7659-C873-842E-2604B0D4B2B7}",
+    "caption": "Increase brightness",
+    "form": [],
+    "action": "YEELIGHT_IncreaseBright($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Increase brightness": "Helligkeit erhöhen",
+            "Increases the brightness of the lamp": "Erhöht die Helligkeit von der Lampe"
+        }
+    },
+    "format": "Increases the brightness of the lamp",
+    "description": "Increases the brightness of the lamp"
+}

@@ -1,0 +1,27 @@
+{
+    "id": "{B83F159B-0766-0C43-7044-1CF804C1FF8A}",
+    "caption": "Change color",
+    "form": [],
+    "action": "YEELIGHT_CircleColor($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Change color": "Farbe wechseln",
+            "Rotates through the colors": "Rotiert durch die Farben"
+        }
+    },
+    "format": "Rotates through the colors",
+    "description": "Rotates through the colors"
+}

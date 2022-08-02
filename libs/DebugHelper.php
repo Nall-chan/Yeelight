@@ -19,7 +19,7 @@ trait DebugHelper
      */
     protected function SendDebug($Message, $Data, $Format)
     {
-        if (is_a($Data, 'YeelightRPC_Data')) {
+        if (is_a($Data, '\Yeelight\YeelightRPC_Data')) {
             /* @var $Data YeelightRPC_Data */
 
             if ($Data->Typ == YeelightRPC_Data::$isResult) {
@@ -42,6 +42,8 @@ trait DebugHelper
                 $DebugData = $Data->Params;
                 $this->SendDebug($Message, $DebugData, 0);
             }
+        } elseif (is_a($Data, '\Yeelight\YeelightRPCException')) {
+            $this->SendDebug('Error(' . $Data->getCode() . ')', $Data->getMessage(), 0);
         } elseif (is_object($Data)) {
             foreach ($Data as $Key => $DebugData) {
                 $this->SendDebug($Message . ':' . $Key, $DebugData, 0);

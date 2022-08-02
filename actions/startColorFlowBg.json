@@ -1,0 +1,176 @@
+{
+    "id": "{4932D905-36F5-4ACF-BA66-C3BE7E5E7FE4}",
+    "caption": "Run background sequence program",
+    "form": [
+        {
+            "caption": "Repeat sequence (0 = infinite)",
+            "name": "LOOPS",
+            "type": "NumberSpinner",
+            "digits": 0,
+            "minimum": 0,
+            "maximum": 99
+        },
+        {
+            "caption": "Action after expiration",
+            "name": "RECOVER",
+            "type": "Select",
+            "options": [
+                {
+                    "value": 0,
+                    "caption": "As before expiration"
+                },
+                {
+                    "value": 1,
+                    "caption": "Remains in the state where the sequence ends"
+                },
+                {
+                    "value": 2,
+                    "caption": "Switch off"
+                }
+            ]
+        },
+        {
+            "caption": "Sequenz",
+            "name": "VALUES",
+            "type": "List",
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Operation mode",
+                    "name": "MODE",
+                    "width": "160px",
+                    "add": 1,
+                    "edit": {
+                        "type": "Select",
+                        "options": [
+                            {
+                                "value": 1,
+                                "caption": "Color"
+                            },
+                            {
+                                "value": 2,
+                                "caption": "White with color temperature"
+                            },
+                            {
+                                "value": 7,
+                                "caption": "Wait the specified duration"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "caption": "Duration of execution",
+                    "name": "DURATION",
+                    "width": "160px",
+                    "add": 5,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "digits": 2,
+                        "minimum": 0.05,
+                        "maximum": 900,
+                        "suffix": " seconds"
+                    }
+                },
+                {
+                    "caption": "Color (only with mode 'Color')",
+                    "name": "COLOR",
+                    "width": "200px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectColor",
+                        "allowTransparent": false
+                    }
+                },
+                {
+                    "caption": "Color temperature (only with mode 'White')",
+                    "name": "TEMP",
+                    "width": "300px",
+                    "add": 1700,
+                    "edit": {
+                        "type": "HorizontalSlider",
+                        "minimum": 1700,
+                        "maximum": 6500,
+                        "stepSize": 1
+                    }
+                },
+                {
+                    "caption": "Brightness",
+                    "name": "BRIGHTNESS",
+                    "width": "100px",
+                    "add": 100,
+                    "edit": {
+                        "type": "HorizontalSlider",
+                        "minimum": 1,
+                        "maximum ": 100,
+                        "stepSize": 1
+                    }
+                }
+            ],
+            "values": []
+        }
+    ],
+    "action": [
+        "$FLOW = [];",
+        "$VALUES = json_decode($_IPS['VALUES'],true);",
+        "foreach($VALUES as $Value){",
+        "   $FLOW[] = $Value['DURATION'] * 1000;",
+        "   $FLOW[] = $Value['MODE'];",
+        "   $FLOW[] = ($Value['MODE'] == 2) ? $Value['TEMP'] : $Value['COLOR'];",
+        "   $FLOW[] = $Value['BRIGHTNESS'];",
+        "}",
+        "YEELIGHT_StartBgColorFlow($_IPS['TARGET'],$_IPS['LOOPS'] * count($VALUES),$_IPS['RECOVER'],json_encode($FLOW));"
+    ],
+    "readable": [
+        "$FLOW = [];",
+        "$VALUES = json_decode($_IPS['VALUES'],true);",
+        "foreach($VALUES as $Value){",
+        "   $FLOW[] = $Value['DURATION'] * 1000;",
+        "   $FLOW[] = $Value['MODE'];",
+        "   $FLOW[] = ($Value['MODE'] == 2) ? $Value['TEMP'] : $Value['COLOR'];",
+        "   $FLOW[] = $Value['BRIGHTNESS'];",
+        "}",
+        "echo 'YEELIGHT_StartBgColorFlow(';",
+        "echo $_IPS['TARGET'].', ';",
+        "echo ($_IPS['LOOPS'] * count($VALUES)).', ';",
+        "echo $_IPS['RECOVER'].', ';",
+        "echo '\"'.json_encode($FLOW).'\");';"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Run background sequence program": "Ablaufprogramm Hintergrund ausführen",
+            "Sends a sequence program to the lamp and runs it on background light": "Sendet ein Ablaufprogramm an die Lampe und führt es mit dem Hintergrundlicht aus",
+            "Repeat sequence (0 = infinite)": "Sequenz wiederholen (0 = unendlich)",
+            "Action after expiration": "Aktion nach Ablauf",
+            "As before expiration": "Wie vor dem Ablauf",
+            "Remains in the state where the sequence ends": "Verbleibt in dem Zustand, in dem die Sequenz endet",
+            "Switch off": "Ausschalten",
+            "Sequenz": "Ablauf",
+            "Operation mode": "Betriebsmodus",
+            "Color": "Farbe",
+            "White with color temperature": "Weiß mit Farbtemperatur",
+            "Wait the specified duration": "Warte die angegebene Dauer",
+            "Duration of execution": "Dauer der Ausführung",
+            " seconds": " Sekunden",
+            "Color (only with mode 'Color')": "Farbe (nur bei Modus 'Farbe')",
+            "Color temperature (only with mode 'White')": "Farbtemperatur (nur bei Modus 'Weiß')",
+            "Brightness": "Helligkeit"
+        }
+    },
+    "format": "Sends a sequence program to the lamp and runs it on background light",
+    "description": "Sends a sequence program to the lamp and runs it on background light"
+}

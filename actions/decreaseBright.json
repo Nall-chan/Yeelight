@@ -1,0 +1,27 @@
+{
+    "id": "{98F17260-ADCA-9B1C-6701-B0BFBE9944BB}",
+    "caption": "Decrease brightness",
+    "form": [],
+    "action": "YEELIGHT_DecreaseBright($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Decrease brightness": "Helligkeit verringern",
+            "Decreases the brightness of the lamp": "Verringert die Helligkeit von der Lampe"
+        }
+    },
+    "format": "Decreases the brightness of the lamp",
+    "description": "Decreases the brightness of the lamp"
+}

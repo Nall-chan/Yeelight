@@ -1,0 +1,27 @@
+{
+    "id": "{120350AD-8B17-D8FC-470D-01E3833C2528}",
+    "caption": "Stop sequence",
+    "form": [],
+    "action": "YEELIGHT_StopColorFlow($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Stop sequence": "Ablaufprogramm beenden",
+            "Stops a running sequence program": "Beendet ein laufendes Ablaufprogramm"
+        }
+    },
+    "format": "Stop sequence",
+    "description": "Stops a running sequence program"
+}

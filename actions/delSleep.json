@@ -1,0 +1,27 @@
+{
+    "id": "{CF108547-B617-2CAC-8B9A-402341CE2B39}",
+    "caption": "Delete sleep timer",
+    "form": [],
+    "action": "YEELIGHT_DelSleep($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Delete sleep timer": "Schlaf Timer löschen",
+            "Deletes the sleep timer": "Löscht den Einschlaf-Timer"
+        }
+    },
+    "format": "Deletes the sleep timer",
+    "description": "Deletes the sleep timer"
+}

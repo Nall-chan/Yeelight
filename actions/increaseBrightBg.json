@@ -1,0 +1,27 @@
+{
+    "id": "{30B782EC-0A83-C0EE-F44E-5CEFFCD09F2E}",
+    "caption": "Increase background brightness",
+    "form": [],
+    "action": "YEELIGHT_IncreaseBgBright($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Increase background brightness": "Helligkeit Hintergrund erhöhen",
+            "Increases the brightness of the lamp background": "Erhöht die Helligkeit vom Hintergrund der Lampe"
+        }
+    },
+    "format": "Increases the brightness of the lamp background",
+    "description": "Increases the brightness of the lamp background"
+}

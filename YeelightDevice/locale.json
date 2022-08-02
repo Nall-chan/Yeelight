@@ -31,7 +31,9 @@
             "White Background": "Wei\u00df Hintergrund",
             "Current mode Background": "Aktueller Modus Hintergrund",
             "HSV Hue Background": "HSV Hue Hintergrund",
-            "Brightness Nightlight": "Helligkeit Nachtlicht"
+            "Brightness Nightlight": "Helligkeit Nachtlicht",
+            "Instance has no active parent.": "Instanz hat keinen aktiven Parent.",
+            "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to IPS. Please check firewall or NAT forwarding.": "Fähigkeiten des Gerät konnten nicht ermittelt werden. Es muss Port 1983 (UDP) ankommend an IPS weitergeleitet werden. Bitte Firewall oder NAT Weiterleitung prüfen."
         }
     }
 }

@@ -1,0 +1,27 @@
+{
+    "id": "{35E7E3C4-075B-1933-7A33-F7328928649C}",
+    "caption": "Decrease background brightness",
+    "form": [],
+    "action": "YEELIGHT_IncreaseBgBright($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Decrease background brightness": "Helligkeit Hintergrund verringern",
+            "Decreases the brightness of the lamp background": "Verringert die Helligkeit vom Hintergrund der Lampe"
+        }
+    },
+    "format": "Decreases the brightness of the lamp background",
+    "description": "Decreases the brightness of the lamp background"
+}

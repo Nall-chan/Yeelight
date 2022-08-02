@@ -1,0 +1,27 @@
+{
+    "id": "{CB892C4B-8537-47DD-B8F3-59C07923CE38}",
+    "caption": "Power off background",
+    "form": [],
+    "action": "YEELIGHT_SetBgPower($_IPS['TARGET'],false);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Power off background": "Hintergrund auschalten",
+            "Turns the lamp background off": "Schaltet den Hintergrund der Lampe aus"
+        }
+    },
+    "format": "Turns the lamp background off",
+    "description": "Turns the lamp background off"
+}

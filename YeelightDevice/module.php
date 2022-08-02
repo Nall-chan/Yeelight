@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       1.80
+ * @version       2.00
  *
  */
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
@@ -28,7 +28,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  *
- * @version       1.80
+ * @version       2.00
  *
  * @example <b>Ohne</b>
  *
@@ -152,7 +152,9 @@ class YeelightDevice extends IPSModule
             'Type'         => VARIABLETYPE_INTEGER,
             'Profile'      => '~Intensity.100',
             'enableAction' => false
-        ]
+        ],
+        'flowing'           => [],
+        'bg_flowing'        => [],
     ];
 
     /**
@@ -174,6 +176,7 @@ class YeelightDevice extends IPSModule
         $this->SAT = 0;
         $this->BG_HUE = 0;
         $this->BG_SAT = 0;
+        $this->ParentID = 0;
     }
 
     /**
@@ -182,8 +185,14 @@ class YeelightDevice extends IPSModule
     public function Destroy()
     {
         if (!IPS_InstanceExists($this->InstanceID)) {
+            $this->UnregisterProfile('Yeelight.WhiteTemp');
+            $this->UnregisterProfile('Yeelight.WhiteTemp2');
+            $this->UnregisterProfile('Yeelight.ModeColor');
+            $this->UnregisterProfile('Yeelight.ModeColorWNight');
+            $this->UnregisterProfile('Yeelight.ModeWNight');
             $this->UnregisterHook('/hook/Yeelight' . $this->InstanceID);
         }
+
         parent::Destroy();
     }
 
@@ -192,7 +201,6 @@ class YeelightDevice extends IPSModule
      */
     public function ApplyChanges()
     {
-        $this->RegisterMessage(0, IPS_KERNELSTARTED);
         $this->RegisterMessage($this->InstanceID, FM_CONNECT);
         $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
 
@@ -207,12 +215,14 @@ class YeelightDevice extends IPSModule
             [1, 'RGB', '', -1],
             [2, $this->Translate('White'), '', -1],
             [3, 'HSV', '', -1],
+            [4, 'Flow', '', -1]
         ]);
 
         $this->RegisterProfileIntegerEx('Yeelight.ModeColorWNight', '', '', '', [
             [1, 'RGB', '', -1],
             [2, $this->Translate('White'), '', -1],
             [3, 'HSV', '', -1],
+            [4, 'Flow', '', -1],
             [5, $this->Translate('Nightlight'), '', -1],
         ]);
         $this->RegisterProfileIntegerEx('Yeelight.ModeWNight', '', '', '', [
@@ -220,11 +230,13 @@ class YeelightDevice extends IPSModule
             [5, $this->Translate('Nightlight'), '', -1],
         ]);
         if (IPS_GetKernelRunlevel() != KR_READY) {
+            $this->RegisterMessage(0, IPS_KERNELSTARTED);
             return;
         }
         if ($this->ReadPropertyBoolean('HUESlider')) {
             $this->RegisterHook('/hook/Yeelight' . $this->InstanceID);
         } else {
+            $this->UnregisterHook('/hook/Yeelight' . $this->InstanceID);
             $this->UnregisterVariable('hue');
             $this->UnregisterVariable('sat');
             $this->UnregisterVariable('bg_hue');
@@ -243,6 +255,7 @@ class YeelightDevice extends IPSModule
      */
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
+        $this->LogMessage(__FUNCTION__ . ':' . $SenderID . ':' . $Message, KL_DEBUG);
         $this->IOMessageSink($TimeStamp, $SenderID, $Message, $Data);
         switch ($Message) {
             case IPS_KERNELSTARTED:
@@ -291,10 +304,14 @@ class YeelightDevice extends IPSModule
                 $this->SetBgWhite((int) $Value);
                 break;
             case 'color_mode':
-                $this->SetMode((int) $Value);
+                if ((int) $Value != 4) {
+                    $this->SetMode((int) $Value);
+                }
                 break;
             case 'bg_lmode':
-                $this->SetBgMode((int) $Value);
+                if ((int) $Value != 4) {
+                    $this->SetBgMode((int) $Value);
+                }
                 break;
             default:
                 echo sprintf($this->Translate('Invalid Ident: %s'), $Ident);
@@ -706,6 +723,14 @@ class YeelightDevice extends IPSModule
 
     public function SetModeSmooth(int $Mode, int $Duration): bool
     {
+        switch ($Mode) {
+            case 1:
+                $Mode = 2;
+                break;
+                case 2:
+                    $Mode = 1;
+                    break;
+        }
         if ($Duration < 30) {
             $Params = ['on', 'sudden', 0, $Mode];
         } else {
@@ -724,6 +749,14 @@ class YeelightDevice extends IPSModule
 
     public function SetBgModeSmooth(int $Mode, int $Duration): bool
     {
+        switch ($Mode) {
+            case 1:
+                $Mode = 2;
+                break;
+                case 2:
+                    $Mode = 1;
+                    break;
+        }
         $Power = $this->GetValue('bg_power');
         if ($Duration < 30) {
             $Params = [$Power ? 'on' : 'off', 'sudden', 0, $Mode];
@@ -1027,6 +1060,10 @@ class YeelightDevice extends IPSModule
         return $this->Send($YeelightData);
     }
 
+    public function GetConfigurationForParent()
+    {
+        return json_encode(['Port' => 55443]);
+    }
     /**
      * Empfängt Daten vom Parent.
      *
@@ -1063,6 +1100,7 @@ class YeelightDevice extends IPSModule
      */
     protected function KernelReady()
     {
+        $this->UnregisterMessage(0, IPS_KERNELSTARTED);
         $this->RegisterParent();
     }
 
@@ -1084,8 +1122,12 @@ class YeelightDevice extends IPSModule
     protected function IOChangeState($State)
     {
         if ($State == IS_ACTIVE) {
-            $this->GetCapabilities();
-            $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_NOTIFY);
+            if (!$this->GetCapabilities()) {
+                $this->SetStatus(IS_EBASE + 1);
+                return;
+            }
+            $this->SetStatus(IS_ACTIVE);
+            $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_DEBUG);
             $this->RequestState();
             return;
         }
@@ -1114,16 +1156,15 @@ class YeelightDevice extends IPSModule
     protected function Send(\Yeelight\YeelightRPC_Data $YeelightData)
     {
         set_error_handler([$this, 'ModulErrorHandler']);
-
         try {
             if (!$this->HasActiveParent()) {
-                throw new Exception('Instance has no active parent.', E_USER_WARNING);
+                throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
             }
             if (count($this->Capabilities) == 0) {
                 $this->LogMessage($this->Translate('Capabilities of device are unknown. Please check your Firewall.'), KL_WARNING);
             } else {
                 if (!in_array($YeelightData->Method, $this->Capabilities)) {
-                    throw new Exception('Device not support this command.', E_USER_WARNING);
+                    throw new Exception($this->Translate('Device not support this command.'), E_USER_WARNING);
                 }
             }
 
@@ -1140,9 +1181,8 @@ class YeelightDevice extends IPSModule
             if ($ReplyYeelightData === false) {
                 throw new Exception('No answer from Device', E_USER_WARNING);
             }
-
             $ret = $ReplyYeelightData->GetResult();
-            if (is_a($ret, 'YeelightRPCException')) {
+            if (is_a($ret, '\Yeelight\YeelightRPCException')) {
                 throw $ret;
             }
             $this->SendDebug('Result', $ReplyYeelightData, 0);
@@ -1192,6 +1232,7 @@ class YeelightDevice extends IPSModule
             }
         }
         if (isset($_GET['ident'])) {
+            $this->SendDebug('HookData', $_GET, 0);
             switch ($_GET['ident']) {
                 case 'hue':
                     if ($_GET['action'] == 'GetValue') {
@@ -1370,14 +1411,15 @@ class YeelightDevice extends IPSModule
         $this->Capabilities = [];
         $this->Propertys = [];
         if ($this->Host == '') {
-            return;
+            return false;
         }
         $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if (!$socket) {
-            return;
+            return false;
         }
         socket_bind($socket, '0', 1983);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]);
+        socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
         $message = [
             'M-SEARCH * HTTP/1.1',
             'HOST: ' . $this->Host . ':1982',
@@ -1386,8 +1428,8 @@ class YeelightDevice extends IPSModule
         ];
         $SendData = implode("\r\n", $message) . "\r\n\r\n";
         $this->SendDebug('Ask capabilities', $SendData, 0);
-        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, $this->Host , 1982) === false) {
-            return;
+        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, $this->Host, 1982) === false) {
+            return false;
         }
         usleep(100000);
         $i = 10;
@@ -1401,6 +1443,9 @@ class YeelightDevice extends IPSModule
             }
             if ($ret === 0) {
                 $i--;
+                continue;
+            }
+            if ($IPAddress != $this->Host) {
                 continue;
             }
             $Data = $this->parseHeader($buf);
@@ -1418,7 +1463,7 @@ class YeelightDevice extends IPSModule
             }
         }
         socket_close($socket);
-        return;
+        return count($this->Capabilities) > 0;
     }
 
     //################# Decode / StatusVariables
@@ -1448,6 +1493,22 @@ class YeelightDevice extends IPSModule
         if (!array_key_exists($Ident, self::$DataPoints)) {
             $this->LogMessage(sprintf($this->Translate('Property %s actually not supported.'), $Ident), KL_MESSAGE);
             return;
+        }
+        if ($Ident == 'active_mode') {
+            $Ident = 'color_mode';
+            if ((int) $Value == 1) {
+                $Value = 5;
+            } else {
+                $Value = 2;
+            }
+        }
+        if (($Ident == 'flowing') && ($Value == 1)) {
+            $Ident = 'color_mode';
+            $Value = 4;
+        }
+        if (($Ident == 'bg_flowing') && ($Value == 1)) {
+            $Ident = 'bg_lmode';
+            $Value = 4;
         }
         $StatusVariable = self::$DataPoints[$Ident];
         if ($Ident == 'hue') {
@@ -1489,15 +1550,6 @@ class YeelightDevice extends IPSModule
                 return;
             }
             $this->BG_SAT = (int) $Value;
-        }
-
-        if ($Ident == 'active_mode') {
-            $Ident = 'color_mode';
-            if ((int) $Value == 1) {
-                $Value = 5;
-            } else {
-                $Value = 2;
-            }
         }
 
         if (($Ident == 'color_mode') || ($Ident == 'bg_lmode') || ($Ident == 'ct') || ($Ident == 'bg_ct')) {

@@ -11,7 +11,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       1.80
+ * @version       2.00
  *
  */
 require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
@@ -23,7 +23,7 @@ require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
  * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  *
- * @version       1.80
+ * @version       2.00
  *
  * @example <b>Ohne</b>
  *
@@ -151,14 +151,14 @@ class YeelightDiscovery extends ipsmodule
 
     private function DiscoverDevices(): array
     {
-        $this->LogMessage($this->Translate('Background discovery of Yeelight devices'), KL_NOTIFY);
+        $this->LogMessage($this->Translate('Background discovery of Yeelight devices'), KL_DEBUG);
         $DeviceData = [];
         $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if (!$socket) {
             return $DeviceData;
         }
 
-        socket_bind($socket, '0', 1983);
+        socket_bind($socket, '0', 0);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 2, 'usec' => 100000]);
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
         socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);

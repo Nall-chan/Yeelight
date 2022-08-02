@@ -1,0 +1,27 @@
+{
+    "id": "{F6249ED9-5B6A-4C2E-BB8F-58E4D8E71BF7}",
+    "caption": "Stop sequence for background",
+    "form": [],
+    "action": "YEELIGHT_StopBgColorFlow($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Stop sequence for background": "Ablaufprogramm vom Hintergrund beenden",
+            "Stops a running sequence program from the background": "Beendet ein laufendes Ablaufprogramm vom Hintergrund"
+        }
+    },
+    "format": "Stop sequence program for background",
+    "description": "Stops a running sequence program from the background"
+}

@@ -1,0 +1,68 @@
+{
+    "id": "{1C57F04E-C5B3-4C70-9059-33351E065840}",
+    "caption": "Set or fade to color (RGB)",
+    "form": [
+        {
+            "caption": "Color",
+            "name": "COLOR",
+            "type": "SelectColor",
+            "allowTransparent": false
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "$R = $_IPS['COLOR'] >> 16;",
+        "$G = ($_IPS['COLOR'] & 0x00ff00) >> 8;",
+        "$B = $_IPS['COLOR'] & 0x0000ff;",
+        "if ($_IPS['DURATION'] < 0.03){",
+        "    YEELIGHT_SetRGB($_IPS['TARGET'], $R, $G, $B);",
+        "} else {",
+        "    YEELIGHT_SetRGBSmooth($_IPS['TARGET'], $R, $G, $B, $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "readable": [
+        "$R = $_IPS['COLOR'] >> 16;",
+        "$G = ($_IPS['COLOR'] & 0x00ff00) >> 8;",
+        "$B = $_IPS['COLOR'] & 0x0000ff;",
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   $OUT = 'YEELIGHT_SetRGB(%d, %d, %d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $R, $G, $B);",
+        "} else {",
+        "   $OUT = 'YEELIGHT_SetRGBSmooth(%d, %d, %d, %d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $R, $G, $B, $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set or fade to color (RGB)": "Farbe (RGB) setzen oder faden",
+            "Color": "Farbe",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Set the color to specific RGB value": "Setzt die Farbe auf einen bestimmte RGB-Wert",
+            "Set color {DURATION, select, 0 {} other {with {DURATION} seconds fading }}": "Setzt die Farbe {DURATION, select, 0 {} other {mit fading von {DURATION} Sekunden}}"
+        }
+    },
+    "format": "Set color {DURATION, select, 0 {} other {with {DURATION} seconds fading }}",
+    "description": "Set the color to specific RGB value"
+}
