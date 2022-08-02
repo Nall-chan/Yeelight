@@ -1,0 +1,64 @@
+{
+    "id": "{ADE63DD0-6038-43E3-A5EE-5093E751BEAF}",
+    "caption": "Set brightness",
+    "form": [
+        {
+            "caption": "Brightness",
+            "name": "BRIGHTNESS",
+            "type": "HorizontalSlider",
+            "minimum": 1,
+            "maximum ": 100,
+            "stepSize": 1
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   YEELIGHT_SetBrightness($_IPS['TARGET'], $_IPS['BRIGHTNESS']);",
+        "} else {",
+        "   YEELIGHT_SetBrightnessSmooth($_IPS['TARGET'], $_IPS['BRIGHTNESS'], $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   $OUT = 'YEELIGHT_SetBrightness(%d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['BRIGHTNESS']);",
+        "} else {",
+        "   $OUT = 'YEELIGHT_SetBrightnessSmooth(%d, %d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['BRIGHTNESS'], $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set brightness": "Helligkeit setzen",
+            "Brightness": "Helligkeit",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Sets the brightness of the lamp": "Setzt die Helligkeit von der Lampe",
+            "Sets the brightness to {BRIGHTNESS}% {DURATION, select, 0 {} other {with {DURATION} seconds fading }}": "Setzt die Helligkeit auf {BRIGHTNESS}% {DURATION, select, 0 {} other {mit fading von {DURATION} Sekunden}}"
+        }
+    },
+    "format": "Sets the brightness to {BRIGHTNESS}% {DURATION, select, 0 {} other {with {DURATION} seconds fading }}",
+    "description": "Sets the brightness of the lamp"
+}

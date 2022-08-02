@@ -17,9 +17,10 @@ Einbindung eines Yeelight-Gerätes in IPS.
 - [4. Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
 - [5. Statusvariablen und Profile](#5-statusvariablen-und-profile)
 - [6. WebFront](#6-webfront)
-- [7. PHP-Befehlsreferenz](#7-php-befehlsreferenz)
-- [8. Changelog](#8-changelog)
-- [9. Lizenz](#9-lizenz)
+- [7. Aktionen](#7-aktionen)
+- [8. PHP-Befehlsreferenz](#8-php-befehlsreferenz)
+- [9. Changelog](#9-changelog)
+- [10. Lizenz](#10-lizenz)
 
 ## 1. Funktionsumfang
 
@@ -89,8 +90,19 @@ Folgende Statusvariablen werden automatisch angelegt, je nach Gerät können es 
 Die direkte Darstellung und Steuerung im WebFront ist möglich.  
 ![WebFront Beispiel](imgs/wf.png)  
 
+## 7. Aktionen
 
-## 7. PHP-Befehlsreferenz
+Es gibt diverse Ziel(Instanz)-Spezifische Aktionen für die 'Yeelight Device' Instanz.  
+Diese Aktionen können sowohl in Ereignissen als auch Ablaufplänen verwendet werden.  
+Ebenso können die Aktionen über die Schaltfläche 'Befehl einfügen' im Skript-Editor in ein Skript eingefügt werden.  
+Abschließend stehen die Aktionen auch über den Eintrag 'Befehle testen' im Kontexmenü vom Objektbaum zur Verfügung.
+
+Diese Aktionen sind speziell für die 'Yeelight Device' Instanz, weshalb als Ziel immer eine 'Yeelight Device' Instanz gewählt sein muss, damit die Aktionen zur Auswahl stehen.  
+
+![Aktionen Beispiel 1](imgs/actions.png)  
+![Aktionen Beispiel 2](imgs/action1.png)  
+
+## 8. PHP-Befehlsreferenz
 
 Für alle 'bool' Rückgabewerte gilt:  
 Wurde der Befehl erfolgreich ausgeführt, wird `true` zurück gegeben.  
@@ -225,18 +237,18 @@ bool YEELIGHT_DecreaseWhiteTemp(integer $InstanzID)
 ```
 
 ```php
-bool YEELIGHT_CircleColor(integer $InstanzID)
+bool YEELIGHT_RotateColor(integer $InstanzID)
 ```
 
 ```php
 bool YEELIGHT_SetName(integer $InstanzID, string $Name)
 ```
 
-## 8. Changelog
+## 9. Changelog
 
-[Changelog der Library](../README.md#3-changelog)
+[Changelog der Library](../README.md#4-changelog)
 
-## 9. Lizenz
+## 10. Lizenz
 
   IPS-Modul:  
   [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  

@@ -1,0 +1,27 @@
+{
+    "id": "{D740BDED-245F-4B9F-9690-3C75DC333B27}",
+    "caption": "Increase background color temperature",
+    "form": [],
+    "action": "YEELIGHT_IncreaseBgWhiteTemp($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Increase background color temperature": "Hintergrund Farbtemperatur erhöhen",
+            "Increase the background color temperature of white": "Erhöht die Farbtemperatur vom Hintergrund"
+        }
+    },
+    "format": "Increase the background color temperature of white",
+    "description": "Increase the background color temperature of white"
+}

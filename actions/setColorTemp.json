@@ -1,0 +1,64 @@
+{
+    "id": "{32E4558F-DDF2-42D9-A759-51A4AF56885A}",
+    "caption": "Set color temperature",
+    "form": [
+        {
+            "caption": "Color temperature",
+            "name": "TEMP",
+            "type": "HorizontalSlider",
+            "minimum": 1700,
+            "maximum": 6500,
+            "stepSize": 1
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   YEELIGHT_SetWhite($_IPS['TARGET'], $_IPS['TEMP']);",
+        "} else {",
+        "   YEELIGHT_SetWhiteSmooth($_IPS['TARGET'], $_IPS['TEMP'], $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   $OUT = 'YEELIGHT_SetWhite(%d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['TEMP']);",
+        "} else {",
+        "   $OUT = 'YEELIGHT_SetWhiteSmooth(%d, %d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['TEMP'], $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set color temperature": "Farbtemperatur setzen",
+            "Color temperature": "Farbtemperatur",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Sets the color temperature of the lamp": "Setzt die Farbtemperatur der Lampe",
+            "Sets the color temperature {DURATION, select, 0 {} other {with {DURATION} seconds fading }}": "Setzt die Farbtemperatur {DURATION, select, 0 {} other {mit fading von {DURATION} Sekunden}}"
+        }
+    },
+    "format": "Sets the color temperature {DURATION, select, 0 {} other {with {DURATION} seconds fading }}",
+    "description": "Sets the color temperature of the lamp"
+}

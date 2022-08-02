@@ -23,7 +23,8 @@ Einbinden von Yeelight Geräten in IPS.
   - [2. Hinweise](#2-hinweise)
     - [1. LAN-Steuerung aktiveren](#1-lan-steuerung-aktiveren)
     - [2. Discovery-Instanzen erstellen](#2-discovery-instanzen-erstellen)
-  - [3. Changelog](#3-changelog)
+  - [3. Backlog](#3-backlog)
+  - [4. Changelog](#4-changelog)
   - [4. Spenden](#4-spenden)
 - [6. Lizenz](#6-lizenz)
 
@@ -85,12 +86,18 @@ Nach der Installation über den 'Modul-Store' fragt Symcon ob die enthaltende [D
 Wird Symcon allerdings unter Docker mit aktivem NAT betrieben, so kann diese Frage verneint werden.  
 Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellation per Hand angelegt und konfiguriert werden.  
 
-### 3. Changelog  
+### 3. Backlog
+
+ - Aktionen und PHP-Befehle um Farbtemperatur und Helligkeit mir rotation durchschalten (Main und Hintergrund).  
+ - Aktionen und PHP-Befehle um Farbe(HSV), Farbtemperatur und Helligkeit prozentual zu erhöhen oder zu verringern (Main und Hintergrund).  
+ - Dokumentation der PHP-Befehlsreferenz vervollständigen.  
+
+### 4. Changelog  
 
 Version 2.00:
  - Betrieb der Geräte-Instanzen auch mit NAT (z.B. Docker) möglich.  
  - VariablenProfile werden beim löschen mit entfernt.  
- - Aktionen werden unterstützt.
+ - Aktionen (inkl. Programmablauf) werden unterstützt.
  - Debugausgaben waren unvollständig.  
  - Fehlermeldungen von Geräten wurden nicht berücksichtigt.  
  - Bessere Hinweise wenn es Probleme mit der Kommunikation gibt.  
@@ -121,10 +128,11 @@ Version 1.00:
   Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
   PayPal:  
-<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>  
 
   Wunschliste:  
-<a href="https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg" border="0" width="100"/></a>
+<a href="https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg" border="0" width="100"/></a>  
+
 ## 6. Lizenz
 
   IPS-Modul:  

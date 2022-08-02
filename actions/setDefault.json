@@ -1,0 +1,27 @@
+{
+    "id": "{05F410E8-54C1-4B5F-A152-C4B0895810BE}",
+    "caption": "Save default",
+    "form": [],
+    "action": "YEELIGHT_SetDefault($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Save default": "Speicher Standard",
+            "Save current state as new default values": "Speichert den aktuellen Zustand als neue Standardwerte"
+        }
+    },
+    "format": "Save current state as new default values",
+    "description": "Save current state as new default values"
+}

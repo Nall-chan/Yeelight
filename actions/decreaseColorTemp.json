@@ -1,0 +1,27 @@
+{
+    "id": "{973D5D0E-23FF-46AD-A4AB-9135D68653C1}",
+    "caption": "Decrease color temperature",
+    "form": [],
+    "action": "YEELIGHT_DecreaseWhiteTemp($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Decrease color temperature": "Farbtemperatur verringern",
+            "Decreases the color temperature of white": "Verringert die Farbtemperatur von weiß"
+        }
+    },
+    "format": "Decreases the color temperature of white",
+    "description": "Decreases the color temperature of white"
+}

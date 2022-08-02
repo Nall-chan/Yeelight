@@ -152,7 +152,7 @@
     },
     "locale": {
         "de": {
-            "Run background sequence program": "Ablaufprogramm Hintergrund ausführen",
+            "Run background sequence program": "Ablaufprogramm vom Hintergrund ausführen",
             "Sends a sequence program to the lamp and runs it on background light": "Sendet ein Ablaufprogramm an die Lampe und führt es mit dem Hintergrundlicht aus",
             "Repeat sequence (0 = infinite)": "Sequenz wiederholen (0 = unendlich)",
             "Action after expiration": "Aktion nach Ablauf",

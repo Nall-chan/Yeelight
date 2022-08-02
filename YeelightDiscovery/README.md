@@ -65,7 +65,7 @@ Die Instanz besitzt keine Instanz-Funktionen.
 
 ## 8. Changelog
 
-[Changelog der Library](../README.md#3-changelog)
+[Changelog der Library](../README.md#4-changelog)
 
 ## 9. Lizenz
 

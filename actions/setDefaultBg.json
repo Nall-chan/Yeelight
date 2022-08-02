@@ -1,0 +1,27 @@
+{
+    "id": "{0A5C0F63-79DA-49E1-AD22-02F185A4E638}",
+    "caption": "Save default for background",
+    "form": [],
+    "action": "YEELIGHT_SetDefault($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Save default for background": "Speicher Standard für Hintergrund",
+            "Save current state as new default values for background": "Speichert den aktuellen Zustand als neue Standardwerte für den Hintergrund"
+        }
+    },
+    "format": "Save current state as new default values for background",
+    "description": "Save current state as new default values for background"
+}

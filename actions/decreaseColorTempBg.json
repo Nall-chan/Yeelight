@@ -1,0 +1,27 @@
+{
+    "id": "{020A2188-D4A6-4F23-BDA4-582634EE18FA}",
+    "caption": "Decrease background color temperature",
+    "form": [],
+    "action": "YEELIGHT_DecreaseBgWhiteTemp($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Decrease background color temperature": "Hintergrund Farbtemperatur verringern",
+            "Decreases the color temperature of background white": "Verringert die Farbtemperatur vom Hintergrund"
+        }
+    },
+    "format": "Decreases the color temperature of background white",
+    "description": "Decreases the color temperature of background white"
+}

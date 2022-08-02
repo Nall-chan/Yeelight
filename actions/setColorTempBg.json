@@ -1,0 +1,64 @@
+{
+    "id": "{1ED2A97F-AE0E-4ABF-ABD0-E12CD6458BB1}",
+    "caption": "Set background color temperature",
+    "form": [
+        {
+            "caption": "Color temperature",
+            "name": "TEMP",
+            "type": "HorizontalSlider",
+            "minimum": 1700,
+            "maximum": 6500,
+            "stepSize": 1
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   YEELIGHT_SetBgWhite($_IPS['TARGET'], $_IPS['TEMP']);",
+        "} else {",
+        "   YEELIGHT_SetBgWhiteSmooth($_IPS['TARGET'], $_IPS['TEMP'], $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   $OUT = 'YEELIGHT_SetBgWhite(%d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['TEMP']);",
+        "} else {",
+        "   $OUT = 'YEELIGHT_SetBgWhiteSmooth(%d, %d, %d);';",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['TEMP'], $_IPS['DURATION'] * 1000);",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set background color temperature": "Hintergrund Farbtemperatur setzen",
+            "Color temperature": "Farbtemperatur",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Sets the background color temperature of the lamp": "Setzt die Farbtemperatur Hintergrund der Lampe",
+            "Sets the background color temperature {DURATION, select, 0 {} other {with {DURATION} seconds fading }}": "Setzt die Farbtemperatur vom Hintergrund {DURATION, select, 0 {} other {mit fading von {DURATION} Sekunden}}"
+        }
+    },
+    "format": "Sets the background color temperature {DURATION, select, 0 {} other {with {DURATION} seconds fading }}",
+    "description": "Sets the background color temperature of the lamp"
+}

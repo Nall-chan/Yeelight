@@ -985,7 +985,7 @@ class YeelightDevice extends IPSModule
     /**
      * @return bool
      */
-    public function CircleColor(): bool
+    public function RotateColor(): bool
     {
         $Params = ['circle', 'color'];
         $YeelightData = new \Yeelight\YeelightRPC_Data();

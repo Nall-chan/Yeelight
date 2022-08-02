@@ -1,0 +1,27 @@
+{
+    "id": "{F274B070-4A76-4599-895F-80C0E39E56A6}",
+    "caption": "Increase color temperature",
+    "form": [],
+    "action": "YEELIGHT_IncreaseWhiteTemp($_IPS['TARGET']);",
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Increase color temperature": "Farbtemperatur erhöhen",
+            "Increase the color temperature of white": "Erhöht die Farbtemperatur von weiß"
+        }
+    },
+    "format": "Increase the color temperature of white",
+    "description": "Increase the color temperature of white"
+}
