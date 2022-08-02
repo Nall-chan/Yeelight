@@ -95,7 +95,7 @@ Die direkte Darstellung und Steuerung im WebFront ist möglich.
 Es gibt diverse Ziel(Instanz)-Spezifische Aktionen für die 'Yeelight Device' Instanz.  
 Diese Aktionen können sowohl in Ereignissen als auch Ablaufplänen verwendet werden.  
 Ebenso können die Aktionen über die Schaltfläche 'Befehl einfügen' im Skript-Editor in ein Skript eingefügt werden.  
-Abschließend stehen die Aktionen auch über den Eintrag 'Befehle testen' im Kontexmenü vom Objektbaum zur Verfügung.
+Abschließend stehen die Aktionen auch über den Eintrag 'Befehle testen' im Kontextmenü vom Objektbaum zur Verfügung.
 
 Diese Aktionen sind speziell für die 'Yeelight Device' Instanz, weshalb als Ziel immer eine 'Yeelight Device' Instanz gewählt sein muss, damit die Aktionen zur Auswahl stehen.  
 
