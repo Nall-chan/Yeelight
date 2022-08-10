@@ -2,7 +2,8 @@
 [![Version](https://img.shields.io/badge/Modul%20Version-2.00-blue.svg)](https://community.symcon.de/t/modul-xiaomi-yeelight-color-bulb/45887)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
 [![Version](https://img.shields.io/badge/Symcon%20Version-6.1%20%3E-green.svg)](https://www.symcon.de/service/dokumentation/installation/migrationen/v60-v61-q1-2022/)
-[![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)   
+[![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
+[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#2-spenden)   
 
 # Yeelight Discovery <!-- omit in toc -->  
 Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.  
@@ -18,7 +19,9 @@ Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.
 - [5. Statusvariablen und Profile](#5-statusvariablen-und-profile)
 - [6. WebFront](#6-webfront)
 - [7. PHP-Befehlsreferenz](#7-php-befehlsreferenz)
-- [8. Changelog](#8-changelog)
+- [8. Anhang](#8-anhang)
+  - [1. Changelog](#1-changelog)
+  - [2. Spenden](#2-spenden)
 - [9. Lizenz](#9-lizenz)
 
 ## 1. Funktionsumfang
@@ -63,9 +66,21 @@ Die Instanz besitzt keine im WebFront darstellbaren Elemente.
 
 Die Instanz besitzt keine Instanz-Funktionen.  
 
-## 8. Changelog
+## 8. Anhang
+
+### 1. Changelog
 
 [Changelog der Library](../README.md#4-changelog)
+
+### 2. Spenden
+
+Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
+
+  PayPal:  
+<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>  
+
+  Wunschliste:  
+<a href="https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg" border="0" width="100"/></a>  
 
 ## 9. Lizenz
 
