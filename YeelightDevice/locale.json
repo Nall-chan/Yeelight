@@ -35,7 +35,8 @@
             "Sequenz active": "Ablaufprogramm aktiv",
             "Sequenz active Background": "Ablaufprogramm aktiv",
             "Instance has no active parent.": "Instanz hat keinen aktiven Parent.",
-            "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to IPS. Please check firewall or NAT forwarding.": "Fähigkeiten des Gerät konnten nicht ermittelt werden. Es muss Port 1983 (UDP) ankommend an IPS weitergeleitet werden. Bitte Firewall oder NAT Weiterleitung prüfen."
+            "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to IPS. Please check firewall or NAT forwarding.": "Fähigkeiten des Gerät konnten nicht ermittelt werden. Es muss Port 1983 (UDP) ankommend an IPS weitergeleitet werden. Bitte Firewall oder NAT Weiterleitung prüfen.",
+            "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
     }
 }
