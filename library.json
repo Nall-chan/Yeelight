@@ -1,12 +1,12 @@
 {
     "id": "{26364DE5-29A7-477E-ADFE-B756E89CA344}",
-    "author": "Michael Tr\u00f6ger",
+    "author": "Michael Tröger",
     "name": "Yeelight",
     "url": "https://github.com/Nall-chan/Yeelight",
     "compatibility": {
         "version": "6.1"
     },
-    "version": "2.00",
-    "build": 200,
-    "date": 1659196931
+    "version": "2.10",
+    "build": 210,
+    "date": 1675333940
 }
