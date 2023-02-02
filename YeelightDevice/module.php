@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @author        Michael Tröger <micha@nall-chan.net>
  * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.00
+ * @version       2.10
  *
  */
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
@@ -28,7 +28,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * @copyright     2020 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  *
- * @version       2.00
+ * @version       2.10
  *
  * @example <b>Ohne</b>
  *
@@ -41,6 +41,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * @property int $SAT
  * @property int $BG_HUE
  * @property int $BG_SAT
+ * @property int $ConnectionState
  */
 class YeelightDevice extends IPSModule
 {
@@ -54,6 +55,11 @@ class YeelightDevice extends IPSModule
         \YeelightDevice\InstanceStatus::RegisterParent as IORegisterParent;
         \YeelightDevice\InstanceStatus::RequestAction as IORequestAction;
     }
+
+    const isDisconnected = 0;
+    const isConnected = 1;
+    const isReconnecting = 2;
+
     protected static $DataPoints = [
         'power'      => [
             'Name'         => 'State',
@@ -185,6 +191,7 @@ class YeelightDevice extends IPSModule
         $this->BG_HUE = 0;
         $this->BG_SAT = 0;
         $this->ParentID = 0;
+        $this->ConnectionState = self::isDisconnected;
     }
 
     /**
@@ -217,6 +224,7 @@ class YeelightDevice extends IPSModule
         $this->BufferIN = '';
         $this->Capabilities = [];
         $this->Propertys = [];
+        $this->ConnectionState = self::isDisconnected;
         $this->RegisterProfileInteger('Yeelight.WhiteTemp', 'Intensity', '', ' %', 1700, 6500, 1, 0);
         $this->RegisterProfileInteger('Yeelight.WhiteTemp2', 'Intensity', '', ' %', 2700, 6500, 1, 0);
         $this->RegisterProfileIntegerEx('Yeelight.ModeColor', '', '', '', [
@@ -1128,14 +1136,23 @@ class YeelightDevice extends IPSModule
     protected function IOChangeState($State)
     {
         if ($State == IS_ACTIVE) {
-            if (!$this->GetCapabilities()) {
-                $this->SetStatus(IS_EBASE + 1);
+            if ($this->ConnectionState != self::isDisconnected) {
                 return;
             }
+            $this->ConnectionState = self::isReconnecting;
+            if (!$this->GetCapabilities()) {
+                $this->SetStatus(IS_EBASE + 1);
+                $this->ConnectionState = self::isDisconnected;
+                return;
+            }
+            $this->ConnectionState = self::isConnected;
             $this->SetStatus(IS_ACTIVE);
             $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_DEBUG);
             $this->RequestState();
+
             return;
+        } else {
+            $this->ConnectionState = self::isDisconnected;
         }
     }
 
@@ -1163,7 +1180,12 @@ class YeelightDevice extends IPSModule
     {
         set_error_handler([$this, 'ModulErrorHandler']);
         try {
-            if (!$this->HasActiveParent()) {
+            if ($this->ConnectionState == self::isReconnecting) {
+                if (!$this->WaitForActive()) {
+                    throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
+                }
+            }
+            if (!$this->HasActiveParent() && ($this->ConnectionState != self::isConnected)) {
                 throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
             }
             if (count($this->Capabilities) == 0) {
@@ -1199,7 +1221,24 @@ class YeelightDevice extends IPSModule
             return $ret;
         } catch (\Yeelight\YeelightRPCException $ex) {
             $this->SendDebug('Result', $ex, 0);
-            trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
+            if ((int) $ex->getCode() == -1) {
+                $this->ConnectionState = self::isReconnecting;
+                $this->SendDebug('Quata exceeded', 'Force reconnect', 0);
+                //Quata exceeded -> Force reconnect
+                $this->SetStatus(IS_INACTIVE);
+
+                IPS_RunScriptTextWait('IPS_SetProperty(' . $this->ParentID . ', "Open", false); IPS_ApplyChanges(' . $this->ParentID . ');');
+                IPS_RunScriptText('IPS_SetProperty(' . $this->ParentID . ', "Open", true); IPS_ApplyChanges(' . $this->ParentID . ');');
+                if ($this->WaitForActive()) {
+                    $this->SendDebug('Force reconnect', 'successfully', 0);
+                    $this->Send($YeelightData); // resend
+                } else {
+                    $this->SendDebug('Force reconnect', 'failed', 0);
+                    trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
+                }
+            } else {
+                trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
+            }
         } catch (Exception $ex) {
             $this->SendDebug('Result', $ex->getMessage(), 0);
             trigger_error($ex->getMessage(), $ex->getCode());
@@ -1207,7 +1246,6 @@ class YeelightDevice extends IPSModule
         restore_error_handler();
         return false;
     }
-
     //################# Webhook
 
     /**
@@ -1291,6 +1329,17 @@ class YeelightDevice extends IPSModule
         }
         $this->SendFileNotFound();
         return;
+    }
+
+    private function WaitForActive()
+    {
+        for ($i = 0; $i < 1000; $i++) {
+            if ($this->ConnectionState == self::isConnected) {
+                return true;
+            }
+            IPS_Sleep(5);
+        }
+        return false;
     }
 
     //################# Helper
