@@ -344,7 +344,7 @@ class YeelightDevice extends IPSModule
         $YeelightData = new \Yeelight\YeelightRPC_Data();
         $YeelightData->get_prop($this->Propertys);
         $Result = $this->Send($YeelightData);
-        if ($Result === null) {
+        if ($Result === false) {
             return false;
         }
 
@@ -1135,25 +1135,31 @@ class YeelightDevice extends IPSModule
      */
     protected function IOChangeState($State)
     {
+        if (!$this->lock('IOChangeState')) {
+            return;
+        }
         if ($State == IS_ACTIVE) {
-            if ($this->ConnectionState != self::isDisconnected) {
+            if ($this->ConnectionState == self::isReconnecting) {
+                $this->unlock('IOChangeState');
                 return;
             }
             $this->ConnectionState = self::isReconnecting;
             if (!$this->GetCapabilities()) {
                 $this->SetStatus(IS_EBASE + 1);
                 $this->ConnectionState = self::isDisconnected;
+                $this->unlock('IOChangeState');
                 return;
             }
             $this->ConnectionState = self::isConnected;
             $this->SetStatus(IS_ACTIVE);
             $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_DEBUG);
             $this->RequestState();
-
+            $this->unlock('IOChangeState');
             return;
         } else {
             $this->ConnectionState = self::isDisconnected;
         }
+        $this->unlock('IOChangeState');
     }
 
     //################# Send / Receive
@@ -1185,7 +1191,11 @@ class YeelightDevice extends IPSModule
                     throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
                 }
             }
-            if (!$this->HasActiveParent() && ($this->ConnectionState != self::isConnected)) {
+            if ($this->ConnectionState == self::isDisconnected) {
+                throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
+            }
+
+            if (!$this->HasActiveParent()) {
                 throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
             }
             if (count($this->Capabilities) == 0) {
@@ -1222,19 +1232,24 @@ class YeelightDevice extends IPSModule
         } catch (\Yeelight\YeelightRPCException $ex) {
             $this->SendDebug('Result', $ex, 0);
             if ((int) $ex->getCode() == -1) {
-                $this->ConnectionState = self::isReconnecting;
-                $this->SendDebug('Quata exceeded', 'Force reconnect', 0);
-                //Quata exceeded -> Force reconnect
-                $this->SetStatus(IS_INACTIVE);
-
-                IPS_RunScriptTextWait('IPS_SetProperty(' . $this->ParentID . ', "Open", false); IPS_ApplyChanges(' . $this->ParentID . ');');
-                IPS_RunScriptText('IPS_SetProperty(' . $this->ParentID . ', "Open", true); IPS_ApplyChanges(' . $this->ParentID . ');');
-                if ($this->WaitForActive()) {
-                    $this->SendDebug('Force reconnect', 'successfully', 0);
-                    $this->Send($YeelightData); // resend
+                if ($this->lock('Reconnect')) {
+                    $this->ConnectionState = self::isReconnecting;
+                    $this->SendDebug('Quata exceeded', 'Force reconnect', 0);
+                    //Quata exceeded -> Force reconnect
+                    $this->SetStatus(IS_INACTIVE);
+                    IPS_RunScriptTextWait('IPS_SetProperty(' . $this->ParentID . ', "Open", false); IPS_ApplyChanges(' . $this->ParentID . ');');
+                    IPS_RunScriptText('IPS_SetProperty(' . $this->ParentID . ', "Open", true); IPS_ApplyChanges(' . $this->ParentID . ');');
+                    if ($this->WaitForActive()) {
+                        $this->SendDebug('Force reconnect', 'successfully', 0);
+                        $this->Send($YeelightData); // resend
+                    } else {
+                        $this->ConnectionState = self::isDisconnected;
+                        $this->SendDebug('Force reconnect', 'failed', 0);
+                        trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
+                    }
+                    $this->unlock('Reconnect');
                 } else {
-                    $this->SendDebug('Force reconnect', 'failed', 0);
-                    trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
+                    $this->SendDebug('Reconnect in progress', '', 0);
                 }
             } else {
                 trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
