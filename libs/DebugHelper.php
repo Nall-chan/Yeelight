@@ -13,23 +13,20 @@ trait DebugHelper
      * Ergänzt SendDebug um Möglichkeit Objekte und Array auszugeben.
      *
      * @param string             $Message Nachricht für Data.
-     * @param TXB_API_Data|mixed $Data    Daten für die Ausgabe.
+     * @param mixed $Data    Daten für die Ausgabe.
      *
-     * @return int $Format Ausgabeformat für Strings.
+     * @param int $Format Ausgabeformat für Strings.
      */
-    protected function SendDebug($Message, $Data, $Format)
+    protected function SendDebug(string $Message, mixed $Data, int $Format): bool
     {
         if (is_a($Data, '\Yeelight\YeelightRPC_Data')) {
-            /* @var $Data YeelightRPC_Data */
-
+            /** @var \Yeelight\YeelightRPC_Data $Data */
             if ($Data->Typ == YeelightRPC_Data::$isResult) {
                 $Message .= ':' . $Data->Id;
                 if (is_null($Data->Error)) {
-                    //$DebugData = print_r($Data->Result, true);
                     $DebugData = $Data->Result;
                     $this->SendDebug($Message, $DebugData, 0);
                 } else {
-//                    $DebugData = print_r($Data->Error, true);
                     $DebugData = $Data->Error;
                     $this->SendDebug($Message, $DebugData, 0);
                 }
@@ -43,6 +40,7 @@ trait DebugHelper
                 $this->SendDebug($Message, $DebugData, 0);
             }
         } elseif (is_a($Data, '\Yeelight\YeelightRPCException')) {
+            /** @var \Yeelight\YeelightRPCException $Data */
             $this->SendDebug('Error(' . $Data->getCode() . ')', $Data->getMessage(), 0);
         } elseif (is_object($Data)) {
             foreach ($Data as $Key => $DebugData) {
@@ -61,5 +59,6 @@ trait DebugHelper
                 $this->LogMessage($Message . ':' . (string) $Data, KL_DEBUG);
             }
         }
+        return true;
     }
 }
