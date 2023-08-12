@@ -18,6 +18,7 @@ require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/ParentIOHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/SemaphoreHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/WebhookHelper.php') . '}');
+eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableProfileHelper.php') . '}');
 require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
 
@@ -53,6 +54,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
 class YeelightDevice extends IPSModuleStrict
 {
     use \YeelightDevice\BufferHelper,
+        \YeelightDevice\VariableHelper,
         \YeelightDevice\VariableProfileHelper,
         \YeelightDevice\Semaphore,
         \Yeelight\DebugHelper,
