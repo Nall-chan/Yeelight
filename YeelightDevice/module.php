@@ -8,9 +8,9 @@ declare(strict_types=1);
  * @package       yeelight
  * @file          module.php
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2020 Michael Tröger
+ * @copyright     2023 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.11
+ * @version       2.13
  *
  */
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
@@ -26,10 +26,10 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * YeelightDevice Klasse implementiert.
  *
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2020 Michael Tröger
+ * @copyright     2023 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  *
- * @version       2.11
+ * @version       2.13
  *
  * @example <b>Ohne</b>
  * @property int $ParentID
@@ -1133,6 +1133,10 @@ class YeelightDevice extends IPSModuleStrict
         if ($IOId > 0) {
             $this->Host = IPS_GetProperty($this->ParentID, 'Host');
             $this->SetSummary(IPS_GetProperty($IOId, 'Host'));
+            // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
+            if ($this->HasActiveParent()) {
+                $this->IOChangeState(IS_ACTIVE);
+            }
             return;
         }
         $this->Host = '';
