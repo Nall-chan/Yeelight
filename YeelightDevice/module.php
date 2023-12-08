@@ -8,9 +8,9 @@ declare(strict_types=1);
  * @package       yeelight
  * @file          module.php
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2020 Michael Tröger
+ * @copyright     2023 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.10
+ * @version       2.13
  *
  */
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
@@ -25,10 +25,10 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * YeelightDevice Klasse implementiert.
  *
  * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2020 Michael Tröger
+ * @copyright     2023 Michael Tröger
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  *
- * @version       2.10
+ * @version       2.13
  *
  * @example <b>Ohne</b>
  *
@@ -42,6 +42,13 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * @property int $BG_HUE
  * @property int $BG_SAT
  * @property int $ConnectionState
+ * @method void UnregisterProfile(string $Name)
+ * @method void RegisterProfileInteger(string $Name, string $Icon, string $Prefix, string $Suffix, int $MinValue, int $MaxValue, int $StepSize)
+ * @method void RegisterProfileIntegerEx(string $Name, string $Icon, string $Prefix, string $Suffix, array $Associations, int $MaxValue = -1, float $StepSize = 0)
+ * @method void RegisterHook(string $WebHook)
+ * @method void UnregisterHook(string $WebHook)
+ * @method bool lock(string $ident)
+ * @method void unlock(string $ident)
  */
 class YeelightDevice extends IPSModule
 {
@@ -51,14 +58,14 @@ class YeelightDevice extends IPSModule
         \Yeelight\DebugHelper,
         \YeelightDevice\WebhookHelper,
         \YeelightDevice\InstanceStatus {
-        \YeelightDevice\InstanceStatus::MessageSink as IOMessageSink;
-        \YeelightDevice\InstanceStatus::RegisterParent as IORegisterParent;
-        \YeelightDevice\InstanceStatus::RequestAction as IORequestAction;
-    }
+            \YeelightDevice\InstanceStatus::MessageSink as IOMessageSink;
+            \YeelightDevice\InstanceStatus::RegisterParent as IORegisterParent;
+            \YeelightDevice\InstanceStatus::RequestAction as IORequestAction;
+        }
 
-    const isDisconnected = 0;
-    const isConnected = 1;
-    const isReconnecting = 2;
+    public const isDisconnected = 0;
+    public const isConnected = 1;
+    public const isReconnecting = 2;
 
     protected static $DataPoints = [
         'power'      => [
@@ -284,7 +291,7 @@ class YeelightDevice extends IPSModule
     public function RequestAction($Ident, $Value)
     {
         if ($this->IORequestAction($Ident, $Value)) {
-            return true;
+            return;
         }
         switch ($Ident) {
             case 'power':
@@ -741,9 +748,9 @@ class YeelightDevice extends IPSModule
             case 1:
                 $Mode = 2;
                 break;
-                case 2:
-                    $Mode = 1;
-                    break;
+            case 2:
+                $Mode = 1;
+                break;
         }
         if ($Duration < 30) {
             $Params = ['on', 'sudden', 0, $Mode];
@@ -767,9 +774,9 @@ class YeelightDevice extends IPSModule
             case 1:
                 $Mode = 2;
                 break;
-                case 2:
-                    $Mode = 1;
-                    break;
+            case 2:
+                $Mode = 1;
+                break;
         }
         $Power = $this->GetValue('bg_power');
         if ($Duration < 30) {
@@ -1082,11 +1089,11 @@ class YeelightDevice extends IPSModule
      * Empfängt Daten vom Parent.
      *
      * @param string $JSONString Das empfangene JSON-kodierte Objekt vom Parent.
-     * @result boolean True wenn Daten verarbeitet wurden, sonst false.
+     * @return bool True wenn Daten verarbeitet wurden, sonst false.
      */
     public function ReceiveData($JSONString)
     {
-        $data = utf8_decode(json_decode($JSONString)->Buffer);
+        $data = json_decode($JSONString)->Buffer;
         $head = $this->BufferIN;
         $Data = $head . $data;
         $JSONLines = explode("\r\n", $Data);
@@ -1106,7 +1113,7 @@ class YeelightDevice extends IPSModule
                 $this->Decode($YeelightData);
             }
         }
-        return true;
+        return '';
     }
 
     /**
@@ -1124,6 +1131,10 @@ class YeelightDevice extends IPSModule
         if ($IOId > 0) {
             $this->Host = IPS_GetProperty($this->ParentID, 'Host');
             $this->SetSummary(IPS_GetProperty($IOId, 'Host'));
+            // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
+            if ($this->HasActiveParent()) {
+                $this->IOChangeState(IS_ACTIVE);
+            }
             return;
         }
         $this->Host = '';
@@ -1174,13 +1185,14 @@ class YeelightDevice extends IPSModule
     {
         $this->SendDebug('ERROR', $errstr, 0);
         echo $errstr . PHP_EOL;
+        return true;
     }
 
     /**
      * Versendet ein RPC-Objekt und empfängt die Antwort.
      *
      * @param \Yeelight\YeelightRPC_Data $YeelightData Das Objekt welches versendet werden soll.
-     * @result mixed Enthält die Antwort auf das Versendete Objekt oder NULL im Fehlerfall.
+     * @return mixed Enthält die Antwort auf das Versendete Objekt oder NULL im Fehlerfall.
      */
     protected function Send(\Yeelight\YeelightRPC_Data $YeelightData)
     {
@@ -1211,7 +1223,7 @@ class YeelightDevice extends IPSModule
             $SendData = new stdClass();
             $SendData->DataID = '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}';
             $YeelightJSON = $YeelightData->ToJSONString();
-            $SendData->Buffer = utf8_encode($YeelightJSON . "\r\n");
+            $SendData->Buffer = $YeelightJSON . "\r\n";
             $this->SendDebug('Send', $YeelightJSON, 0);
             $this->SendDataToParent(json_encode($SendData));
             $ReplyYeelightData = $this->WaitForResponse($YeelightData->Id);
@@ -1487,7 +1499,7 @@ class YeelightDevice extends IPSModule
         if (!$socket) {
             return false;
         }
-        socket_bind($socket, '0', 1983);
+        socket_bind($socket, '0.0.0.0', 1983);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]);
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
         $message = [
@@ -1577,7 +1589,7 @@ class YeelightDevice extends IPSModule
             $this->HUE = (int) $Value;
             if ($this->ReadPropertyBoolean('HUESlider')) {
                 $HueSlider = @$this->GetIDForIdent($Ident);
-                if ($HueSlider == false) {
+                if (!$HueSlider) {
                     $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
                     $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderRequestAction"></script>';
                     $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderEvents"></script>';
@@ -1591,7 +1603,7 @@ class YeelightDevice extends IPSModule
             $this->HUE = (int) $Value;
             if ($this->ReadPropertyBoolean('HUESlider')) {
                 $HueSlider = @$this->GetIDForIdent($Ident);
-                if ($HueSlider == false) {
+                if (!$HueSlider) {
                     $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
                     $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderBgRequestAction"></script>';
                     $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderBgEvents"></script>';
@@ -1634,7 +1646,7 @@ class YeelightDevice extends IPSModule
      * Wartet auf eine RPC-Antwort.
      *
      * @param int $Id Die RPC-ID auf die gewartet wird.
-     * @result mixed Enthält ein Kodi_RPC_Data-Objekt mit der Antwort, oder false bei einem Timeout.
+     * @return false|\Yeelight\YeelightRPC_Data Enthält ein Kodi_RPC_Data-Objekt mit der Antwort, oder false bei einem Timeout.
      */
     private function WaitForResponse($Id)
     {

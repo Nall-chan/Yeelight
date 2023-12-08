@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Yeelight;
 
-eval('declare(strict_types=1);namespace Yeelight {?>' . file_get_contents(__DIR__ . '/helper/UTF8Helper.php') . '}');
 /*
  * @addtogroup yeelight
  * @{
@@ -20,7 +19,7 @@ eval('declare(strict_types=1);namespace Yeelight {?>' . file_get_contents(__DIR_
  */
 class YeelightRPCException extends \Exception
 {
-    public function __construct($message, $code, Exception $previous = null)
+    public function __construct($message, $code, \Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
@@ -29,16 +28,15 @@ class YeelightRPCException extends \Exception
 /**
  * Enthält einen Yeelight-RPC Datensatz.
  *
- * @method null send(array $Params (mixed)) Sendet einen eBus-Request an das SyLa.
+ * @method void send(array $Params (mixed)) Sendet einen Request.
  *
  * @property-read int $Id Id des RPC-Objektes
  * @property-read string $Method Command des RPC-Objektes
  * @property-read array $Params Params des RPC-Objektes
- * @property-read int $Typ Typ des RPC-Objektes
+ * @property-read enum [ YeelightRPC_Data::isCommand, YeelightRPC_Data::isResult, YeelightRPC_Data::isEvent] $Typ Typ des RPC-Objektes
  */
 class YeelightRPC_Data
 {
-    use \Yeelight\UTF8Coder;
     public static $isEvent = 3;
     public static $isCommand = 1;
     public static $isResult = 2;
@@ -198,7 +196,6 @@ class YeelightRPC_Data
 
         if (property_exists($Json, 'params')) {
             $this->Params = $Json->params;
-            $this->DecodeUTF8($this->Params);
         }
 
         if (property_exists($Json, 'id')) {
@@ -215,7 +212,6 @@ class YeelightRPC_Data
 
         if (property_exists($Json, 'result')) {
             $this->Result = $Json->result;
-            $this->DecodeUTF8($this->Result);
             $this->Typ = self::$isResult;
         }
         return true;
@@ -236,15 +232,13 @@ class YeelightRPC_Data
         } else {
             $RPC->params = [];
         }
-        $this->EncodeUTF8($RPC->method);
-        $this->EncodeUTF8($RPC->params);
         return json_encode($RPC);
     }
 
     /**
-     * Gibt ein Objekt SyLaRPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
+     * Gibt ein Objekt YeelightRPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
      *
-     * @return SyLaRPCException Enthält die Daten der Fehlermeldung des RPC-Server.
+     * @return YeelightRPCException Enthält die Daten der Fehlermeldung des RPC-Server.
      */
     private function GetErrorObject()
     {

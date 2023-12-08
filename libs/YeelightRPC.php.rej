@@ -1,0 +1,6 @@
+diff a/libs/YeelightRPC.php b/libs/YeelightRPC.php	(rejected hunks)
+@@ -238,3 +238,4 @@
+         }
+         $this->EncodeUTF8($RPC->method);
++        $this->EncodeUTF8($RPC->params);
+         return json_encode($RPC);
