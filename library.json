@@ -4,9 +4,10 @@
     "name": "Yeelight",
     "url": "https://github.com/Nall-chan/Yeelight",
     "compatibility": {
-        "version": "7.0"
+        "version": "8.1",
+        "date": 1751809221
     },
-    "version": "2.13",
-    "build": 213,
-    "date": 1702049726
+    "version": "2.15",
+    "build": 215,
+    "date": 1752397886
 }

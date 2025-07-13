@@ -17,7 +17,6 @@ eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(
 require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/ParentIOHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/SemaphoreHelper.php') . '}');
-eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/WebhookHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableProfileHelper.php') . '}');
 require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
@@ -46,8 +45,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * @method void UnregisterProfile(string $Name)
  * @method void RegisterProfileInteger(string $Name, string $Icon, string $Prefix, string $Suffix, int $MinValue, int $MaxValue, int $StepSize)
  * @method void RegisterProfileIntegerEx(string $Name, string $Icon, string $Prefix, string $Suffix, array $Associations, int $MaxValue = -1, float $StepSize = 0)
- * @method void RegisterHook(string $WebHook)
- * @method void UnregisterHook(string $WebHook)
+ * @method bool RegisterHook(string $WebHook)
  * @method bool lock(string $ident)
  * @method void unlock(string $ident)
  */
@@ -58,7 +56,6 @@ class YeelightDevice extends IPSModuleStrict
         \YeelightDevice\VariableProfileHelper,
         \YeelightDevice\Semaphore,
         \Yeelight\DebugHelper,
-        \YeelightDevice\WebhookHelper,
         \YeelightDevice\InstanceStatus {
             \YeelightDevice\InstanceStatus::MessageSink as IOMessageSink;
             \YeelightDevice\InstanceStatus::RegisterParent as IORegisterParent;
@@ -214,7 +211,6 @@ class YeelightDevice extends IPSModuleStrict
             $this->UnregisterProfile('Yeelight.ModeColor');
             $this->UnregisterProfile('Yeelight.ModeColorWNight');
             $this->UnregisterProfile('Yeelight.ModeWNight');
-            $this->UnregisterHook('/hook/Yeelight' . $this->InstanceID);
         }
 
         parent::Destroy();
@@ -259,7 +255,6 @@ class YeelightDevice extends IPSModuleStrict
         if ($this->ReadPropertyBoolean('HUESlider')) {
             $this->RegisterHook('/hook/Yeelight' . $this->InstanceID);
         } else {
-            $this->UnregisterHook('/hook/Yeelight' . $this->InstanceID);
             $this->UnregisterVariable('hue');
             $this->UnregisterVariable('sat');
             $this->UnregisterVariable('bg_hue');

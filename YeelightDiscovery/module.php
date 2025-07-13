@@ -157,7 +157,7 @@ class YeelightDiscovery extends IPSModuleStrict
             return $DeviceData;
         }
 
-        socket_bind($socket, '0', 0);
+        socket_bind($socket, '0.0.0.0', 0);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 2, 'usec' => 100000]);
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
         socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
