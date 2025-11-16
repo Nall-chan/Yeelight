@@ -1,17 +1,16 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-2.13-blue.svg)](https://community.symcon.de/t/modul-xiaomi-yeelight-color-bulb/45887)
-![Version](https://img.shields.io/badge/Symcon%20Version-7.0%20%3E-green.svg)  
+[![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fstrict%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)]()
+[![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fstrict%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#4-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#4-spenden)
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)  
 
 # Symcon-Modul: Yeelight <!-- omit in toc -->
 
 Einbinden von Yeelight Geräten in IPS.  
 
-## Dokumentation <!-- omit in toc -->
-
-**Inhaltsverzeichnis**
+## Inhaltsverzeichnis <!-- omit in toc -->  
 
 - [1. Funktionsumfang](#1-funktionsumfang)
   - [Yeelight Discovery:](#yeelight-discovery)
@@ -30,7 +29,6 @@ Einbinden von Yeelight Geräten in IPS.
 - [6. Lizenz](#6-lizenz)
 
 ## 1. Funktionsumfang
-
 
 ### [Yeelight Discovery:](YeelightDiscovery/)  
 
@@ -65,12 +63,10 @@ Eine manuelle Einrichtung der Geräte ist in der [Yeelight Geräte Instanz](Yeel
 
 ###  1. GUID der Module
 
- 
 |       Modul        |    Typ    |  Prefix  |                  GUID                  |
 | :----------------: | :-------: | :------: | :------------------------------------: |
 | Yeelight Discovery | Discovery | YeeLight | {7AABB3D2-3D24-4F2C-86CE-A56FB09D188A} |
 |  Yeelight Device   |  Device   | YeeLight | {BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F} |
-
 
 ### 2. Hinweise  
 
@@ -95,6 +91,14 @@ Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellatio
 
 ### 4. Changelog  
 
+Version 2.15:
+
+- Version für Symcon 8.1
+
+Version 2.14:
+
+- Fix: Erkennung von Eigenschaften welche beim initialen SSDP Response fehlen.  
+  
 Version 2.13:
  - Instanz hat aktiven IO beim Neustart von Symcon nicht erkannt.  
 
@@ -134,7 +138,7 @@ Version 1.00:
   
   Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
-<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](https://paypal.me/Nall4chan)  
 
 [![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)
 
@@ -142,4 +146,3 @@ Version 1.00:
 
   IPS-Modul:  
   [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
- 

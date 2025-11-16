@@ -183,11 +183,10 @@ class YeelightDevice extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
-        $this->RequireParent('{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}');
         $this->RegisterPropertyBoolean('HUESlider', true);
         $this->RegisterPropertyBoolean('SetSmooth', false);
         $this->RegisterPropertyInteger('Mode', 0);
-
+        $this->RegisterHook('Yeelight' . $this->InstanceID);
         $this->ReplyJSONData = [];
         $this->BufferIN = '';
         $this->Capabilities = [];
@@ -214,6 +213,11 @@ class YeelightDevice extends IPSModuleStrict
         }
 
         parent::Destroy();
+    }
+
+    public function GetCompatibleParents(): string
+    {
+        return '{"type": "require", "moduleIDs": ["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"]}';
     }
 
     /**
@@ -252,9 +256,7 @@ class YeelightDevice extends IPSModuleStrict
             $this->RegisterMessage(0, IPS_KERNELSTARTED);
             return;
         }
-        if ($this->ReadPropertyBoolean('HUESlider')) {
-            $this->RegisterHook('/hook/Yeelight' . $this->InstanceID);
-        } else {
+        if (!$this->ReadPropertyBoolean('HUESlider')) {
             $this->UnregisterVariable('hue');
             $this->UnregisterVariable('sat');
             $this->UnregisterVariable('bg_hue');
@@ -273,7 +275,6 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
     {
-        $this->LogMessage(__FUNCTION__ . ':' . $SenderID . ':' . $Message, KL_DEBUG);
         $this->IOMessageSink($TimeStamp, $SenderID, $Message, $Data);
         switch ($Message) {
             case IPS_KERNELSTARTED:
@@ -345,20 +346,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function RequestState(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
-        $YeelightData->get_prop($this->Propertys);
-        $Result = $this->Send($YeelightData);
-        if ($Result === false) {
-            return false;
-        }
-
-        foreach ($this->Propertys as $Index => $Property) {
-            if ($Result[$Index] == '') {
-                continue;
-            }
-            $this->SetStatusVariable($Property, $Result[$Index]);
-        }
-        return true;
+        return $this->get_prop($this->Propertys);
     }
 
     /**
@@ -1125,6 +1113,7 @@ class YeelightDevice extends IPSModuleStrict
     protected function RegisterParent(): void
     {
         $IOId = $this->IORegisterParent();
+
         if ($IOId > 0) {
             $this->Host = IPS_GetProperty($this->ParentID, 'Host');
             $this->SetSummary(IPS_GetProperty($IOId, 'Host'));
@@ -1159,9 +1148,9 @@ class YeelightDevice extends IPSModuleStrict
                 return;
             }
             $this->ConnectionState = self::isConnected;
+            $this->get_prop(array_keys(self::$DataPoints), true);
             $this->SetStatus(IS_ACTIVE);
-            $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_DEBUG);
-            $this->RequestState();
+            $this->SendDebug('Propertys read:', implode(' ', $this->Propertys), 0);
             $this->unlock('IOChangeState');
             return;
         } else {
@@ -1368,6 +1357,32 @@ class YeelightDevice extends IPSModuleStrict
 
     //################# Helper
 
+    private function get_prop(array $Propertys, bool $Init = false): bool
+    {
+        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData->get_prop($Propertys);
+        $Result = $this->Send($YeelightData);
+        if ($Result === false) {
+            return false;
+        }
+        if ($Init) {
+            $props = $this->Propertys;
+            foreach ($Propertys as $Index => $Property) {
+                if ($Result[$Index] !== '' && !in_array($Property, $props)) {
+                    $props[] = $Property;
+                }
+            }
+            $this->Propertys = $props;
+        }
+        foreach ($this->Propertys as $Index => $Property) {
+            if ($Result[$Index] == '') {
+                continue;
+            }
+            $this->SetStatusVariable($Property, $Result[$Index]);
+        }
+        return true;
+    }
+
     /**
      * Sendet set_rgb an das Gerät.
      *
@@ -1477,7 +1492,7 @@ class YeelightDevice extends IPSModuleStrict
         $Header = [];
         foreach ($Lines as $Line) {
             $line_array = explode(':', $Line);
-            $Header[trim(array_shift($line_array))] = trim(implode(':', $line_array));
+            $Header[strtolower(trim(array_shift($line_array)))] = trim(implode(':', $line_array));
         }
         return $Header;
     }

@@ -1,16 +1,16 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-2.13-blue.svg)](https://community.symcon.de/t/modul-xiaomi-yeelight-color-bulb/45887)
-![Version](https://img.shields.io/badge/Symcon%20Version-7.0%20%3E-green.svg)  
+[![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fstrict%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)]()
+[![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fstrict%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#2-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#2-spenden)
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)  
 
 # Yeelight Discovery <!-- omit in toc -->  
+
 Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.  
 
-## Dokumentation <!-- omit in toc -->
-
-**Inhaltsverzeichnis**
+## Inhaltsverzeichnis <!-- omit in toc -->  
 
 - [1. Funktionsumfang](#1-funktionsumfang)
 - [2. Voraussetzungen](#2-voraussetzungen)
@@ -26,13 +26,13 @@ Sucht Yeelight Geräte im LAN und vereinfacht das Anlegen von Geräten in IPS.
 
 ## 1. Funktionsumfang
 
- - Auflisten alle im Netzwerk vorhandenen Yeelight Geräte.  
- - Erstellen von neuen Yeelight Device-Instanzen in IPS.  
+- Auflisten alle im Netzwerk vorhandenen Yeelight Geräte.  
+- Erstellen von neuen Yeelight Device-Instanzen in IPS.  
 
 ## 2. Voraussetzungen
 
- - IPS 6.1 oder höher  
- - Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](../README.md#1-lan-steuerung-aktiveren) 
+- Symcon ab Version 8.1  
+- Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](../README.md#1-lan-steuerung-aktiveren)  
 
 ## 3. Software-Installation
 
@@ -76,10 +76,9 @@ Die Instanz besitzt keine Instanz-Funktionen.
 
   Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
-<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](https://paypal.me/Nall4chan)  
 
-[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)
-
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)  
 
 ## 9. Lizenz
 

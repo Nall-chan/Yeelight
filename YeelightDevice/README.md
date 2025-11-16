@@ -1,16 +1,16 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-2.13-blue.svg)](https://community.symcon.de/t/modul-xiaomi-yeelight-color-bulb/45887)
-![Version](https://img.shields.io/badge/Symcon%20Version-7.0%20%3E-green.svg)  
+[![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fstrict%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)]()
+[![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fstrict%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#2-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#2-spenden)
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#2-spenden)  
 
-# Yeelight Device <!-- omit in toc -->
+# Yeelight Device <!-- omit in toc -->  
+
 Einbindung eines Yeelight-Gerätes in IPS.  
 
-## Dokumentation <!-- omit in toc -->
-
-**Inhaltsverzeichnis**
+## Inhaltsverzeichnis <!-- omit in toc -->  
 
 - [1. Funktionsumfang](#1-funktionsumfang)
 - [2. Voraussetzungen](#2-voraussetzungen)
@@ -27,15 +27,15 @@ Einbindung eines Yeelight-Gerätes in IPS.
 
 ## 1. Funktionsumfang
 
- - Empfangen und visualisieren der aktuellen Zustände in IPS.  
- - Steuerung über die Statusvariablen.  
- - Steuerung über [Symcon Aktionen](https://www.symcon.de/service/dokumentation/konzepte/automationen/ablaufplaene/aktionen/)
- - PHP-Funktionen für erweiterte Funktionen.  
+- Empfangen und visualisieren der aktuellen Zustände in IPS.  
+- Steuerung über die Statusvariablen.  
+- Steuerung über [Symcon Aktionen](https://www.symcon.de/service/dokumentation/konzepte/automationen/ablaufplaene/aktionen/)
+- PHP-Funktionen für erweiterte Funktionen.  
 
 ## 2. Voraussetzungen
 
- - IPS 6.1 oder höher  
- - Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](../README.md#1-lan-steuerung-aktiveren)  
+- Symcon ab Version 8.1  
+- Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](../README.md#1-lan-steuerung-aktiveren)  
 
 ## 3. Software-Installation
 
@@ -78,7 +78,7 @@ Folgende Statusvariablen werden automatisch angelegt, je nach Gerät können es 
 |     HSV Sättigung     | integer |    sat     |         Sättigung in Prozent für HUE         |
 |        HSV Hue        | string  |    hue     |  JavaScript für den HUE-Slider im WebFront   |
 | Helligkeit Nachtlicht | integer |   nl_br    |  Vom Gerät gemeldete Helligkeit Nachtlicht   |
- 
+
 **Profile:**  
 
 |           Name           |   Typ   | verwendet von Statusvariablen |
@@ -115,63 +115,74 @@ Verfügt das Gerät über eine zweites 'Leuchtmittel' bzw. über eine Hintergrun
 so stehen fast alle Befehle hierzu ebenfalls zur Verfügung.  
 Da die Verwendung identisch ist, sind diese nicht weiter dokumentiert.  
 Die Befehle lauten z.B.  
+
  ```php
   YEELIGHT_SetPower(...)       => YEELIGHT_SetBgPower(...)
   YEELIGHT_SetWhiteSmooth(...) => YEELIGHT_SetBgWhiteSmooth(...)
   YEELIGHT_SetHSV(...)         => YEELIGHT_SetBgHSV(...)
-```
+```  
+
 usw...  
 
 ```php
 bool YEELIGHT_RequestState(integer $InstanzID)
-```
+```  
+
 Liest den Zustand des Gerätes und führt alle Statusvariablen nach.  
 
 ```php
 bool YEELIGHT_SetWhite(integer $InstanzID, integer $Temperature)
-```
+```  
+
 Setzt den in '$Temperature' übergebenen Weißton.  
 Erlaubter Wertebereich ist 1700 bis 6500.  
 
 ```php
 bool YEELIGHT_SetWhiteSmooth(integer $InstanzID, integer $Temperature, integer $Duration)
-```
+```  
+
 Setzt den in '$Temperature' übergebenen Weißton mit der in '$Duration' übergebenen Transitionzeit in Millisekunden.  
 Erlaubter Wertebereich ist 1700 bis 6500.  
 
 ```php
 bool YEELIGHT_SetRGB(integer $InstanzID, integer $Red, integer $Green, integer $Blue)
-```
+```  
+
 Setzt die in '$Red', '$Green' und '$Blue' übergebenen Farben.  
 Erlaubter Wertebereich ist 0 bis 255.  
 
 ```php
 bool YEELIGHT_SetRGBSmooth(integer $InstanzID, integer $Red, integer $Green, integer $Blue, integer $Duration)
-```
+```  
+
 Setzt die in '$Red', '$Green' und '$Blue' übergebenen Farben mit der in '$Duration' übergebenen Transitionzeit in Millisekunden.  
 Erlaubter Wertebereich ist 0 bis 255.  
 
 ```php
 bool YEELIGHT_SetHSV(integer $InstanzID, integer $HUE, integer $Saturation)
-```
+```  
+
 Setzt die in '$HUE' und '$Saturation' übergebene Farbe.  
 Erlaubter Wertebereich ist für '$HUE' von 0 bis 359 und für '$Saturation' 1 bis 100.  
 
 ```php
 bool YEELIGHT_SetHSVSmooth(integer $InstanzID, integer $HUE, integer $Saturation, integer $Duration)
-```
+```  
+
 Setzt die in '$HUE' und '$Saturation' übergebene Farbe mit der in '$Duration' übergebenen Transitionzeit in Millisekunden.  
 Erlaubter Wertebereich ist für '$HUE' von 0 bis 359 und für '$Saturation' 1 bis 100.  
 
 ```php
 bool YEELIGHT_SetBrightness(integer $InstanzID, integer $Level)
-```
+```  
+
 Setzt die in '$Level' übergebene Helligkeit.  
 Erlaubter Wertebereich ist 0 bis 100.  
 
 ```php
 bool YEELIGHT_SetBrightnessSmooth(integer $InstanzID, integer $Level, integer $Duration)
-```
+```  
+
 Setzt die in '$Level' übergebene Helligkeit mit der in '$Duration' übergebenen Transitionzeit in Millisekunden.  
 Erlaubter Wertebereich ist 0 bis 100.  
 
@@ -181,13 +192,15 @@ bool YEELIGHT_SetMode(integer $InstanzID, integer $Mode)
 
 ```php
 bool YEELIGHT_SetPower(integer $InstanzID, bool $Value)
-```
+```  
+
 Schaltet das Gerät ein oder aus.  
 Erlaubte Werte für '$Value' sind 'true' zum ein- und 'false' zum ausschalten.  
 
 ```php
 bool YEELIGHT_SetPowerSmooth(integer $InstanzID, bool $Value, integer $Duration)
-```
+```  
+
 Schaltet das Gerät ein oder aus, mit der in '$Duration' übergebenen Transitionzeit in Millisekunden.  
 Erlaubte Werte für '$Value' sind 'true' zum ein- und 'false' zum ausschalten.  
 
@@ -257,10 +270,9 @@ bool YEELIGHT_SetName(integer $InstanzID, string $Name)
 
   Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
-<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](https://paypal.me/Nall4chan)  
 
-[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)
-
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)  
 
 ## 10. Lizenz
 
