@@ -1374,7 +1374,7 @@ class YeelightDevice extends IPSModuleStrict
             }
             $this->Propertys = $props;
         }
-        foreach ($this->Propertys as $Index => $Property) {
+        foreach ($Propertys as $Index => $Property) {
             if ($Result[$Index] == '') {
                 continue;
             }

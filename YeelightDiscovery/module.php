@@ -225,54 +225,6 @@ class YeelightDiscovery extends IPSModuleStrict
             }
         }
         return $DevicesData;
-        /*
-        $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-        if (!$socket) {
-            return $DeviceData;
-        }
-
-        socket_bind($socket, '0.0.0.0', 0);
-        socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 2, 'usec' => 100000]);
-        socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
-        socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
-        $message = [
-            'M-SEARCH * HTTP/1.1',
-            'HOST: 239.255.255.250:1982',
-            'MAN: "ssdp:discover"',
-            'ST: wifi_bulb',
-            '',
-            ''
-        ];
-        $SendData = implode("\r\n", $message);
-        $this->SendDebug('Search', $SendData, 0);
-        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, '239.255.255.250', 1982) === false) {
-            return $DeviceData;
-        }
-        usleep(100000);
-        $i = 50;
-        $buf = '';
-        $IPAddress = '';
-        $Port = 0;
-        while ($i) {
-            $ret = @socket_recvfrom($socket, $buf, 2048, 0, $IPAddress, $Port);
-            if ($ret === false) {
-                break;
-            }
-            if ($ret === 0) {
-                $i--;
-                continue;
-            }
-            $this->SendDebug($IPAddress, $buf, 0);
-            $Data = $this->parseHeader($buf);
-            $Data['port'] = (int) explode(':', $Data['Location'])[2];
-            if ($Data['name'] == '') {
-                $Data['name'] = 'unnamed Yeelight Device';
-            }
-            $DeviceData[$IPAddress] = $Data;
-        }
-        socket_close($socket);
-        return $DeviceData;
-         */
     }
 
     private function getIPAdresses(): array
