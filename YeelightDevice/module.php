@@ -1163,6 +1163,23 @@ class YeelightDevice extends IPSModule
             }
             $this->ConnectionState = self::isConnected;
             $this->SetStatus(IS_ACTIVE);
+
+            // Detect additional properties not in SSDP response (e.g. bg_* for background light)
+            // Query all known properties from device and add those that return valid values
+            $YeelightData = new \Yeelight\YeelightRPC_Data();
+            $allProperties = array_keys(self::$DataPoints);
+            $YeelightData->get_prop($allProperties);
+            $Result = $this->Send($YeelightData);
+            if ($Result !== false) {
+                $props = $this->Propertys;
+                foreach ($allProperties as $Index => $Property) {
+                    if ($Result[$Index] !== '' && !in_array($Property, $props)) {
+                        $props[] = $Property;
+                    }
+                }
+                $this->Propertys = $props;
+            }
+
             $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_DEBUG);
             $this->RequestState();
             $this->unlock('IOChangeState');
