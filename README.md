@@ -1,17 +1,17 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Modul%20Version-2.13-blue.svg)](https://community.symcon.de/t/modul-xiaomi-yeelight-color-bulb/45887)
-[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
-[![Version](https://img.shields.io/badge/Symcon%20Version-6.1%20%3E-green.svg)](https://www.symcon.de/service/dokumentation/installation/migrationen/v60-v61-q1-2022/)
-[![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
-[![Spenden](https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_SM.gif)](#4-spenden)[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)  
+[![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)]()
+[![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
+[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)
+[![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#4-spenden)
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)  
 
 # Symcon-Modul: Yeelight <!-- omit in toc -->
 
 Einbinden von Yeelight Geräten in IPS.  
 
-## Dokumentation <!-- omit in toc -->
-
-**Inhaltsverzeichnis**
+## Inhaltsverzeichnis <!-- omit in toc -->  
 
 - [1. Funktionsumfang](#1-funktionsumfang)
   - [Yeelight Discovery:](#yeelight-discovery)
@@ -31,29 +31,28 @@ Einbinden von Yeelight Geräten in IPS.
 
 ## 1. Funktionsumfang
 
-
 ### [Yeelight Discovery:](YeelightDiscovery/)  
 
- - Auflisten alle im Netzwerk vorhandenen Yeelight Geräte.  
- - Erstellen von neuen Yeelight Device-Instanzen in IPS.  
- - <span style="color:red">**Funktioniert nicht in einem Docker Container welcher per NAT angebunden ist**</span>
+- Auflisten alle im Netzwerk vorhandenen Yeelight Geräte.  
+- Erstellen von neuen Yeelight Device-Instanzen in IPS.  
+- <span style="color:red">**Funktioniert nicht in einem Docker Container welcher per NAT angebunden ist**</span>
 
 ### [Yeelight Gerät:](YeelightDevice/)  
 
- - Empfangen und visualisieren der aktuellen Zustände in IPS.  
- - Steuerung per WebFront und per PHP-Funktionen. 
- - <span style="color:red">**Benötigt bei NAT eine Portweiterleitung von Port 1983 UDP ankommend**</span> 
+- Empfangen und visualisieren der aktuellen Zustände in IPS.  
+- Steuerung per WebFront und per PHP-Funktionen. 
+- <span style="color:red">**Benötigt bei NAT eine Portweiterleitung von Port 1983 UDP ankommend**</span> 
 
 ## 2. Voraussetzungen
 
- - IPS 6.1 oder höher  
- - Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](#1-lan-steuerung-aktiveren)   
+- IPS 6.1 oder höher  
+- Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](#1-lan-steuerung-aktiveren)   
 
 ## 3. Software-Installation
 
   Über den 'Module-Store' in IPS das Modul 'Yeelight' hinzufügen.  
    **Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
-![Module-Store](imgs/install.png) 
+![Module-Store](imgs/install.png)  
 
 ## 4. Einrichten der Instanzen in IP-Symcon
 
@@ -63,14 +62,12 @@ Eine manuelle Einrichtung der Geräte ist in der [Yeelight Geräte Instanz](Yeel
 
 ## 5. Anhang
 
-###  1. GUID der Module
+### 1. GUID der Module
 
- 
 |       Modul        |    Typ    |  Prefix  |                  GUID                  |
 | :----------------: | :-------: | :------: | :------------------------------------: |
 | Yeelight Discovery | Discovery | YeeLight | {7AABB3D2-3D24-4F2C-86CE-A56FB09D188A} |
 |  Yeelight Device   |  Device   | YeeLight | {BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F} |
-
 
 ### 2. Hinweise  
 
@@ -89,52 +86,65 @@ Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellatio
 
 ### 3. Backlog
 
- - Aktionen und PHP-Befehle um Farbtemperatur und Helligkeit mir rotation durchschalten (Main und Hintergrund).  
- - Aktionen und PHP-Befehle um Farbe(HSV), Farbtemperatur und Helligkeit prozentual zu erhöhen oder zu verringern (Main und Hintergrund).  
- - Dokumentation der PHP-Befehlsreferenz vervollständigen.  
+- Aktionen und PHP-Befehle um Farbtemperatur und Helligkeit mir rotation durchschalten (Main und Hintergrund).  
+- Aktionen und PHP-Befehle um Farbe(HSV), Farbtemperatur und Helligkeit prozentual zu erhöhen oder zu verringern (Main und Hintergrund).  
+- Dokumentation der PHP-Befehlsreferenz vervollständigen.  
 
 ### 4. Changelog  
 
+Version 2.14:
+
+- Fix: Erkennung von Eigenschaften welche beim initialen SSDP Response fehlen.  
+- Fix: Discovery Instanz durchsucht jedes Netzwerk Interface.  
+  
 Version 2.13:
- - Instanz hat aktiven IO beim Neustart von Symcon nicht erkannt.  
+
+- Instanz hat aktiven IO beim Neustart von Symcon nicht erkannt.  
 
 Version 2.10:
- - Quata exceeded Fehlermeldungen lösen einen automatischen Reconnect aus.  
+
+- Quata exceeded Fehlermeldungen lösen einen automatischen Reconnect aus.  
 
 Version 2.00:
- - Betrieb der Geräte-Instanzen auch mit NAT (z.B. Docker) möglich.  
- - VariablenProfile werden beim löschen mit entfernt.  
- - Aktionen (inkl. Programmablauf) werden unterstützt.
- - Debugausgaben waren unvollständig.  
- - Fehlermeldungen von Geräten wurden nicht berücksichtigt.  
- - Bessere Hinweise wenn es Probleme mit der Kommunikation gibt.  
- - RGB Farbwahl war defekt.  
- - UDP Kommunikation wird in Symcon ankommend auf Port 1983 erwartet. 
- - <span style="color:red">**Prefix für PHP-Befehle wurde auf "YEELIGHT" geändert.**</span>  
- - <span style="color:red">**IPS 6.1 wird benötigt.**</span>  
+
+- Betrieb der Geräte-Instanzen auch mit NAT (z.B. Docker) möglich.  
+- VariablenProfile werden beim löschen mit entfernt.  
+- Aktionen (inkl. Programmablauf) werden unterstützt.
+- Debugausgaben waren unvollständig.  
+- Fehlermeldungen von Geräten wurden nicht berücksichtigt.  
+- Bessere Hinweise wenn es Probleme mit der Kommunikation gibt.  
+- RGB Farbwahl war defekt.  
+- UDP Kommunikation wird in Symcon ankommend auf Port 1983 erwartet.  
+- <span style="color:red">**Prefix für PHP-Befehle wurde auf "YEELIGHT" geändert.**</span>  
+- <span style="color:red">**IPS 6.1 wird benötigt.**</span>  
 
 Version 1.80:  
- - Unnötigen Code aus Discovery entfernt.  
- - Discovery zeigt eine Meldung an, wenn keine Geräte gefunden wurden.  
+
+- Unnötigen Code aus Discovery entfernt.  
+- Discovery zeigt eine Meldung an, wenn keine Geräte gefunden wurden.  
   
 Version 1.70:  
- - YEELIGHT_SetMode schaltet Gerät immer an.  
- - Zweites Profil für die Farbtemperatur bei Modus 'Weiß mit Nachtlicht'.  
+
+- YEELIGHT_SetMode schaltet Gerät immer an.  
+- Zweites Profil für die Farbtemperatur bei Modus 'Weiß mit Nachtlicht'.  
 
 Version 1.60:  
- - Erweiterung für den Nachtlicht-Modus  
+
+- Erweiterung für den Nachtlicht-Modus  
 
 Version 1.50:  
- - Release für IPS 5.1 und den Module-Store  
+
+- Release für IPS 5.1 und den Module-Store  
 
 Version 1.00:  
- - Erstes offizielles Release  
+
+- Erstes offizielles Release  
 
 ### 4. Spenden  
   
   Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
 
-<a href="https://www.paypal.com/donate?hosted_button_id=G2SLW2MEMQZH2" target="_blank"><img src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donate_LG.gif" border="0" /></a>  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](https://paypal.me/Nall4chan)  
 
 [![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)
 
@@ -142,4 +152,3 @@ Version 1.00:
 
   IPS-Modul:  
   [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
- 

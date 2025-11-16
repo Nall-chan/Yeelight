@@ -276,7 +276,6 @@ class YeelightDevice extends IPSModule
      */
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
-        $this->LogMessage(__FUNCTION__ . ':' . $SenderID . ':' . $Message, KL_DEBUG);
         $this->IOMessageSink($TimeStamp, $SenderID, $Message, $Data);
         switch ($Message) {
             case IPS_KERNELSTARTED:
@@ -348,20 +347,7 @@ class YeelightDevice extends IPSModule
      */
     public function RequestState(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
-        $YeelightData->get_prop($this->Propertys);
-        $Result = $this->Send($YeelightData);
-        if ($Result === false) {
-            return false;
-        }
-
-        foreach ($this->Propertys as $Index => $Property) {
-            if ($Result[$Index] == '') {
-                continue;
-            }
-            $this->SetStatusVariable($Property, $Result[$Index]);
-        }
-        return true;
+        return $this->get_prop($this->Propertys);
     }
 
     /**
@@ -1162,26 +1148,9 @@ class YeelightDevice extends IPSModule
                 return;
             }
             $this->ConnectionState = self::isConnected;
+            $this->get_prop(array_keys(self::$DataPoints), true);
             $this->SetStatus(IS_ACTIVE);
-
-            // Detect additional properties not in SSDP response (e.g. bg_* for background light)
-            // Query all known properties from device and add those that return valid values
-            $YeelightData = new \Yeelight\YeelightRPC_Data();
-            $allProperties = array_keys(self::$DataPoints);
-            $YeelightData->get_prop($allProperties);
-            $Result = $this->Send($YeelightData);
-            if ($Result !== false) {
-                $props = $this->Propertys;
-                foreach ($allProperties as $Index => $Property) {
-                    if ($Result[$Index] !== '' && !in_array($Property, $props)) {
-                        $props[] = $Property;
-                    }
-                }
-                $this->Propertys = $props;
-            }
-
-            $this->LogMessage('Propertys read:' . implode(' ', $this->Propertys), KL_DEBUG);
-            $this->RequestState();
+            $this->SendDebug('Propertys read:', implode(' ', $this->Propertys), 0);
             $this->unlock('IOChangeState');
             return;
         } else {
@@ -1387,6 +1356,32 @@ class YeelightDevice extends IPSModule
     }
 
     //################# Helper
+
+    private function get_prop(array $Propertys, bool $Init = false): bool
+    {
+        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData->get_prop($Propertys);
+        $Result = $this->Send($YeelightData);
+        if ($Result === false) {
+            return false;
+        }
+        if ($Init) {
+            $props = $this->Propertys;
+            foreach ($Propertys as $Index => $Property) {
+                if ($Result[$Index] !== '' && !in_array($Property, $props)) {
+                    $props[] = $Property;
+                }
+            }
+            $this->Propertys = $props;
+        }
+        foreach ($Propertys as $Index => $Property) {
+            if ($Result[$Index] == '') {
+                continue;
+            }
+            $this->SetStatusVariable($Property, $Result[$Index]);
+        }
+        return true;
+    }
 
     /**
      * Sendet set_rgb an das Gerät.
