@@ -9,17 +9,237 @@ namespace Yeelight;
  * @{
  *
  * @package yeelight
- * @file          YeelightRPC.php
- * @author        Michael Tröger
+ * @file YeelightRPC.php
+ * @author Michael Tröger
  *
  */
-
-/**
- * Definiert eine YeelightRPCException.
- */
-class YeelightRPCException extends \Exception
+class DataPoints
 {
-    public function __construct($message, $code, \Exception $previous = null)
+    public const Power = 'power';
+    public const BgPower = 'bg_power';
+    public const Bright = 'bright';
+    public const BgBright = 'bg_bright';
+    public const RGB = 'rgb';
+    public const BgRGB = 'bg_rgb';
+    public const SAT = 'sat';
+    public const BgSAT = 'bg_sat';
+    public const CT = 'ct';
+    public const BgCT = 'bg_ct';
+    public const ColorMode = 'color_mode';
+    public const BgColorMode = 'bg_lmode';
+    public const HUE = 'hue';
+    public const BgHUE = 'bg_hue';
+    public const NightLightBright = 'nl_br';
+    public const Flowing = 'flowing';
+    public const BgFlowing = 'bg_flowing';
+
+    public static $List = [
+        self::BgBright,
+        self::BgColorMode,
+        self::BgCT,
+        self::BgFlowing,
+        self::BgHUE,
+        self::BgPower,
+        self::BgRGB,
+        self::BgSAT,
+        self::Bright,
+        self::ColorMode,
+        self::CT,
+        self::Flowing,
+        self::HUE,
+        self::NightLightBright,
+        self::Power,
+        self::RGB,
+        self::SAT
+    ];
+    public static function getReadableList(): array
+    {
+        return array_keys(array_filter(Variables::$List, function ($item)
+        {
+            return $item[Variables::Readable];
+        }));
+    }
+}
+class Variables
+{
+    public const Readable = 'Readable';
+    public const Name = 'Name';
+    public const Type = 'Type';
+    public const Profile = 'Profile';
+    public const Profile0 = 'Profile0';
+    public const Profile1 = 'Profile1';
+    public const Profile2 = 'Profile2';
+    public const enableAction = 'enableAction';
+    public const Mapping = 'Mapping';
+    public static $List = [
+        DataPoints::Power => [
+            self::Readable     => true,
+            self::Name         => 'State',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Profile      => '~Switch',
+            self::enableAction => true,
+            self::Mapping      => ['on' => true, 'off' => false]
+        ],
+        DataPoints::BgPower => [
+            self::Readable     => true,
+            self::Name         => 'State Background',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Profile      => '~Switch',
+            self::enableAction => true,
+            self::Mapping      => ['on' => true, 'off' => false]
+        ],
+        DataPoints::Bright => [
+            self::Readable     => true,
+            self::Name         => 'Brightness',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~Intensity.100',
+            self::enableAction => true
+        ],
+        DataPoints::BgBright => [
+            self::Readable     => true,
+            self::Name         => 'Brightness Background',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~Intensity.100',
+            self::enableAction => true
+        ],
+        DataPoints::RGB => [
+            self::Readable     => true,
+            self::Name         => 'RGB Color',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~HexColor',
+            self::enableAction => true
+        ],
+        DataPoints::BgRGB => [
+            self::Readable     => true,
+            self::Name         => 'RGB Color Background',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~HexColor',
+            self::enableAction => true
+        ],
+        DataPoints::SAT => [
+            self::Readable     => true,
+            self::Name         => 'HSV Saturation',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~Intensity.100',
+            self::enableAction => true
+        ],
+        DataPoints::BgSAT => [
+            self::Readable     => true,
+            self::Name         => 'HSV Saturation Background',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~Intensity.100',
+            self::enableAction => true
+        ],
+        DataPoints::CT => [
+            self::Readable         => true,
+            self::Name             => 'White',
+            self::Type             => VARIABLETYPE_INTEGER,
+            self::Profile0         => 'Yeelight.WhiteTemp',
+            self::Profile1         => 'Yeelight.WhiteTemp',
+            self::Profile2         => 'Yeelight.WhiteTemp2',
+            self::enableAction     => true
+        ],
+        DataPoints::BgCT => [
+            self::Readable         => true,
+            self::Name             => 'White Background',
+            self::Type             => VARIABLETYPE_INTEGER,
+            self::Profile0         => 'Yeelight.WhiteTemp',
+            self::Profile1         => 'Yeelight.WhiteTemp',
+            self::Profile2         => 'Yeelight.WhiteTemp2',
+            self::enableAction     => true
+        ],
+        DataPoints::ColorMode => [
+            self::Readable         => true,
+            self::Name             => 'Current mode',
+            self::Type             => VARIABLETYPE_INTEGER,
+            self::Profile0         => 'Yeelight.ModeColor',
+            self::Profile1         => 'Yeelight.ModeColorWNight',
+            self::Profile2         => 'Yeelight.ModeWNight',
+            self::enableAction     => true
+        ],
+        DataPoints::BgLMode => [
+            self::Readable         => true,
+            self::Name             => 'Current mode Background',
+            self::Type             => VARIABLETYPE_INTEGER,
+            self::Profile0         => 'Yeelight.ModeColor',
+            self::Profile1         => 'Yeelight.ModeColorWNight',
+            self::Profile2         => 'Yeelight.ModeWNight',
+            self::enableAction     => true
+        ],
+        DataPoints::Hue => [
+            self::Readable => true,
+            self::Name     => 'HSV Hue',
+            self::Type     => VARIABLETYPE_STRING,
+            self::Profile  => '~HTMLBox'
+        ],
+        DataPoints::HSV => [
+            self::Readable     => false,
+            self::Name         => 'HSV Color',
+            self::Type         => VARIABLETYPE_STRING,
+            self::enableAction => true,
+            self::Profile      => [
+                'COLOR_CURVE'        => 0,
+                'COLOR_SPACE'        => 1,
+                'SELECTION'          => 0,
+                'CUSTOM_COLOR_CURVE' => '[]',
+                'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
+                'ENCODING'           => 2,
+                'PRESENTATION'       => '{05CC3CC2-A0B2-5837-A4A7-A07EA0B9DDFB}',
+                'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
+            ]
+        ],
+        DataPoints::BgHue => [
+            self::Readable => true,
+            self::Name     => 'HSV Hue Background',
+            self::Type     => VARIABLETYPE_STRING,
+            self::Profile  => '~HTMLBox'
+        ],
+        DataPoints::BgHSV => [
+            self::Readable     => false,
+            self::Name         => 'HSV Color',
+            self::Type         => VARIABLETYPE_STRING,
+            self::enableAction => true,
+            self::Profile      => [
+                'COLOR_CURVE'        => 0,
+                'COLOR_SPACE'        => 1,
+                'SELECTION'          => 0,
+                'CUSTOM_COLOR_CURVE' => '[]',
+                'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
+                'ENCODING'           => 2,
+                'PRESENTATION'       => '{05CC3CC2-A0B2-5837-A4A7-A07EA0B9DDFB}',
+                'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
+            ]
+        ],
+        DataPoints::NlBr => [
+            self::Readable     => true,
+            self::Name         => 'Brightness Nightlight',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Profile      => '~Intensity.100',
+            self::enableAction => false
+        ],
+        DataPoints::Flowing => [
+            self::Readable     => true,
+            self::Name         => 'Sequenz active',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Profile      => '',
+            self::enableAction => false
+        ],
+        DataPoints::BgFlowing => [
+            self::Readable     => true,
+            self::Name         => 'Sequenz active Background',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Profile      => '',
+            self::enableAction => false
+        ]
+    ];
+
+}
+/**
+ * Definiert eine RPCException.
+ */
+class RPCException extends \Exception
+{
+    public function __construct($message, $code, ?\Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
@@ -33,9 +253,44 @@ class YeelightRPCException extends \Exception
  * @property-read int $Id Id des RPC-Objektes
  * @property-read string $Method Command des RPC-Objektes
  * @property-read array $Params Params des RPC-Objektes
- * @property-read enum [ YeelightRPC_Data::isCommand, YeelightRPC_Data::isResult, YeelightRPC_Data::isEvent] $Typ Typ des RPC-Objektes
+ * @phpstan-type RPC_Data_Type {RPC_Data::isCommand, RPC_Data::isResult, RPC_Data::isEvent}
+ * @property-read RPC_Data_Type $Typ
+ *
+ * @method void set_ct_abx(array $Params) Setzt die Farbtemperatur mit Smooth-Übergang.
+ * @method void bg_set_ct_abx(array $Params) Setzt die Farbtemperatur mit Smooth-Übergang.
+ *
+ * @method void set_hsv(array $Params) Setzt die Farbe im HSV-Farbraum.
+ * @method void bg_set_hsv(array $Params) Setzt die Farbe im HSV-Farbraum.
+ *
+ * @method void set_bright(array $Params) Setzt die Helligkeit.
+ * @method void bg_set_bright(array $Params) Setzt die Helligkeit.
+ *
+ * @method void set_power(array $Params) Setzt den Ein-/Aus-Zustand.
+ * @method void bg_set_power(array $Params) Setzt den Ein-/Aus-Zustand.
+ *
+ * @method void toogle() Schaltet den Ein-/Aus-Zustand um.
+ * @method void bg_toogle() Schaltet den Ein-/Aus-Zustand um.
+ * @method void dev_toogle() Schaltet beide Ein-/Aus-Zustand um.
+ *
+ * @method void set_default() Setzt die Werkseinstellungen.
+ * @method void bg_set_default() Setzt die Werkseinstellungen.
+ *
+ * @method void start_cf(array $Params) Startet eine Farbsequenz.
+ * @method void bg_start_cf(array $Params) Startet eine Farbsequenz.
+ *
+ * @method void stop_cf() Stoppt eine Farbsequenz.
+ * @method void bg_stop_cf() Stoppt eine Farbsequenz.
+ *
+ * @method void cron_add(array $Params) Fügt einen Eintrag zum Zeitplan hinzu.
+ * @method void cron_del(array $Params) Entfernt einen Eintrag aus dem Zeitplan.
+ * @method void cron_get(array $Params) Liest den Zeitplan aus.
+ *
+ * @method void set_adjust(array $Params) Justiert die Helligkeit, Farbtemperatur oder Farbe.
+ * @method void bg_set_adjust(array $Params) Justiert die Helligkeit, Farbtemperatur oder Farbe.
+ *
+ * @method void set_name(array $Params) Setzt den Gerätenamen.
  */
-class YeelightRPC_Data
+class RPC_Data
 {
     public static $isEvent = 3;
     public static $isCommand = 1;
@@ -44,7 +299,8 @@ class YeelightRPC_Data
     /**
      * Typ der Daten.
      *
-     * @var enum [ YeelightRPC_Data::isCommand, YeelightRPC_Data::isResult, YeelightRPC_Data::isEvent]
+     * @phpstan-type RPC_Data_Type {RPC_Data::isCommand, RPC_Data::isResult, RPC_Data::isEvent}
+     * @var RPC_Data_Type
      */
     private $Typ;
 
@@ -91,13 +347,13 @@ class YeelightRPC_Data
     private $Id;
 
     /**
-     * Erstellt ein YeelightRPC_Data Objekt.
+     * Erstellt ein RPC_Data Objekt.
      *
      * @param string $Method [optional] Name der RPC-Methode
      * @param object $Params [optional] Parameter der Methode
-     * @param int    $Id     [optional] Id des RPC-Objektes
+     * @param int $Id [optional] Id des RPC-Objektes
      *
-     * @return YeelightRPC_Data
+     * @return RPC_Data
      */
     public function __construct(?string $Method = null, ?array $Params = null, ?int $Id = null)
     {
@@ -133,8 +389,8 @@ class YeelightRPC_Data
     /**
      * Führt eine RPC-Methode aus.
      *
-     * @param string $name      Auszuführende RPC-Methode
-     * @param array  $arguments Parameter der RPC-Methode.
+     * @param string $name Auszuführende RPC-Methode
+     * @param array $arguments Parameter der RPC-Methode.
      */
     public function __call(string $name, array $arguments): void
     {
@@ -151,7 +407,7 @@ class YeelightRPC_Data
     /**
      * Gibt die RPC Antwort auf eine Anfrage zurück.
      *
-     * @return array|object|mixed|YeelightRPCException Enthält die Antwort des RPC-Server. Im Fehlerfall wird ein Objekt vom Typ YeelightRPCException zurückgegeben.
+     * @return array|object|mixed|RPCException Enthält die Antwort des RPC-Server. Im Fehlerfall wird ein Objekt vom Typ RPCException zurückgegeben.
      */
     public function GetResult(): mixed
     {
@@ -179,7 +435,7 @@ class YeelightRPC_Data
     }
 
     /**
-     * Schreibt die Daten aus $Data in das YeelightRPC_Data-Objekt.
+     * Schreibt die Daten aus $Data in das RPC_Data-Objekt.
      *
      * @param string $Data Ein JSON-kodierter RPC-String vom RPC-Server.
      */
@@ -236,11 +492,11 @@ class YeelightRPC_Data
     }
 
     /**
-     * Gibt ein Objekt YeelightRPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
+     * Gibt ein Objekt RPCException mit den enthaltenen Fehlermeldung des RPC-Servers zurück.
      *
-     * @return YeelightRPCException Enthält die Daten der Fehlermeldung des RPC-Server.
+     * @return RPCException Enthält die Daten der Fehlermeldung des RPC-Server.
      */
-    private function GetErrorObject(): YeelightRPCException
+    private function GetErrorObject(): RPCException
     {
         if (property_exists($this->Error, 'code')) {
             $code = (int) $this->Error->code;
@@ -252,7 +508,7 @@ class YeelightRPC_Data
         } else {
             $message = '';
         }
-        return new YeelightRPCException($message, $code);
+        return new RPCException($message, $code);
     }
 }
 

@@ -19,9 +19,9 @@ trait DebugHelper
      */
     protected function SendDebug(string $Message, mixed $Data, int $Format): bool
     {
-        if (is_a($Data, '\Yeelight\YeelightRPC_Data')) {
-            /** @var \Yeelight\YeelightRPC_Data $Data */
-            if ($Data->Typ == YeelightRPC_Data::$isResult) {
+        if (is_a($Data, '\Yeelight\RPC_Data')) {
+            /** @var \Yeelight\RPC_Data $Data */
+            if ($Data->Typ == RPC_Data::$isResult) {
                 $Message .= ':' . $Data->Id;
                 if (is_null($Data->Error)) {
                     $DebugData = $Data->Result;
@@ -39,8 +39,8 @@ trait DebugHelper
                 $DebugData = $Data->Params;
                 $this->SendDebug($Message, $DebugData, 0);
             }
-        } elseif (is_a($Data, '\Yeelight\YeelightRPCException')) {
-            /** @var \Yeelight\YeelightRPCException $Data */
+        } elseif (is_a($Data, '\Yeelight\RPCException')) {
+            /** @var \Yeelight\RPCException $Data */
             $this->SendDebug('Error(' . $Data->getCode() . ')', $Data->getMessage(), 0);
         } elseif (is_object($Data)) {
             foreach ($Data as $Key => $DebugData) {

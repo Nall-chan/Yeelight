@@ -35,13 +35,17 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
  * @property array $Capabilities
  * @property array $Propertys
  * @property string $BufferIN Receive-Buffer
- * @property \Yeelight\YeelightRPC_Data[] $ReplyJSONData Send/Receive Buffer
+ * @property \Yeelight\RPC_Data[] $ReplyJSONData Send/Receive Buffer
  * @property string $Host
  * @property int $HUE
  * @property int $SAT
  * @property int $BG_HUE
  * @property int $BG_SAT
  * @property int $ConnectionState
+ * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
+ * @method bool IORequestAction(string $Ident, mixed $Value)
+ * @method int IORegisterParent()
+ * @method int FindIDForIdent(string $Ident)
  * @method void UnregisterProfile(string $Name)
  * @method void RegisterProfileInteger(string $Name, string $Icon, string $Prefix, string $Suffix, int $MinValue, int $MaxValue, int $StepSize)
  * @method void RegisterProfileIntegerEx(string $Name, string $Icon, string $Prefix, string $Suffix, array $Associations, int $MaxValue = -1, float $StepSize = 0)
@@ -65,117 +69,6 @@ class YeelightDevice extends IPSModuleStrict
     public const isDisconnected = 0;
     public const isConnected = 1;
     public const isReconnecting = 2;
-
-    protected static $DataPoints = [
-        'power'      => [
-            'Name'         => 'State',
-            'Type'         => VARIABLETYPE_BOOLEAN,
-            'Profile'      => '~Switch',
-            'enableAction' => true,
-            'Mapping'      => ['on' => true, 'off' => false]
-        ],
-        'bg_power'   => [
-            'Name'         => 'State Background',
-            'Type'         => VARIABLETYPE_BOOLEAN,
-            'Profile'      => '~Switch',
-            'enableAction' => true,
-            'Mapping'      => ['on' => true, 'off' => false]
-        ],
-        'bright'     => [
-            'Name'         => 'Brightness',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~Intensity.100',
-            'enableAction' => true
-        ],
-        'bg_bright'  => [
-            'Name'         => 'Brightness Background',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~Intensity.100',
-            'enableAction' => true
-        ],
-        'rgb'        => [
-            'Name'         => 'RGB Color',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~HexColor',
-            'enableAction' => true
-        ],
-        'bg_rgb'     => [
-            'Name'         => 'RGB Color Background',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~HexColor',
-            'enableAction' => true
-        ],
-        'sat'        => [
-            'Name'         => 'HSV Saturation',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~Intensity.100',
-            'enableAction' => true
-        ],
-        'bg_sat'     => [
-            'Name'         => 'HSV Saturation Background',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~Intensity.100',
-            'enableAction' => true
-        ],
-        'ct'         => [
-            'Name'         => 'White',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile0'     => 'Yeelight.WhiteTemp',
-            'Profile1'     => 'Yeelight.WhiteTemp',
-            'Profile2'     => 'Yeelight.WhiteTemp2',
-            'enableAction' => true
-        ],
-        'bg_ct'      => [
-            'Name'         => 'White Background',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile0'     => 'Yeelight.WhiteTemp',
-            'Profile1'     => 'Yeelight.WhiteTemp',
-            'Profile2'     => 'Yeelight.WhiteTemp2',
-            'enableAction' => true
-        ],
-        'color_mode' => [
-            'Name'         => 'Current mode',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile0'     => 'Yeelight.ModeColor',
-            'Profile1'     => 'Yeelight.ModeColorWNight',
-            'Profile2'     => 'Yeelight.ModeWNight',
-            'enableAction' => true
-        ],
-        'bg_lmode'   => [
-            'Name'         => 'Current mode Background',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile0'     => 'Yeelight.ModeColor',
-            'Profile1'     => 'Yeelight.ModeColorWNight',
-            'Profile2'     => 'Yeelight.ModeWNight',
-            'enableAction' => true
-        ],
-        'hue'        => [
-            'Name'    => 'HSV Hue',
-            'Type'    => VARIABLETYPE_STRING,
-            'Profile' => '~HTMLBox'
-        ],
-        'bg_hue'     => [
-            'Name'    => 'HSV Hue Background',
-            'Type'    => VARIABLETYPE_STRING,
-            'Profile' => '~HTMLBox'
-        ],
-        'nl_br'      => [
-            'Name'         => 'Brightness Nightlight',
-            'Type'         => VARIABLETYPE_INTEGER,
-            'Profile'      => '~Intensity.100',
-            'enableAction' => false
-        ],
-        'flowing'           => [
-            'Name'         => 'Sequenz active',
-            'Type'         => VARIABLETYPE_BOOLEAN,
-            'Profile'      => '',
-            'enableAction' => false],
-        'bg_flowing'        => [
-            'Name'         => 'Sequenz active Background',
-            'Type'         => VARIABLETYPE_BOOLEAN,
-            'Profile'      => '',
-            'enableAction' => false]
-    ];
 
     /**
      * Interne Funktion des SDK.
@@ -221,6 +114,29 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
+     * Migrate
+     *
+     * @param  string $JSONData
+     * @return string
+     */
+    public function Migrate(string $JSONData): string
+    {
+        $Data = json_decode($JSONData);
+        /*if (property_exists($Data->configuration, 'EventID')) {
+
+        }*/
+        /*
+        if ($this->FindIDForIdent('hue')) {
+            $this->SetValue('hue', '');
+        }
+        if ($this->FindIDForIdent('bg_hue')) {
+            $this->SetValue('bg_hue', '');
+        }
+         */
+        return json_encode($Data);
+    }
+
+    /**
      * Interne Funktion des SDK.
      */
     public function ApplyChanges(): void
@@ -234,8 +150,8 @@ class YeelightDevice extends IPSModuleStrict
         $this->Capabilities = [];
         $this->Propertys = [];
         $this->ConnectionState = self::isDisconnected;
-        $this->RegisterProfileInteger('Yeelight.WhiteTemp', 'Intensity', '', ' %', 1700, 6500, 1, 0);
-        $this->RegisterProfileInteger('Yeelight.WhiteTemp2', 'Intensity', '', ' %', 2700, 6500, 1, 0);
+        $this->RegisterProfileInteger('Yeelight.WhiteTemp', 'Intensity', '', ' %', 1700, 6500, 1);
+        $this->RegisterProfileInteger('Yeelight.WhiteTemp2', 'Intensity', '', ' %', 2700, 6500, 1);
         $this->RegisterProfileIntegerEx('Yeelight.ModeColor', '', '', '', [
             [1, 'RGB', '', -1],
             [2, $this->Translate('White'), '', -1],
@@ -292,42 +208,42 @@ class YeelightDevice extends IPSModuleStrict
             return;
         }
         switch ($Ident) {
-            case 'power':
+            case \Yeelight\DataPoints::Power:
                 $this->SetPower((bool) $Value);
                 break;
-            case 'bright':
+            case \Yeelight\DataPoints::Bright:
                 $this->SetBrightness((int) $Value);
                 break;
-            case 'rgb':
+            case \Yeelight\DataPoints::RGB:
                 $this->SetColor((int) $Value);
                 break;
-            case 'sat':
+            case \Yeelight\DataPoints::SAT:
                 $this->SetSaturation((int) $Value);
                 break;
-            case 'ct':
+            case \Yeelight\DataPoints::CT:
                 $this->SetWhite((int) $Value);
                 break;
-            case 'bg_power':
+            case \Yeelight\DataPoints::BgPower:
                 $this->SetBgPower((bool) $Value);
                 break;
-            case 'bg_bright':
+            case \Yeelight\DataPoints::BgBright:
                 $this->SetBgBrightness((int) $Value);
                 break;
-            case 'bg_rgb':
+            case \Yeelight\DataPoints::BgRGB:
                 $this->SetBgColor((int) $Value);
                 break;
-            case 'bg_sat':
+            case \Yeelight\DataPoints::BgSAT:
                 $this->SetBgSaturation((int) $Value);
                 break;
-            case 'bg_ct':
+            case \Yeelight\DataPoints::BgCT:
                 $this->SetBgWhite((int) $Value);
                 break;
-            case 'color_mode':
+            case \Yeelight\DataPoints::ColorMode:
                 if ((int) $Value != 4) {
                     $this->SetMode((int) $Value);
                 }
                 break;
-            case 'bg_lmode':
+            case \Yeelight\DataPoints::BgColorMode:
                 if ((int) $Value != 4) {
                     $this->SetBgMode((int) $Value);
                 }
@@ -390,7 +306,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Temperature, 'smooth', $Duration];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_ct_abx($Params);
         return $this->Send($YeelightData);
     }
@@ -410,7 +326,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Temperature, 'smooth', $Duration];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_ct_abx($Params);
         return $this->Send($YeelightData);
     }
@@ -537,7 +453,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$HUE, $Saturation, 'smooth', $Duration];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_hsv($Params);
         $Result = $this->Send($YeelightData);
         if ($Result) {
@@ -573,7 +489,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$HUE, $Saturation, 'smooth', $Duration];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_hsv($Params);
         $Result = $this->Send($YeelightData);
         if ($Result) {
@@ -628,7 +544,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Level, 'smooth', $Duration];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_bright($Params);
         return $this->Send($YeelightData);
     }
@@ -656,7 +572,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Level, 'smooth', $Duration];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_bright($Params);
         return $this->Send($YeelightData);
     }
@@ -697,7 +613,7 @@ class YeelightDevice extends IPSModuleStrict
             $Params = [$Value ? 'on' : 'off', 'smooth', $Duration];
         }
 
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_power($Params);
         return $this->Send($YeelightData);
     }
@@ -716,7 +632,7 @@ class YeelightDevice extends IPSModuleStrict
             $Params = [$Value ? 'on' : 'off', 'smooth', $Duration];
         }
 
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_power($Params);
         return $this->Send($YeelightData);
     }
@@ -742,7 +658,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = ['on', 'smooth', $Duration, $Mode];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_power($Params);
         return $this->Send($YeelightData);
     }
@@ -769,7 +685,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Power ? 'on' : 'off', 'smooth', $Duration, $Mode];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_power($Params);
         return $this->Send($YeelightData);
     }
@@ -779,7 +695,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetToogle(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->toogle();
         return $this->Send($YeelightData);
     }
@@ -789,7 +705,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetBgToogle(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_toogle();
         return $this->Send($YeelightData);
     }
@@ -799,7 +715,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetToogleBoth(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->dev_toogle();
         return $this->Send($YeelightData);
     }
@@ -809,7 +725,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetDefault(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_default();
         return $this->Send($YeelightData);
     }
@@ -819,7 +735,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetBgDefault(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_default();
         return $this->Send($YeelightData);
     }
@@ -857,7 +773,7 @@ class YeelightDevice extends IPSModuleStrict
         }
         $FlowString = implode(',', $FlowData);
         $Params = [$Loops, $RecoverState, $FlowString];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->start_cf($Params);
         return $this->Send($YeelightData);
     }
@@ -883,7 +799,7 @@ class YeelightDevice extends IPSModuleStrict
         }
         $FlowString = implode(',', $FlowData);
         $Params = [$Loops, $RecoverState, $FlowString];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_start_cf($Params);
         return $this->Send($YeelightData);
     }
@@ -893,7 +809,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function StopColorFlow(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->stop_cf();
         return $this->Send($YeelightData);
     }
@@ -903,7 +819,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function StopBgColorFlow(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_stop_cf();
         return $this->Send($YeelightData);
     }
@@ -915,7 +831,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetSleep(int $Minutes): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->cron_add([0, $Minutes]);
         return $this->Send($YeelightData);
     }
@@ -925,7 +841,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function GetSleep()
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->cron_get([0]);
         $Result = $this->Send($YeelightData);
         if ($Result !== false) {
@@ -939,7 +855,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function DelSleep(): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->cron_del([0]);
         return $this->Send($YeelightData);
     }
@@ -950,7 +866,7 @@ class YeelightDevice extends IPSModuleStrict
     public function IncreaseBright(): bool
     {
         $Params = ['increase', 'bright'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -961,7 +877,7 @@ class YeelightDevice extends IPSModuleStrict
     public function DecreaseBright(): bool
     {
         $Params = ['decrease', 'bright'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -972,7 +888,7 @@ class YeelightDevice extends IPSModuleStrict
     public function IncreaseWhiteTemp(): bool
     {
         $Params = ['increase', 'ct'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -983,7 +899,7 @@ class YeelightDevice extends IPSModuleStrict
     public function DecreaseWhiteTemp(): bool
     {
         $Params = ['decrease', 'ct'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -994,7 +910,7 @@ class YeelightDevice extends IPSModuleStrict
     public function RotateColor(): bool
     {
         $Params = ['circle', 'color'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -1005,7 +921,7 @@ class YeelightDevice extends IPSModuleStrict
     public function IncreaseBgBright(): bool
     {
         $Params = ['increase', 'bright'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -1016,7 +932,7 @@ class YeelightDevice extends IPSModuleStrict
     public function DecreaseBgBright(): bool
     {
         $Params = ['decrease', 'bright'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -1027,7 +943,7 @@ class YeelightDevice extends IPSModuleStrict
     public function IncreaseBgWhiteTemp(): bool
     {
         $Params = ['increase', 'ct'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -1038,7 +954,7 @@ class YeelightDevice extends IPSModuleStrict
     public function DecreaseBgWhiteTemp(): bool
     {
         $Params = ['decrease', 'ct'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -1049,7 +965,7 @@ class YeelightDevice extends IPSModuleStrict
     public function CircleBgColor(): bool
     {
         $Params = ['circle', 'color'];
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_adjust($Params);
         return $this->Send($YeelightData);
     }
@@ -1061,7 +977,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetName(string $Name): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_name([$Name]);
         return $this->Send($YeelightData);
     }
@@ -1086,14 +1002,14 @@ class YeelightDevice extends IPSModuleStrict
 
         foreach ($JSONLines as $JSON) {
             $this->SendDebug('Receive', $JSON, 0);
-            $YeelightData = new \Yeelight\YeelightRPC_Data();
+            $YeelightData = new \Yeelight\RPC_Data();
             if (!$YeelightData->CreateFromJSONString($JSON)) {
                 $this->SendDebug('Receive', $YeelightData, 0);
                 continue;
             }
-            if ($YeelightData->Typ == \Yeelight\YeelightRPC_Data::$isResult) { //Reply
+            if ($YeelightData->Typ == \Yeelight\RPC_Data::$isResult) { //Reply
                 $this->SendQueueUpdate($YeelightData->Id, $YeelightData);
-            } elseif ($YeelightData->Typ == \Yeelight\YeelightRPC_Data::$isEvent) { //Event
+            } elseif ($YeelightData->Typ == \Yeelight\RPC_Data::$isEvent) { //Event
                 $this->SendDebug('Event', $YeelightData, 0);
                 $this->Decode($YeelightData);
             }
@@ -1148,7 +1064,7 @@ class YeelightDevice extends IPSModuleStrict
                 return;
             }
             $this->ConnectionState = self::isConnected;
-            $this->get_prop(array_keys(self::$DataPoints), true);
+            $this->get_prop(\Yeelight\DataPoints::getReadableList(), true);
             $this->SetStatus(IS_ACTIVE);
             $this->SendDebug('Propertys read:', implode(' ', $this->Propertys), 0);
             $this->unlock('IOChangeState');
@@ -1164,8 +1080,8 @@ class YeelightDevice extends IPSModuleStrict
     /**
      * Error-Handler für die Send-Routine. Gibt die Fehlermeldung an den Aufrufer als Klartext zurück.
      *
-     * @param type $errno
-     * @param type $errstr
+     * @param int $errno
+     * @param string $errstr
      */
     protected function ModulErrorHandler(int $errno, string $errstr): bool
     {
@@ -1177,10 +1093,10 @@ class YeelightDevice extends IPSModuleStrict
     /**
      * Versendet ein RPC-Objekt und empfängt die Antwort.
      *
-     * @param \Yeelight\YeelightRPC_Data $YeelightData Das Objekt welches versendet werden soll.
+     * @param \Yeelight\RPC_Data $YeelightData Das Objekt welches versendet werden soll.
      * @return mixed Enthält die Antwort auf das Versendete Objekt oder NULL im Fehlerfall.
      */
-    protected function Send(\Yeelight\YeelightRPC_Data $YeelightData): mixed
+    protected function Send(\Yeelight\RPC_Data $YeelightData): mixed
     {
         set_error_handler([$this, 'ModulErrorHandler']);
         try {
@@ -1218,7 +1134,7 @@ class YeelightDevice extends IPSModuleStrict
                 throw new Exception('No answer from Device', E_USER_WARNING);
             }
             $ret = $ReplyYeelightData->GetResult();
-            if (is_a($ret, '\Yeelight\YeelightRPCException')) {
+            if (is_a($ret, '\Yeelight\RPCException')) {
                 throw $ret;
             }
             $this->SendDebug('Result', $ReplyYeelightData, 0);
@@ -1227,7 +1143,7 @@ class YeelightDevice extends IPSModuleStrict
                 return $ret[0] == 'ok';
             }
             return $ret;
-        } catch (\Yeelight\YeelightRPCException $ex) {
+        } catch (\Yeelight\RPCException $ex) {
             $this->SendDebug('Result', $ex, 0);
             if ((int) $ex->getCode() == -1) {
                 if ($this->lock('Reconnect')) {
@@ -1268,22 +1184,22 @@ class YeelightDevice extends IPSModuleStrict
     {
         if (isset($_GET['script'])) {
             switch ($_GET['script']) {
-                case 'HueSliderEvents':
+                case 'hueSliderEvents':
                     $this->SendJSFile('SliderEvents.js');
                     return;
-                case 'HueSlider':
-                    $this->SendJSFile('Slider.js', 'var InstanceID =' . $this->InstanceID . ';');
-                    return;
-                case 'HueSliderRequestAction':
-                    $this->SendJSFile('SliderRequestAction.js');
-                    return;
-                case 'HueSliderEvents':
+                case 'bg_hueSliderEvents':
                     $this->SendJSFile('SliderBgEvents.js');
                     return;
-                case 'HueSlider':
+                case 'hueSlider':
+                    $this->SendJSFile('Slider.js', 'var InstanceID =' . $this->InstanceID . ';');
+                    return;
+                case 'bg_hueSlider':
                     $this->SendJSFile('SliderBg.js', 'var InstanceID =' . $this->InstanceID . ';');
                     return;
-                case 'HueSliderRequestAction':
+                case 'hueSliderRequestAction':
+                    $this->SendJSFile('SliderRequestAction.js');
+                    return;
+                case 'bg_hueSliderRequestAction':
                     $this->SendJSFile('SliderBgRequestAction.js');
                     return;
             }
@@ -1359,7 +1275,7 @@ class YeelightDevice extends IPSModuleStrict
 
     private function get_prop(array $Propertys, bool $Init = false): bool
     {
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->get_prop($Propertys);
         $Result = $this->Send($YeelightData);
         if ($Result === false) {
@@ -1398,7 +1314,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Color, 'smooth', 500];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->set_rgb($Params);
         return $this->Send($YeelightData);
     }
@@ -1418,7 +1334,7 @@ class YeelightDevice extends IPSModuleStrict
         } else {
             $Params = [$Color, 'smooth', 500];
         }
-        $YeelightData = new \Yeelight\YeelightRPC_Data();
+        $YeelightData = new \Yeelight\RPC_Data();
         $YeelightData->bg_set_rgb($Params);
         return $this->Send($YeelightData);
     }
@@ -1565,9 +1481,9 @@ class YeelightDevice extends IPSModuleStrict
     /**
      * Decodiert ein Event und führt die Statusvariablen nach.
      *
-     * @param \Yeelight\YeelightRPC_Data $YeelightData
+     * @param \Yeelight\RPC_Data $YeelightData
      */
-    private function Decode(\Yeelight\YeelightRPC_Data $YeelightData): void
+    private function Decode(\Yeelight\RPC_Data $YeelightData): void
     {
         if ($YeelightData->Method != 'props') {
             $this->LogMessage($this->Translate('Invalid event method received.'), KL_WARNING);
@@ -1584,9 +1500,68 @@ class YeelightDevice extends IPSModuleStrict
      */
     private function SetStatusVariable(string $Ident, $Value): void
     {
-        if (!array_key_exists($Ident, self::$DataPoints)) {
+        if (!array_key_exists($Ident, \Yeelight\Variables::$List)) {
             $this->LogMessage(sprintf($this->Translate('Property %s actually not supported.'), $Ident), KL_MESSAGE);
             return;
+        }
+        $StatusVariable = \Yeelight\Variables::$List[$Ident];
+
+        if (str_ends_with('hue', $Ident)) {
+            $this->HUE = (int) $Value;
+            if ($this->ReadPropertyBoolean('HUESlider')) {
+                $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
+                $HueSlider = $this->FindIDForIdent($Ident);
+                if (!$HueSlider || ($this->GetValue($Ident) == '')) {
+                    $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'SliderRequestAction"></script>';
+                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'SliderEvents"></script>';
+                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'Slider"></script>';
+                    $this->SetValue($Ident, $Value);
+                }
+            }
+
+            $HSVIdent = $Ident == 'hue' ? 'hsv' : 'bg_hsv';
+            $this->MaintainVariable($HSVIdent, $this->Translate(\Yeelight\Variables::$List[$HSVIdent]['Name']), \Yeelight\Variables::$List[$HSVIdent]['Type'], \Yeelight\Variables::$List[$HSVIdent]['Profile'], 0, true);
+            $this->EnableAction($HSVIdent);
+            $HSV = json_decode($this->GetValue($HSVIdent), true);
+            $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+            $HSV['h'] = (int) $Value;
+            $this->SetValue($HSVIdent, json_encode($HSV));
+            return;
+        }
+        if ($Ident == 'sat') {
+            $this->SAT = (int) $Value;
+            if ($this->FindIDForIdent('hsv')) {
+                $HSV = json_decode($this->GetValue('hsv'), true);
+                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+                $HSV['s'] = (int) $Value;
+                $this->SetValue('hsv', json_encode($HSV));
+            }
+        }
+        if ($Ident == 'bg_sat') {
+            $this->BG_SAT = (int) $Value;
+            if ($this->FindIDForIdent('bg_hsv')) {
+                $HSV = json_decode($this->GetValue('bg_hsv'), true);
+                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+                $HSV['s'] = (int) $Value;
+                $this->SetValue('bg_hsv', json_encode($HSV));
+            }
+        }
+        if ($Ident == 'bright') {
+            if ($this->FindIDForIdent('hsv')) {
+                $HSV = json_decode($this->GetValue('hsv'), true);
+                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+                $HSV['v'] = (int) $Value;
+                $this->SetValue('hsv', json_encode($HSV));
+            }
+        }
+        if ($Ident == 'bg_bright') {
+            if ($this->FindIDForIdent('bg_hsv')) {
+
+                $HSV = json_decode($this->GetValue('bg_hsv'), true);
+                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+                $HSV['v'] = (int) $Value;
+                $this->SetValue('bg_hsv', json_encode($HSV));
+            }
         }
         if ($Ident == 'active_mode') {
             $Ident = 'color_mode';
@@ -1596,52 +1571,9 @@ class YeelightDevice extends IPSModuleStrict
                 $Value = 2;
             }
         }
-        $StatusVariable = self::$DataPoints[$Ident];
-        if ($Ident == 'hue') {
-            $this->HUE = (int) $Value;
-            if ($this->ReadPropertyBoolean('HUESlider')) {
-                $HueSlider = $this->FindIDForIdent($Ident);
-                if (!$HueSlider) {
-                    $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
-                    $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderRequestAction"></script>';
-                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderEvents"></script>';
-                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSlider"></script>';
-                    $this->SetValue('hue', $Value);
-                }
-            }
-            return;
-        }
-        if ($Ident == 'bg_hue') {
-            $this->HUE = (int) $Value;
-            if ($this->ReadPropertyBoolean('HUESlider')) {
-                $HueSlider = $this->FindIDForIdent($Ident);
-                if (!$HueSlider) {
-                    $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
-                    $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderBgRequestAction"></script>';
-                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderBgEvents"></script>';
-                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=HueSliderBg"></script>';
-                    $this->SetValue('bg_hue', $Value);
-                }
-            }
-            return;
-        }
-        if ($Ident == 'sat') {
-            if (!$this->ReadPropertyBoolean('HUESlider')) {
-                return;
-            }
-            $this->SAT = (int) $Value;
-        }
-        if ($Ident == 'bg_sat') {
-            if (!$this->ReadPropertyBoolean('HUESlider')) {
-                return;
-            }
-            $this->BG_SAT = (int) $Value;
-        }
-
         if (($Ident == 'color_mode') || ($Ident == 'bg_lmode') || ($Ident == 'ct') || ($Ident == 'bg_ct')) {
             $StatusVariable['Profile'] = $StatusVariable['Profile' . $this->ReadPropertyInteger('Mode')];
         }
-
         $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
         if ($StatusVariable['enableAction']) {
             $this->EnableAction($Ident);
@@ -1658,9 +1590,9 @@ class YeelightDevice extends IPSModuleStrict
      * Wartet auf eine RPC-Antwort.
      *
      * @param int $Id Die RPC-ID auf die gewartet wird.
-     * @return false|\Yeelight\YeelightRPC_Data Enthält ein Kodi_RPC_Data-Objekt mit der Antwort, oder false bei einem Timeout.
+     * @return false|\Yeelight\RPC_Data Enthält ein Kodi_RPC_Data-Objekt mit der Antwort, oder false bei einem Timeout.
      */
-    private function WaitForResponse($Id): false|\Yeelight\YeelightRPC_Data
+    private function WaitForResponse($Id): false|\Yeelight\RPC_Data
     {
         for ($i = 0; $i < 1000; $i++) {
             $ret = $this->ReplyJSONData;
@@ -1696,9 +1628,9 @@ class YeelightDevice extends IPSModuleStrict
      * Fügt eine RPC-Antwort in die SendQueue ein.
      *
      * @param int                        $Id           die RPC-ID des empfangenen Objektes.
-     * @param \Yeelight\YeelightRPC_Data $YeelightData Das empfangene RPC-Result.
+     * @param \Yeelight\RPC_Data $YeelightData Das empfangene RPC-Result.
      */
-    private function SendQueueUpdate(int $Id, \Yeelight\YeelightRPC_Data $YeelightData): void
+    private function SendQueueUpdate(int $Id, \Yeelight\RPC_Data $YeelightData): void
     {
         if (!$this->lock('ReplyJSONData')) {
             throw new Exception('ReplyJSONData is locked', E_USER_WARNING);
@@ -1716,9 +1648,9 @@ class YeelightDevice extends IPSModuleStrict
      *
      * @param int $Id die RPC-ID des empfangenen Objektes.
      *
-     * @return \Yeelight\YeelightRPC_Data Das empfangene RPC-Result.
+     * @return \Yeelight\RPC_Data Das empfangene RPC-Result.
      */
-    private function SendQueuePop(int $Id): \Yeelight\YeelightRPC_Data
+    private function SendQueuePop(int $Id): \Yeelight\RPC_Data
     {
         $data = $this->ReplyJSONData;
         $Result = $data[$Id];
