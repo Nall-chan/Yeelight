@@ -260,6 +260,10 @@ bool YEELIGHT_RotateColor(integer $InstanzID)
 bool YEELIGHT_SetName(integer $InstanzID, string $Name)
 ```
 
+```php
+bool YEELIGHT_SetScene(integer $InstanzID, string $Name)
+```
+
 ## 9. Anhang
 
 ### 1. Changelog

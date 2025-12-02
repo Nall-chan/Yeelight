@@ -28,7 +28,9 @@ class DataPoints
     public const ColorMode = 'color_mode';
     public const BgColorMode = 'bg_lmode';
     public const HUE = 'hue';
+    public const HSV = 'hsv';
     public const BgHUE = 'bg_hue';
+    public const BgHSV = 'bg_hsv';
     public const NightLightBright = 'nl_br';
     public const Flowing = 'flowing';
     public const BgFlowing = 'bg_flowing';
@@ -157,7 +159,7 @@ class Variables
             self::Profile2         => 'Yeelight.ModeWNight',
             self::enableAction     => true
         ],
-        DataPoints::BgLMode => [
+        DataPoints::BgColorMode => [
             self::Readable         => true,
             self::Name             => 'Current mode Background',
             self::Type             => VARIABLETYPE_INTEGER,
@@ -166,7 +168,7 @@ class Variables
             self::Profile2         => 'Yeelight.ModeWNight',
             self::enableAction     => true
         ],
-        DataPoints::Hue => [
+        DataPoints::HUE => [
             self::Readable => true,
             self::Name     => 'HSV Hue',
             self::Type     => VARIABLETYPE_STRING,
@@ -188,7 +190,7 @@ class Variables
                 'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
             ]
         ],
-        DataPoints::BgHue => [
+        DataPoints::BgHUE => [
             self::Readable => true,
             self::Name     => 'HSV Hue Background',
             self::Type     => VARIABLETYPE_STRING,
@@ -210,7 +212,7 @@ class Variables
                 'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
             ]
         ],
-        DataPoints::NlBr => [
+        DataPoints::NightLightBright => [
             self::Readable     => true,
             self::Name         => 'Brightness Nightlight',
             self::Type         => VARIABLETYPE_INTEGER,
@@ -261,6 +263,9 @@ class RPCException extends \Exception
  *
  * @method void set_hsv(array $Params) Setzt die Farbe im HSV-Farbraum.
  * @method void bg_set_hsv(array $Params) Setzt die Farbe im HSV-Farbraum.
+ *
+ * @method void set_scene(array $Params) Setzt die Szene.
+ * @method void bg_set_scene(array $Params) Setzt die Szene.
  *
  * @method void set_bright(array $Params) Setzt die Helligkeit.
  * @method void bg_set_bright(array $Params) Setzt die Helligkeit.

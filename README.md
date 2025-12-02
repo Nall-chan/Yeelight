@@ -94,8 +94,9 @@ Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellatio
 Version 2.15:
 
 - Version für Symcon 8.1
-- Umstellung auf Darstellungen.  
-- Unterstützung für Kachel Visualisierung.  
+- Parameter Licht sanft ändern wurde bei Farbe ignoriert.
+- HSV Variable ergänzt.
+- SetScene und SetBgScene als Instanz-Funktion ergänzt.
 
 Version 2.14:
 

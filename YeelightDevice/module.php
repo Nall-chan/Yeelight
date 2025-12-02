@@ -215,7 +215,11 @@ class YeelightDevice extends IPSModuleStrict
                 $this->SetBrightness((int) $Value);
                 break;
             case \Yeelight\DataPoints::RGB:
-                $this->SetColor((int) $Value);
+                $this->SetColor((int) $Value, $this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
+                break;
+            case \Yeelight\DataPoints::HSV:
+                $Values = json_decode($Value, true);
+                $this->SetHSV((int) $Values['h'], (int) $Values['s']);
                 break;
             case \Yeelight\DataPoints::SAT:
                 $this->SetSaturation((int) $Value);
@@ -230,7 +234,11 @@ class YeelightDevice extends IPSModuleStrict
                 $this->SetBgBrightness((int) $Value);
                 break;
             case \Yeelight\DataPoints::BgRGB:
-                $this->SetBgColor((int) $Value);
+                $this->SetBgColor((int) $Value, $this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
+                break;
+            case \Yeelight\DataPoints::BgHSV:
+                $Values = json_decode($Value, true);
+                $this->SetBgHSV((int) $Values['h'], (int) $Values['s']);
                 break;
             case \Yeelight\DataPoints::BgSAT:
                 $this->SetBgSaturation((int) $Value);
@@ -436,10 +444,6 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetHSVSmooth(int $HUE, int $Saturation, int $Duration): bool
     {
-        if (!$this->ReadPropertyBoolean('HUESlider')) {
-            trigger_error($this->Translate('Device not support this command.'), E_USER_WARNING);
-            return false;
-        }
         if (($HUE < 0) || ($HUE > 359)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
             return false;
@@ -472,10 +476,6 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function SetBgHSVSmooth(int $HUE, int $Saturation, int $Duration): bool
     {
-        if (!$this->ReadPropertyBoolean('HUESlider')) {
-            trigger_error($this->Translate('Device not support this command.'), E_USER_WARNING);
-            return false;
-        }
         if (($HUE < 0) || ($HUE > 359)) {
             trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
             return false;
@@ -1017,6 +1017,29 @@ class YeelightDevice extends IPSModuleStrict
         return '';
     }
 
+    public function SetScene(string $Params): bool
+    {
+        $Params = json_decode($Params, true);
+        if ($Params === null) {
+            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Params'), E_USER_WARNING);
+            return false;
+        }
+        $YeelightData = new \Yeelight\RPC_Data();
+        $YeelightData->set_scene($Params);
+        return $this->Send($YeelightData);
+    }
+    public function SetBgScene(string $Params): bool
+    {
+        $Params = json_decode($Params, true);
+        if ($Params === null) {
+            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Params'), E_USER_WARNING);
+            return false;
+        }
+        $YeelightData = new \Yeelight\RPC_Data();
+        $YeelightData->bg_set_scene($Params);
+        return $this->Send($YeelightData);
+    }
+
     /**
      * Wird ausgeführt wenn der Kernel hochgefahren wurde.
      */
@@ -1390,7 +1413,6 @@ class YeelightDevice extends IPSModuleStrict
         $Saturation = $this->BG_SAT;
         return $this->SetBgHSV($HUE, $Saturation);
     }
-
     //################# GetCapabilities
 
     /**
@@ -1523,7 +1545,7 @@ class YeelightDevice extends IPSModuleStrict
             $this->MaintainVariable($HSVIdent, $this->Translate(\Yeelight\Variables::$List[$HSVIdent]['Name']), \Yeelight\Variables::$List[$HSVIdent]['Type'], \Yeelight\Variables::$List[$HSVIdent]['Profile'], 0, true);
             $this->EnableAction($HSVIdent);
             $HSV = json_decode($this->GetValue($HSVIdent), true);
-            $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+            $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
             $HSV['h'] = (int) $Value;
             $this->SetValue($HSVIdent, json_encode($HSV));
             return;
@@ -1532,7 +1554,7 @@ class YeelightDevice extends IPSModuleStrict
             $this->SAT = (int) $Value;
             if ($this->FindIDForIdent('hsv')) {
                 $HSV = json_decode($this->GetValue('hsv'), true);
-                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+                $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
                 $HSV['s'] = (int) $Value;
                 $this->SetValue('hsv', json_encode($HSV));
             }
@@ -1541,25 +1563,8 @@ class YeelightDevice extends IPSModuleStrict
             $this->BG_SAT = (int) $Value;
             if ($this->FindIDForIdent('bg_hsv')) {
                 $HSV = json_decode($this->GetValue('bg_hsv'), true);
-                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
+                $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
                 $HSV['s'] = (int) $Value;
-                $this->SetValue('bg_hsv', json_encode($HSV));
-            }
-        }
-        if ($Ident == 'bright') {
-            if ($this->FindIDForIdent('hsv')) {
-                $HSV = json_decode($this->GetValue('hsv'), true);
-                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
-                $HSV['v'] = (int) $Value;
-                $this->SetValue('hsv', json_encode($HSV));
-            }
-        }
-        if ($Ident == 'bg_bright') {
-            if ($this->FindIDForIdent('bg_hsv')) {
-
-                $HSV = json_decode($this->GetValue('bg_hsv'), true);
-                $HSV ??= ['h'=>0, 's'=>0, 'v'=>0];
-                $HSV['v'] = (int) $Value;
                 $this->SetValue('bg_hsv', json_encode($HSV));
             }
         }
