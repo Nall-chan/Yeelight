@@ -97,6 +97,8 @@ Version 2.15:
 - Parameter Licht sanft ändern wurde bei Farbe ignoriert.
 - HSV Variable ergänzt.
 - SetScene und SetBgScene als Instanz-Funktion ergänzt.
+- Umstellung auf Darstellungen.  
+- Unterstützung für Kachel Visualisierung.  
 
 Version 2.14:
 

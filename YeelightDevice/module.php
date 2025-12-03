@@ -84,30 +84,19 @@ class YeelightDevice extends IPSModuleStrict
         $this->BufferIN = '';
         $this->Capabilities = [];
         $this->Propertys = [];
-        $this->HUE = 0;
-        $this->SAT = 0;
-        $this->BG_HUE = 0;
-        $this->BG_SAT = 0;
+        $this->HUE = 1;
+        $this->SAT = 1;
+        $this->BG_HUE = 1;
+        $this->BG_SAT = 1;
         $this->ParentID = 0;
         $this->ConnectionState = self::isDisconnected;
     }
 
     /**
-     * Interne Funktion des SDK.
+     * GetCompatibleParents
+     *
+     * @return string
      */
-    public function Destroy(): void
-    {
-        if (!IPS_InstanceExists($this->InstanceID)) {
-            $this->UnregisterProfile('Yeelight.WhiteTemp');
-            $this->UnregisterProfile('Yeelight.WhiteTemp2');
-            $this->UnregisterProfile('Yeelight.ModeColor');
-            $this->UnregisterProfile('Yeelight.ModeColorWNight');
-            $this->UnregisterProfile('Yeelight.ModeWNight');
-        }
-
-        parent::Destroy();
-    }
-
     public function GetCompatibleParents(): string
     {
         return '{"type": "require", "moduleIDs": ["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"]}';
@@ -143,41 +132,28 @@ class YeelightDevice extends IPSModuleStrict
     {
         $this->RegisterMessage($this->InstanceID, FM_CONNECT);
         $this->RegisterMessage($this->InstanceID, FM_DISCONNECT);
-
         parent::ApplyChanges();
         $this->ReplyJSONData = [];
         $this->BufferIN = '';
         $this->Capabilities = [];
         $this->Propertys = [];
         $this->ConnectionState = self::isDisconnected;
-        $this->RegisterProfileInteger('Yeelight.WhiteTemp', 'Intensity', '', ' %', 1700, 6500, 1);
-        $this->RegisterProfileInteger('Yeelight.WhiteTemp2', 'Intensity', '', ' %', 2700, 6500, 1);
-        $this->RegisterProfileIntegerEx('Yeelight.ModeColor', '', '', '', [
-            [1, 'RGB', '', -1],
-            [2, $this->Translate('White'), '', -1],
-            [3, 'HSV', '', -1]
-        ]);
-
-        $this->RegisterProfileIntegerEx('Yeelight.ModeColorWNight', '', '', '', [
-            [1, 'RGB', '', -1],
-            [2, $this->Translate('White'), '', -1],
-            [3, 'HSV', '', -1],
-            [5, $this->Translate('Nightlight'), '', -1],
-        ]);
-        $this->RegisterProfileIntegerEx('Yeelight.ModeWNight', '', '', '', [
-            [1, $this->Translate('White'), '', -1],
-            [5, $this->Translate('Nightlight'), '', -1],
-        ]);
-        if (IPS_GetKernelRunlevel() != KR_READY) {
-            $this->RegisterMessage(0, IPS_KERNELSTARTED);
-            return;
-        }
+        $this->UnregisterProfile('Yeelight.WhiteTemp');
+        $this->UnregisterProfile('Yeelight.WhiteTemp2');
+        $this->UnregisterProfile('Yeelight.ModeColor');
+        $this->UnregisterProfile('Yeelight.ModeColorWNight');
+        $this->UnregisterProfile('Yeelight.ModeWNight');
         if (!$this->ReadPropertyBoolean('HUESlider')) {
             $this->UnregisterVariable('hue');
             $this->UnregisterVariable('sat');
             $this->UnregisterVariable('bg_hue');
             $this->UnregisterVariable('bg_sat');
         }
+        if (IPS_GetKernelRunlevel() != KR_READY) {
+            $this->RegisterMessage(0, IPS_KERNELSTARTED);
+            return;
+        }
+
         $this->RegisterParent();
 
         // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
@@ -449,7 +425,7 @@ class YeelightDevice extends IPSModuleStrict
             return false;
         }
         if (($Saturation < 1) || ($Saturation > 100)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'Value'), E_USER_WARNING);
+            trigger_error(sprintf($this->Translate('%s out of range.'), 'Saturation'), E_USER_WARNING);
             return false;
         }
         if ($Duration < 30) {
@@ -1531,7 +1507,7 @@ class YeelightDevice extends IPSModuleStrict
         if (str_ends_with('hue', $Ident)) {
             $this->HUE = (int) $Value;
             if ($this->ReadPropertyBoolean('HUESlider')) {
-                $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
+                $this->MaintainVariable($Ident, $this->Translate($StatusVariable[\Yeelight\Variables::Name]), $StatusVariable[\Yeelight\Variables::Type], $StatusVariable[\Yeelight\Variables::Presentation], 0, true);
                 $HueSlider = $this->FindIDForIdent($Ident);
                 if (!$HueSlider || ($this->GetValue($Ident) == '')) {
                     $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'SliderRequestAction"></script>';
@@ -1542,7 +1518,7 @@ class YeelightDevice extends IPSModuleStrict
             }
 
             $HSVIdent = $Ident == 'hue' ? 'hsv' : 'bg_hsv';
-            $this->MaintainVariable($HSVIdent, $this->Translate(\Yeelight\Variables::$List[$HSVIdent]['Name']), \Yeelight\Variables::$List[$HSVIdent]['Type'], \Yeelight\Variables::$List[$HSVIdent]['Profile'], 0, true);
+            $this->MaintainVariable($HSVIdent, $this->Translate(\Yeelight\Variables::$List[$HSVIdent][\Yeelight\Variables::Name]), \Yeelight\Variables::$List[$HSVIdent][\Yeelight\Variables::Type], \Yeelight\Variables::$List[$HSVIdent][\Yeelight\Variables::Presentation], 0, true);
             $this->EnableAction($HSVIdent);
             $HSV = json_decode($this->GetValue($HSVIdent), true);
             $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
@@ -1577,16 +1553,50 @@ class YeelightDevice extends IPSModuleStrict
             }
         }
         if (($Ident == 'color_mode') || ($Ident == 'bg_lmode') || ($Ident == 'ct') || ($Ident == 'bg_ct')) {
-            $StatusVariable['Profile'] = $StatusVariable['Profile' . $this->ReadPropertyInteger('Mode')];
+            $StatusVariable[\Yeelight\Variables::Presentation] = $StatusVariable[\Yeelight\Variables::Presentation . $this->ReadPropertyInteger('Mode')];
         }
-        $this->MaintainVariable($Ident, $this->Translate($StatusVariable['Name']), $StatusVariable['Type'], $StatusVariable['Profile'], 0, true);
-        if ($StatusVariable['enableAction']) {
+        $this->MaintainVariable($Ident, $this->Translate($StatusVariable[\Yeelight\Variables::Name]), $StatusVariable[\Yeelight\Variables::Type], $this->TranslatePresentation($StatusVariable[\Yeelight\Variables::Presentation]), 0, true);
+        if ($StatusVariable[\Yeelight\Variables::enableAction]) {
             $this->EnableAction($Ident);
         }
-        if (array_key_exists('Mapping', $StatusVariable)) {
-            $Value = $StatusVariable['Mapping'][$Value];
+        if (array_key_exists(\Yeelight\Variables::Mapping, $StatusVariable)) {
+            $Value = $StatusVariable[\Yeelight\Variables::Mapping][$Value];
         }
         $this->SetValue($Ident, $Value);
+    }
+
+    private function TranslatePresentation(array $Presentation): array
+    {
+
+        if (isset($Presentation['PREFIX'])) {
+            $Presentation['PREFIX'] = $this->Translate($Presentation['PREFIX']);
+        }
+        if (isset($Presentation['SUFFIX'])) {
+            $Presentation['SUFFIX'] = $this->Translate($Presentation['SUFFIX']);
+        }
+        if (isset($Presentation['OPTIONS'])) {
+            $Options = $Presentation['OPTIONS'];
+            foreach ($Options as &$Option) {
+                $Option['Caption'] = $this->Translate($Option['Caption']);
+            }
+            $Presentation['OPTIONS'] = json_encode($Options);
+        }
+        if (isset($Presentation['INTERVALS'])) {
+            $Intervals = $Presentation['INTERVALS'];
+            foreach ($Intervals as &$Interval) {
+                if (isset($Interval['ConstantValue'])) {
+                    $Interval['ConstantValue'] = $this->Translate($Interval['ConstantValue']);
+                }
+                if (isset($Interval['PrefixValue'])) {
+                    $Interval['PrefixValue'] = $this->Translate($Interval['PrefixValue']);
+                }
+                if (isset($Interval['SuffixValue'])) {
+                    $Interval['SuffixValue'] = $this->Translate($Interval['SuffixValue']);
+                }
+            }
+            $Presentation['INTERVALS'] = json_encode($Intervals);
+        }
+        return $Presentation;
     }
 
     //################# SENDQUEUE

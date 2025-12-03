@@ -67,171 +67,472 @@ class Variables
     public const Readable = 'Readable';
     public const Name = 'Name';
     public const Type = 'Type';
-    public const Profile = 'Profile';
-    public const Profile0 = 'Profile0';
-    public const Profile1 = 'Profile1';
-    public const Profile2 = 'Profile2';
+    public const Presentation = 'Presentation';
+    public const Presentation0 = 'Presentation0';
+    public const Presentation1 = 'Presentation1';
+    public const Presentation2 = 'Presentation2';
     public const enableAction = 'enableAction';
     public const Mapping = 'Mapping';
     public static $List = [
         DataPoints::Power => [
-            self::Readable     => true,
-            self::Name         => 'State',
-            self::Type         => VARIABLETYPE_BOOLEAN,
-            self::Profile      => '~Switch',
-            self::enableAction => true,
-            self::Mapping      => ['on' => true, 'off' => false]
+            self::Readable          => true,
+            self::Name              => 'State',
+            self::Type              => VARIABLETYPE_BOOLEAN,
+            self::Presentation      => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
+            ],
+            self::enableAction      => true,
+            self::Mapping           => ['on' => true, 'off' => false]
         ],
         DataPoints::BgPower => [
-            self::Readable     => true,
-            self::Name         => 'State Background',
-            self::Type         => VARIABLETYPE_BOOLEAN,
-            self::Profile      => '~Switch',
-            self::enableAction => true,
-            self::Mapping      => ['on' => true, 'off' => false]
+            self::Readable          => true,
+            self::Name              => 'State Background',
+            self::Type              => VARIABLETYPE_BOOLEAN,
+            self::Presentation      => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
+            ],
+            self::enableAction      => true,
+            self::Mapping           => ['on' => true, 'off' => false]
         ],
         DataPoints::Bright => [
-            self::Readable     => true,
-            self::Name         => 'Brightness',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~Intensity.100',
-            self::enableAction => true
+            self::Readable          => true,
+            self::Name              => 'Brightness',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+                'DIGITS'              => 0,
+                'CUSTOM_GRADIENT'     => '[]',
+                'ICON'                => 'brightness',
+                'DECIMAL_SEPARATOR'   => '',
+                'GRADIENT_TYPE'       => 0,
+                'MAX'                 => 100,
+                'INTERVALS'           => [],
+                'INTERVALS_ACTIVE'    => false,
+                'MIN'                 => 0,
+                'PERCENTAGE'          => false,
+                'PREFIX'              => '',
+                'STEP_SIZE'           => 1,
+                'SUFFIX'              => ' %',
+                'THOUSANDS_SEPARATOR' => '',
+                'USAGE_TYPE'          => 2,
+            ],
+            self::enableAction      => true
         ],
         DataPoints::BgBright => [
-            self::Readable     => true,
-            self::Name         => 'Brightness Background',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~Intensity.100',
-            self::enableAction => true
+            self::Readable          => true,
+            self::Name              => 'Brightness Background',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+                'DIGITS'              => 0,
+                'CUSTOM_GRADIENT'     => '[]',
+                'ICON'                => 'brightness',
+                'DECIMAL_SEPARATOR'   => '',
+                'GRADIENT_TYPE'       => 0,
+                'MAX'                 => 100,
+                'INTERVALS'           => [],
+                'INTERVALS_ACTIVE'    => false,
+                'MIN'                 => 0,
+                'PERCENTAGE'          => false,
+                'PREFIX'              => '',
+                'STEP_SIZE'           => 1,
+                'SUFFIX'              => ' %',
+                'THOUSANDS_SEPARATOR' => '',
+                'USAGE_TYPE'          => 2,
+            ],
+            self::enableAction      => true
         ],
         DataPoints::RGB => [
-            self::Readable     => true,
-            self::Name         => 'RGB Color',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~HexColor',
-            self::enableAction => true
+            self::Readable          => true,
+            self::Name              => 'RGB Color',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
+            ],
+            self::enableAction      => true
         ],
         DataPoints::BgRGB => [
-            self::Readable     => true,
-            self::Name         => 'RGB Color Background',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~HexColor',
-            self::enableAction => true
+            self::Readable          => true,
+            self::Name              => 'RGB Color Background',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
+            ],
+            self::enableAction      => true
         ],
         DataPoints::SAT => [
-            self::Readable     => true,
-            self::Name         => 'HSV Saturation',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~Intensity.100',
-            self::enableAction => true
+            self::Readable          => true,
+            self::Name              => 'HSV Saturation',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+                'DIGITS'              => 0,
+                'CUSTOM_GRADIENT'     => '[]',
+                'ICON'                => 'dial-med-low',
+                'DECIMAL_SEPARATOR'   => '',
+                'GRADIENT_TYPE'       => 0,
+                'MAX'                 => 100,
+                'INTERVALS'           => [],
+                'INTERVALS_ACTIVE'    => false,
+                'MIN'                 => 0,
+                'PERCENTAGE'          => false,
+                'PREFIX'              => '',
+                'STEP_SIZE'           => 1,
+                'SUFFIX'              => ' %',
+                'THOUSANDS_SEPARATOR' => '',
+                'USAGE_TYPE'          => 2,
+            ],
+            self::enableAction      => true
         ],
         DataPoints::BgSAT => [
-            self::Readable     => true,
-            self::Name         => 'HSV Saturation Background',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~Intensity.100',
-            self::enableAction => true
+            self::Readable          => true,
+            self::Name              => 'HSV Saturation Background',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+                'DIGITS'              => 0,
+                'CUSTOM_GRADIENT'     => '[]',
+                'ICON'                => 'dial-med-low',
+                'DECIMAL_SEPARATOR'   => '',
+                'GRADIENT_TYPE'       => 0,
+                'MAX'                 => 100,
+                'INTERVALS'           => [],
+                'INTERVALS_ACTIVE'    => false,
+                'MIN'                 => 0,
+                'PERCENTAGE'          => false,
+                'PREFIX'              => '',
+                'STEP_SIZE'           => 1,
+                'SUFFIX'              => ' %',
+                'THOUSANDS_SEPARATOR' => '',
+                'USAGE_TYPE'          => 2,
+            ],
+            self::enableAction      => true
         ],
         DataPoints::CT => [
-            self::Readable         => true,
-            self::Name             => 'White',
-            self::Type             => VARIABLETYPE_INTEGER,
-            self::Profile0         => 'Yeelight.WhiteTemp',
-            self::Profile1         => 'Yeelight.WhiteTemp',
-            self::Profile2         => 'Yeelight.WhiteTemp2',
+            self::Readable              => true,
+            self::Name                  => 'White',
+            self::Type                  => VARIABLETYPE_INTEGER,
+            self::Presentation0         => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
+                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+                'MIN'                => 1700,
+                'MAX'                => 6500,
+            ],
+            self::Presentation1         => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
+                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+                'MIN'                => 1700,
+                'MAX'                => 6500,
+            ],
+            self::Presentation2         => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
+                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+                'MIN'                => 2700,
+                'MAX'                => 6500,
+            ],
             self::enableAction     => true
         ],
         DataPoints::BgCT => [
-            self::Readable         => true,
-            self::Name             => 'White Background',
-            self::Type             => VARIABLETYPE_INTEGER,
-            self::Profile0         => 'Yeelight.WhiteTemp',
-            self::Profile1         => 'Yeelight.WhiteTemp',
-            self::Profile2         => 'Yeelight.WhiteTemp2',
+            self::Readable              => true,
+            self::Name                  => 'White Background',
+            self::Type                  => VARIABLETYPE_INTEGER,
+            self::Presentation0         => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
+                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+                'MIN'                => 1700,
+                'MAX'                => 6500,
+            ],
+            self::Presentation1         => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
+                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+                'MIN'                => 1700,
+                'MAX'                => 6500,
+            ],
+            self::Presentation2         => [
+                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
+                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+                'MIN'                => 2700,
+                'MAX'                => 6500,
+            ],
             self::enableAction     => true
         ],
         DataPoints::ColorMode => [
-            self::Readable         => true,
-            self::Name             => 'Current mode',
-            self::Type             => VARIABLETYPE_INTEGER,
-            self::Profile0         => 'Yeelight.ModeColor',
-            self::Profile1         => 'Yeelight.ModeColorWNight',
-            self::Profile2         => 'Yeelight.ModeWNight',
-            self::enableAction     => true
+            self::Readable              => true,
+            self::Name                  => 'Current mode',
+            self::Type                  => VARIABLETYPE_INTEGER,
+            self::Presentation0         => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+                'ICON'         => '',
+                'OPTIONS'      => [
+                    [
+                        'Value'       => 1,
+                        'Caption'     => 'RGB',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 2,
+                        'Caption'     => 'White',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 3,
+                        'Caption'     => 'HSV',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ]
+                ],
+            ],
+            self::Presentation1         => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => '',
+                'OPTIONS'      => [
+                    [
+                        'Value'       => 1,
+                        'Caption'     => 'RGB',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 2,
+                        'Caption'     => 'White',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 3,
+                        'Caption'     => 'HSV',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 5,
+                        'Caption'     => 'Nightlight',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ]
+                ],
+            ],
+            self::Presentation2         => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => '',
+                'OPTIONS'      => [
+                    [
+                        'Value'       => 1,
+                        'Caption'     => 'White',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 5,
+                        'Caption'     => 'Nightlight',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ]
+                ],
+            ],
+            self::enableAction          => true
         ],
         DataPoints::BgColorMode => [
-            self::Readable         => true,
-            self::Name             => 'Current mode Background',
-            self::Type             => VARIABLETYPE_INTEGER,
-            self::Profile0         => 'Yeelight.ModeColor',
-            self::Profile1         => 'Yeelight.ModeColorWNight',
-            self::Profile2         => 'Yeelight.ModeWNight',
-            self::enableAction     => true
+            self::Readable              => true,
+            self::Name                  => 'Current mode Background',
+            self::Type                  => VARIABLETYPE_INTEGER,
+            self::Presentation0         => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => '',
+                'OPTIONS'      => [
+                    [
+                        'Value'       => 1,
+                        'Caption'     => 'RGB',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 2,
+                        'Caption'     => 'White',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 3,
+                        'Caption'     => 'HSV',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ]
+                ],
+            ],
+            self::Presentation1         => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => '',
+                'OPTIONS'      => [
+                    [
+                        'Value'       => 1,
+                        'Caption'     => 'RGB',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 2,
+                        'Caption'     => 'White',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 3,
+                        'Caption'     => 'HSV',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 5,
+                        'Caption'     => 'Nightlight',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ]
+                ],
+            ],
+            self::Presentation2         => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => '',
+                'OPTIONS'      => [
+                    [
+                        'Value'       => 1,
+                        'Caption'     => 'White',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ],
+                    [
+                        'Value'       => 5,
+                        'Caption'     => 'Nightlight',
+                        'IconActive'  => false,
+                        'IconValue'   => '',
+                        'ColorActive' => false,
+                        'ColorValue'  => -1
+                    ]
+                ],
+            ],
+            self::enableAction          => true
         ],
         DataPoints::HUE => [
-            self::Readable => true,
-            self::Name     => 'HSV Hue',
-            self::Type     => VARIABLETYPE_STRING,
-            self::Profile  => '~HTMLBox'
+            self::Readable      => true,
+            self::Name          => 'HSV Hue',
+            self::Type          => VARIABLETYPE_STRING,
+            self::Presentation  => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_WEB_CONTENT
+            ]
         ],
         DataPoints::HSV => [
-            self::Readable     => false,
-            self::Name         => 'HSV Color',
-            self::Type         => VARIABLETYPE_STRING,
-            self::enableAction => true,
-            self::Profile      => [
+            self::Readable          => false,
+            self::Name              => 'HSV Color',
+            self::Type              => VARIABLETYPE_STRING,
+            self::enableAction      => true,
+            self::Presentation      => [
                 'COLOR_CURVE'        => 0,
                 'COLOR_SPACE'        => 1,
                 'SELECTION'          => 0,
                 'CUSTOM_COLOR_CURVE' => '[]',
                 'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
                 'ENCODING'           => 2,
-                'PRESENTATION'       => '{05CC3CC2-A0B2-5837-A4A7-A07EA0B9DDFB}',
+                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
                 'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
             ]
         ],
         DataPoints::BgHUE => [
-            self::Readable => true,
-            self::Name     => 'HSV Hue Background',
-            self::Type     => VARIABLETYPE_STRING,
-            self::Profile  => '~HTMLBox'
+            self::Readable      => true,
+            self::Name          => 'HSV Hue Background',
+            self::Type          => VARIABLETYPE_STRING,
+            self::Presentation  => [
+                'PRESENTATION' => VARIABLE_PRESENTATION_WEB_CONTENT
+            ]
         ],
         DataPoints::BgHSV => [
-            self::Readable     => false,
-            self::Name         => 'HSV Color',
-            self::Type         => VARIABLETYPE_STRING,
-            self::enableAction => true,
-            self::Profile      => [
+            self::Readable          => false,
+            self::Name              => 'HSV Color',
+            self::Type              => VARIABLETYPE_STRING,
+            self::enableAction      => true,
+            self::Presentation      => [
                 'COLOR_CURVE'        => 0,
                 'COLOR_SPACE'        => 1,
                 'SELECTION'          => 0,
                 'CUSTOM_COLOR_CURVE' => '[]',
                 'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
                 'ENCODING'           => 2,
-                'PRESENTATION'       => '{05CC3CC2-A0B2-5837-A4A7-A07EA0B9DDFB}',
+                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
                 'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
             ]
         ],
         DataPoints::NightLightBright => [
-            self::Readable     => true,
-            self::Name         => 'Brightness Nightlight',
-            self::Type         => VARIABLETYPE_INTEGER,
-            self::Profile      => '~Intensity.100',
-            self::enableAction => false
+            self::Readable          => true,
+            self::Name              => 'Brightness Nightlight',
+            self::Type              => VARIABLETYPE_INTEGER,
+            self::Presentation      => [
+                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+                'DIGITS'              => 0,
+                'CUSTOM_GRADIENT'     => '[]',
+                'ICON'                => 'brightness',
+                'DECIMAL_SEPARATOR'   => '',
+                'GRADIENT_TYPE'       => 0,
+                'MAX'                 => 100,
+                'INTERVALS'           => [],
+                'INTERVALS_ACTIVE'    => false,
+                'MIN'                 => 0,
+                'PERCENTAGE'          => false,
+                'PREFIX'              => '',
+                'STEP_SIZE'           => 1,
+                'SUFFIX'              => ' %',
+                'THOUSANDS_SEPARATOR' => '',
+                'USAGE_TYPE'          => 2,
+            ],
+            self::enableAction      => false
         ],
         DataPoints::Flowing => [
-            self::Readable     => true,
-            self::Name         => 'Sequenz active',
-            self::Type         => VARIABLETYPE_BOOLEAN,
-            self::Profile      => '',
-            self::enableAction => false
+            self::Readable          => true,
+            self::Name              => 'Sequenz active',
+            self::Type              => VARIABLETYPE_BOOLEAN,
+            self::Presentation      => [],
+            self::enableAction      => false
         ],
         DataPoints::BgFlowing => [
-            self::Readable     => true,
-            self::Name         => 'Sequenz active Background',
-            self::Type         => VARIABLETYPE_BOOLEAN,
-            self::Profile      => '',
-            self::enableAction => false
+            self::Readable          => true,
+            self::Name              => 'Sequenz active Background',
+            self::Type              => VARIABLETYPE_BOOLEAN,
+            self::Presentation      => [],
+            self::enableAction      => false
         ]
     ];
 
