@@ -103,29 +103,6 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
-     * Migrate
-     *
-     * @param  string $JSONData
-     * @return string
-     */
-    public function Migrate(string $JSONData): string
-    {
-        $Data = json_decode($JSONData);
-        /*if (property_exists($Data->configuration, 'EventID')) {
-
-        }*/
-        /*
-        if ($this->FindIDForIdent('hue')) {
-            $this->SetValue('hue', '');
-        }
-        if ($this->FindIDForIdent('bg_hue')) {
-            $this->SetValue('bg_hue', '');
-        }
-         */
-        return json_encode($Data);
-    }
-
-    /**
      * Interne Funktion des SDK.
      */
     public function ApplyChanges(): void

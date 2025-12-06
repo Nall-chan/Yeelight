@@ -39,13 +39,13 @@ Einbinden von Yeelight Geräten in IPS.
 ### [Yeelight Gerät:](YeelightDevice/)  
 
 - Empfangen und visualisieren der aktuellen Zustände in IPS.  
-- Steuerung per WebFront und per PHP-Funktionen. 
+- Steuerung per WebFront und per PHP-Funktionen.  
 - <span style="color:red">**Benötigt bei NAT eine Portweiterleitung von Port 1983 UDP ankommend**</span>  
 
 ## 2. Voraussetzungen
 
 - Symcon ab Version 8.1  
-- Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](#1-lan-steuerung-aktiveren)  
+- Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](#1-lan-steuerung-aktiveren)  )
 
 ## 3. Software-Installation
 
@@ -85,7 +85,7 @@ Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellatio
 
 ### 3. Backlog
 
-- Aktionen und PHP-Befehle um Farbtemperatur und Helligkeit mir rotation durchschalten (Main und Hintergrund).  
+- Aktionen und PHP-Befehle um Farbtemperatur und Helligkeit mit rotation durchschalten (Main und Hintergrund).  
 - Aktionen und PHP-Befehle um Farbe(HSV), Farbtemperatur und Helligkeit prozentual zu erhöhen oder zu verringern (Main und Hintergrund).  
 - Dokumentation der PHP-Befehlsreferenz vervollständigen.  
 
@@ -121,9 +121,9 @@ Version 2.00:
 - Fehlermeldungen von Geräten wurden nicht berücksichtigt.  
 - Bessere Hinweise wenn es Probleme mit der Kommunikation gibt.  
 - RGB Farbwahl war defekt.  
-- UDP Kommunikation wird in Symcon ankommend auf Port 1983 erwartet. 
-- <span style="color:red">**Prefix für PHP-Befehle wurde auf "YEELIGHT" geändert.**</span>  
-- <span style="color:red">**IPS 6.1 wird benötigt.**</span>  
+- UDP Kommunikation wird in Symcon ankommend auf Port 1983 erwartet.  
+- Prefix für PHP-Befehle wurde auf "YEELIGHT" geändert.  
+- IPS 6.1 wird benötigt.  
 
 Version 1.80:  
 
