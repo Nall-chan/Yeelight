@@ -1007,7 +1007,7 @@ class YeelightDevice extends IPSModuleStrict
         $IOId = $this->IORegisterParent();
 
         if ($IOId > 0) {
-            $this->Host = IPS_GetProperty($this->ParentID, 'Host');
+            $this->Host = IPS_GetProperty($IOId, 'Host');
             $this->SetSummary(IPS_GetProperty($IOId, 'Host'));
             // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
             if ($this->HasActiveParent()) {
@@ -1033,6 +1033,10 @@ class YeelightDevice extends IPSModuleStrict
                 return;
             }
             $this->ConnectionState = self::isReconnecting;
+            // Ensure Host is set from Parent before calling GetCapabilities
+            if ($this->ParentID > 0) {
+                $this->Host = IPS_GetProperty($this->ParentID, 'Host');
+            }
             if (!$this->GetCapabilities()) {
                 $this->SetStatus(IS_EBASE + 1);
                 $this->ConnectionState = self::isDisconnected;
@@ -1424,7 +1428,8 @@ class YeelightDevice extends IPSModuleStrict
         while ($i) {
             $ret = @socket_recvfrom($socket, $buf, 2048, 0, $IPAddress, $Port);
             if ($ret === false) {
-                break;
+                $i--;
+                continue;
             }
             if ($ret === 0) {
                 $i--;
