@@ -79,7 +79,6 @@ class YeelightDevice extends IPSModuleStrict
         $this->RegisterPropertyBoolean('HUESlider', true);
         $this->RegisterPropertyBoolean('SetSmooth', false);
         $this->RegisterPropertyInteger('Mode', 0);
-        $this->RegisterHook('Yeelight' . $this->InstanceID);
         $this->ReplyJSONData = [];
         $this->BufferIN = '';
         $this->Capabilities = [];
@@ -130,7 +129,11 @@ class YeelightDevice extends IPSModuleStrict
             $this->RegisterMessage(0, IPS_KERNELSTARTED);
             return;
         }
-
+        if ($this->ReadPropertyBoolean('HUESlider')) {
+            $this->RegisterHook('Yeelight' . $this->InstanceID);
+        } else {
+            //$this->UnregisterHook('Yeelight' . $this->InstanceID);
+        }
         $this->RegisterParent();
 
         // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
