@@ -79,6 +79,7 @@ class YeelightDevice extends IPSModuleStrict
         $this->RegisterPropertyBoolean('HUESlider', true);
         $this->RegisterPropertyBoolean('SetSmooth', false);
         $this->RegisterPropertyInteger('Mode', 0);
+        $this->RegisterPropertyInteger('ResponseTimeout', 1000);
         $this->ReplyJSONData = [];
         $this->BufferIN = '';
         $this->Capabilities = [];
@@ -1589,7 +1590,8 @@ class YeelightDevice extends IPSModuleStrict
      */
     private function WaitForResponse($Id): false|\Yeelight\RPC_Data
     {
-        for ($i = 0; $i < 1000; $i++) {
+        $timeout = $this->ReadPropertyInteger('ResponseTimeout');
+        for ($i = 0; $i < $timeout; $i++) {
             $ret = $this->ReplyJSONData;
             if (!array_key_exists(intval($Id), $ret)) {
                 return false;

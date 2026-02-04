@@ -28,6 +28,14 @@
                     "value": 2
                 }
             ]
+        },
+        {
+            "name": "ResponseTimeout",
+            "type": "NumberSpinner",
+            "caption": "Response Timeout (ms)",
+            "minimum": 500,
+            "maximum": 5000,
+            "digits": 0
         }
     ],
     "status": [
