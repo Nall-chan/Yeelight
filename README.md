@@ -101,6 +101,7 @@ Version 2.16:
 
 - 'Aktueller Modus' ist in allen Modi als Aufzählung bedienbar.  
 - 'Ablaufprogramm aktiv' zeigt aktiv/inaktiv an.  
+- 'HSV Sättigung' wird von der Licht-Kachel nicht mehr als Helligkeit angeboten.  
 - Fehlermeldungen werden ohne Datei- und Zeilenangabe an den Aufrufer gemeldet.  
 - Ungültige Parameter (z.B. Weißton außerhalb 1700 bis 6500 K, Modus 4) werden vor dem Senden abgelehnt.  
 - Unbekannte Eigenschaften des Gerätes erzeugen keine Log-Meldungen mehr, sondern nur Debug-Ausgaben.  
@@ -110,7 +111,6 @@ Version 2.16:
 **Behobene falsche Werte in Statusvariablen**
 
 - Farbton und HSV-Farbe des Hintergrunds wurden nicht aktualisiert, stattdessen entstand eine falsche Variable 'HSV Hue Hintergrund'.  
-- Die HSV-Farbvariable hatte eine falsche Sättigung, die Farbwahl über diese Variable funktionierte nicht.  
 - 'Aktueller Modus' zeigte im Modus 'Farbe und Nachtlicht' bzw. 'Weiß und Nachtlicht' nur Zahlen an, 'Weiß' hatte dort den falschen Wert.  
 - Die HSV-Farbe des Hintergrunds hatte denselben Namen wie die des Hauptlichts (gilt für neu angelegte Variablen).  
 

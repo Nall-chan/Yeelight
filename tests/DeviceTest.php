@@ -69,8 +69,7 @@ class DeviceTest extends TestCase
         [$Iid, $Intf] = $this->CreateDevice(['HUESlider' => false]);
         $this->ReceiveLine($Intf, '{"method":"props","params":{"hue":120,"sat":50}}');
         $HSV = json_decode(GetValue($this->Id($Iid, 'hsv')), true);
-        $this->assertSame(120, $HSV['h']);
-        $this->assertEqualsWithDelta(0.5, $HSV['s'], 0.001);
+        $this->assertSame(['h' => 120, 's' => 50, 'v' => 100], $HSV);
         $this->assertSame(50, GetValue($this->Id($Iid, 'sat')));
         $this->assertFalse(@IPS_GetObjectIDByIdent('hue', $Iid), 'slider variable without HUESlider');
     }
@@ -80,22 +79,30 @@ class DeviceTest extends TestCase
         [$Iid, $Intf] = $this->CreateDevice(['HUESlider' => true]);
         $this->ReceiveLine($Intf, '{"method":"props","params":{"bg_hue":200,"bg_sat":30}}');
         $HSV = json_decode(GetValue($this->Id($Iid, 'bg_hsv')), true);
-        $this->assertSame(200, $HSV['h']);
-        $this->assertEqualsWithDelta(0.3, $HSV['s'], 0.001);
+        $this->assertSame(['h' => 200, 's' => 30, 'v' => 100], $HSV);
         $this->assertStringContainsString('bg_hueSlider', GetValue($this->Id($Iid, 'bg_hue')));
         $this->assertFalse(@IPS_GetObjectIDByIdent('hsv', $Iid), 'foreground HSV must not be touched');
     }
 
-    public function testLegacyHSVValueIsConverted(): void
+    public function testHueKeepsSaturationOfHSV(): void
     {
         [$Iid, $Intf] = $this->CreateDevice(['HUESlider' => false]);
         $this->ReceiveLine($Intf, '{"method":"props","params":{"hue":10}}');
-        // Wert einer älteren Version (s und v in Prozent) über die Instanz schreiben, Statusvariablen sind schreibgeschützt.
-        (new ReflectionMethod($Intf, 'SetValue'))->invoke($Intf, 'hsv', json_encode(['h' => 10, 's' => 80, 'v' => 100]));
+        // Wert wie von der Kachel-Visualisierung (Gleitkomma, s und v in Prozent), Statusvariablen sind schreibgeschützt.
+        (new ReflectionMethod($Intf, 'SetValue'))->invoke($Intf, 'hsv', json_encode(['h' => 10.4, 's' => 61.9, 'v' => 98.2]));
         $this->ReceiveLine($Intf, '{"method":"props","params":{"hue":20}}');
         $HSV = json_decode(GetValue($this->Id($Iid, 'hsv')), true);
-        $this->assertEqualsWithDelta(0.8, $HSV['s'], 0.001);
-        $this->assertEqualsWithDelta(1.0, $HSV['v'], 0.001);
+        $this->assertSame(20, $HSV['h']);
+        $this->assertEqualsWithDelta(61.9, $HSV['s'], 0.001);
+        $this->assertSame(100, $HSV['v']);
+    }
+
+    public function testHSVActionFromVisualization(): void
+    {
+        [, $Intf] = $this->CreateDevice(['HUESlider' => false]);
+        $Decode = new ReflectionMethod($Intf, 'DecodeHSVValue');
+        $this->assertSame([62, 62], $Decode->invoke($Intf, '{"h":61.53764578576783,"s":61.8896257402005,"v":98.20657062306826}'));
+        $this->assertSame([0, 100], $Decode->invoke($Intf, '{"h":360,"s":100,"v":100}'));
     }
 
     public function testCommandWithoutParentReportsError(): void

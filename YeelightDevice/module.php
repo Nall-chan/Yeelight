@@ -1408,7 +1408,8 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
-     * Wandelt den Wert einer HSV-Farbvariable (Kodierung HSV, s und v von 0 bis 1) in Farbton und Sättigung.
+     * Wandelt den Wert einer HSV-Farbvariable in Farbton und Sättigung.
+     * Die Kachel-Visualisierung sendet h von 0 bis 360, s und v von 0 bis 100 (Gleitkomma, live geprüft).
      *
      * @param mixed $Value JSON-String {"h":…, "s":…, "v":…}
      *
@@ -1422,7 +1423,7 @@ class YeelightDevice extends IPSModuleStrict
             return false;
         }
         $Hue = ((int) round((float) $HSV['h'])) % 360;
-        $Saturation = (int) round((float) $HSV['s'] * 100);
+        $Saturation = (int) round((float) $HSV['s']);
         return [$Hue, min(100, max(0, $Saturation))];
     }
 
@@ -1705,7 +1706,7 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
-     * Aktualisiert die HSV-Farbvariable (Kodierung HSV, s und v von 0 bis 1).
+     * Aktualisiert die HSV-Farbvariable (h von 0 bis 360, s und v von 0 bis 100 wie in der Kachel-Visualisierung).
      * Eine neue Sättigung allein legt die Variable nicht an.
      *
      * @param string   $HSVIdent   Ident hsv oder bg_hsv
@@ -1720,20 +1721,16 @@ class YeelightDevice extends IPSModuleStrict
         }
         $HSV = $Exists ? json_decode((string) $this->GetValue($HSVIdent), true) : null;
         if (!is_array($HSV)) {
-            $HSV = ['h' => 0, 's' => 1.0, 'v' => 1.0];
+            $HSV = ['h' => 0, 's' => 100, 'v' => 100];
         }
-        // Werte älterer Versionen (0 bis 100) umrechnen
-        foreach (['s', 'v'] as $Key) {
-            $HSV[$Key] = (float) ($HSV[$Key] ?? 1.0);
-            if ($HSV[$Key] > 1) {
-                $HSV[$Key] = $HSV[$Key] / 100;
-            }
-        }
+        $HSV['s'] = $HSV['s'] ?? 100;
+        // Das Gerät liefert keinen Hellwert, v bleibt bei 100 %.
+        $HSV['v'] = 100;
         if ($Hue !== null) {
             $HSV['h'] = $Hue;
         }
         if ($Saturation !== null) {
-            $HSV['s'] = $Saturation / 100;
+            $HSV['s'] = $Saturation;
         }
         $this->MaintainStatusVariable($HSVIdent);
         $this->SetValue($HSVIdent, json_encode($HSV));

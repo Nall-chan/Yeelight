@@ -175,7 +175,7 @@ class Variables
         'STEP_SIZE'           => 1,
         'SUFFIX'              => ' %',
         'THOUSANDS_SEPARATOR' => '',
-        'USAGE_TYPE'          => 2,
+        'USAGE_TYPE'          => 5, // Keine hiervon, sonst bietet die Licht-Kachel die Sättigung als Helligkeit an
     ];
 
     private const WhiteSlider = [
