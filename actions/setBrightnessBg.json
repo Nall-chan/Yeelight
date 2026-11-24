@@ -24,7 +24,7 @@
         "if ($_IPS['DURATION'] < 0.03){",
         "   YEELIGHT_SetBgBrightness($_IPS['TARGET'], $_IPS['BRIGHTNESS']);",
         "} else {",
-        "   YEELIGHT_SetBgBrightnessSmooth($_IPS['TARGET'], $_IPS['BRIGHTNESS'], $_IPS['DURATION'] * 1000);",
+        "   YEELIGHT_SetBgBrightnessSmooth($_IPS['TARGET'], $_IPS['BRIGHTNESS'], (int) ($_IPS['DURATION'] * 1000));",
         "}"
     ],
     "readable": [
@@ -33,7 +33,7 @@
         "   printf($OUT, $_IPS['TARGET'], $_IPS['BRIGHTNESS']);",
         "} else {",
         "   $OUT = 'YEELIGHT_SetBgBrightnessSmooth(%d, %d, %d);';",
-        "   printf($OUT, $_IPS['TARGET'], $_IPS['BRIGHTNESS'], $_IPS['DURATION'] * 1000);",
+        "   printf($OUT, $_IPS['TARGET'], $_IPS['BRIGHTNESS'], (int) ($_IPS['DURATION'] * 1000));",
         "}"
     ],
     "category": "target",

@@ -8,22 +8,26 @@ declare(strict_types=1);
  *
  * @package       yeelight
  * @file          module.php
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2023 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.13
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.16
  *
  */
-require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
+require_once __DIR__ . '/../libs/DebugHelper.php';  // SendDebug für Arrays und Objekte
+require_once __DIR__ . '/../libs/YeelightRPC.php';  // Konstanten
+
+use Yeelight\GUID;
+use Yeelight\Network;
 
 /**
  * YeelightDiscovery Klasse implementiert.
  *
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2023 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
  *
- * @version       2.13
+ * @version       2.16
  *
  * @example <b>Ohne</b>
  *
@@ -55,7 +59,7 @@ class YeelightDiscovery extends IPSModuleStrict
     {
         $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
 
-        if (IPS_GetOption('NATSupport') && strpos(IPS_GetKernelPlatform(), 'Docker')) {
+        if (IPS_GetOption('NATSupport') && str_contains(IPS_GetKernelPlatform(), 'Docker')) {
             // not supported. Docker cannot forward Multicast :(
             $Form['actions'][1]['popup']['items'][1]['caption'] = $this->Translate("The combination of Docker and NAT is not supported because Docker does not support multicast.\r\nPlease run the container in the host network.");
             $Form['actions'][1]['visible'] = true;
@@ -94,12 +98,12 @@ class YeelightDiscovery extends IPSModuleStrict
 
                 $AddDevice['create'] = [
                     [
-                        'moduleID'      => '{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}',
+                        'moduleID'      => GUID::Device,
                         'location'      => [$this->Translate('Yeelight Devices')],
                         'configuration' => new stdClass()
                     ],
                     [
-                        'moduleID'      => '{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}',
+                        'moduleID'      => GUID::ClientSocket,
                         'configuration' => [
                             'Host' => $Host,
                             'Port' => $Data['Port'],
@@ -129,7 +133,7 @@ class YeelightDiscovery extends IPSModuleStrict
 
     private function GetIPSInstances(): array
     {
-        $InstanceIDList = IPS_GetInstanceListByModuleID('{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}');
+        $InstanceIDList = IPS_GetInstanceListByModuleID(GUID::Device);
         $Devices = [];
         foreach ($InstanceIDList as $InstanceID) {
             $IO = IPS_GetInstance($InstanceID)['ConnectionID'];
@@ -169,13 +173,15 @@ class YeelightDiscovery extends IPSModuleStrict
                 socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
                 socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_IF, $Interface);
                 socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
-                if (@socket_bind($socket, $IP, 1983) == false) {
+                if (@socket_bind($socket, $IP, Network::SsdpLocalPort) == false) {
+                    $this->SendDebug('Error on bind socket', $IP, 0);
+                    socket_close($socket);
                     continue;
                 }
                 $discoveryTimeout = time() + 3;
                 $message = [
                     'M-SEARCH * HTTP/1.1',
-                    'HOST: 239.255.255.250:1982',
+                    'HOST: ' . Network::SsdpMulticast . ':' . Network::SsdpPort,
                     'MAN: "ssdp:discover"',
                     'ST: wifi_bulb',
                     '',
@@ -184,7 +190,7 @@ class YeelightDiscovery extends IPSModuleStrict
                 $SendData = implode("\r\n", $message) . "\r\n\r\n";
                 $this->SendDebug('Start Discovery(' . $Interface . ')', $IP, 0);
                 $this->SendDebug('Search', $SendData, 0);
-                if (@socket_sendto($socket, $SendData, strlen($SendData), 0, '239.255.255.250', 1982) === false) {
+                if (@socket_sendto($socket, $SendData, strlen($SendData), 0, Network::SsdpMulticast, Network::SsdpPort) === false) {
                     $this->SendDebug('Error on send discovery message', $IP, 0);
                     @socket_close($socket);
                     continue;
@@ -199,9 +205,11 @@ class YeelightDiscovery extends IPSModuleStrict
                     $this->SendDebug('Receive (' . $IPAddress . ')', $response, 0);
                     $Data = $this->parseHeader($response);
 
-                    if (!array_key_exists('location', $Data)) {
+                    if (!array_key_exists('location', $Data) || !array_key_exists('id', $Data)) {
                         continue;
                     }
+                    $Data['name'] ??= '';
+                    $Data['model'] ??= '';
                     $Location = explode(':', $Data['location']);
                     if (!isset($Location[2]) || $Location[0] != 'yeelight') {
                         continue;
@@ -268,7 +276,7 @@ class YeelightDiscovery extends IPSModuleStrict
     private function AddDiscoveryEntry(array &$DevicesData, string $name, string $model, string $id, string $Host, int $Port, int $Index): void
     {
         if (array_key_exists($id, $DevicesData)) {
-            if (!in_array($Host, $DevicesData[$id]['Hosts'])) {
+            if (!in_array(strtolower($Host), $DevicesData[$id]['Hosts'])) {
                 $DevicesData[$id]['Hosts'][$Index] = strtolower($Host);
             }
         } else {

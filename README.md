@@ -1,7 +1,7 @@
 [![SDK](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
 [![Module Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.version&label=Modul%20Version&color=blue)](https://community.symcon.de/t/modul-xiaomi-yeelight/142578)
 [![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
-[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![License](https://img.shields.io/badge/License-Custom--NC--SA-green.svg)](#6-lizenz)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
 [![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#4-spenden)
 [![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)  
@@ -44,13 +44,12 @@ Einbinden von Yeelight Geräten in IPS.
 
 ## 2. Voraussetzungen
 
-- Symcon ab Version 8.1  
+- Symcon ab Version 8.2  
 - Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](#1-lan-steuerung-aktiveren)  )
 
 ## 3. Software-Installation
 
   Über den 'Module-Store' in IPS das Modul 'Yeelight' hinzufügen.  
-   **Bei kommerzieller Nutzung (z.B. als Errichter oder Integrator) wenden Sie sich bitte an den Autor.**  
 ![Module-Store](imgs/install.png)  
 
 ## 4. Einrichten der Instanzen in IP-Symcon
@@ -90,6 +89,41 @@ Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellatio
 - Dokumentation der PHP-Befehlsreferenz vervollständigen.  
 
 ### 4. Changelog  
+
+Version 2.16:
+
+> [!IMPORTANT]
+> - Symcon ab Version 8.2 wird benötigt.  
+> - Die PHP-Befehle `YEELIGHT_SetToogle`, `YEELIGHT_SetBgToogle`, `YEELIGHT_SetToogleBoth` und `YEELIGHT_CircleBgColor` heißen jetzt `YEELIGHT_SetToggle`, `YEELIGHT_SetBgToggle`, `YEELIGHT_SetToggleBoth` und `YEELIGHT_RotateBgColor`. Die alten Namen funktionieren noch, erzeugen eine Warnung im Log und werden mit Version 2.20 entfernt.  
+> - Wird 'HSV-Slider anzeigen' deaktiviert, bleiben die Variablen 'HSV Sättigung' erhalten. Nur die Slider-Variablen 'HSV Hue' werden gelöscht.  
+
+**Geändertes Verhalten**
+
+- 'Aktueller Modus' ist in allen Modi als Aufzählung bedienbar.  
+- 'Ablaufprogramm aktiv' zeigt aktiv/inaktiv an.  
+- Fehlermeldungen werden ohne Datei- und Zeilenangabe an den Aufrufer gemeldet.  
+- Ungültige Parameter (z.B. Weißton außerhalb 1700 bis 6500 K, Modus 4) werden vor dem Senden abgelehnt.  
+- Unbekannte Eigenschaften des Gerätes erzeugen keine Log-Meldungen mehr, sondern nur Debug-Ausgaben.  
+
+**Behobene falsche Werte in Statusvariablen**
+
+- Farbton und HSV-Farbe des Hintergrunds wurden nicht aktualisiert, stattdessen entstand eine falsche Variable 'HSV Hue Hintergrund'.  
+- Die HSV-Farbvariable hatte eine falsche Sättigung, die Farbwahl über diese Variable funktionierte nicht.  
+- 'Aktueller Modus' zeigte im Modus 'Farbe und Nachtlicht' bzw. 'Weiß und Nachtlicht' nur Zahlen an, 'Weiß' hatte dort den falschen Wert.  
+- Die HSV-Farbe des Hintergrunds hatte denselben Namen wie die des Hauptlichts (gilt für neu angelegte Variablen).  
+
+**Fehlerbehebungen**
+
+- `YEELIGHT_SetToogle`, `YEELIGHT_SetBgToogle` und `YEELIGHT_SetToogleBoth` wurden vom Gerät abgelehnt.  
+- `YEELIGHT_GetSleep` lieferte nie die Restlaufzeit.  
+- `YEELIGHT_SetRGBSmooth` und `YEELIGHT_SetBgRGBSmooth` ignorierten die Übergangszeit.  
+- Aktion 'Hintergrundhelligkeit verringern' hat die Helligkeit erhöht.  
+- Aktion 'Speicher Standard für Hintergrund' hat den Standard des Hauptlichts gespeichert.  
+- Aktion 'Einschalten / Modus setzen' mit 'Farbe (HSV)' hat eine Farbsequenz gestartet.  
+- Nach einem automatischen Neuverbinden (Quota exceeded) meldete der Befehl einen Fehler, obwohl er ausgeführt wurde.  
+- Debug-Ausgaben von Ereignissen mit Zahlenwerten brachen mit einem Fehler ab.  
+- Die Discovery erkannte Docker mit NAT nicht zuverlässig.  
+- Ein geänderter Host am Client Socket wurde erst nach einem Neustart der Instanz berücksichtigt.  
 
 Version 2.15:
 
@@ -157,5 +191,5 @@ Version 1.00:
 
 ## 6. Lizenz
 
-  IPS-Modul:  
-  [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)  
+IPS-Modul:  
+[Custom NC-SA](LICENSE)  

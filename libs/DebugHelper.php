@@ -2,10 +2,24 @@
 
 declare(strict_types=1);
 
+/*
+ * @addtogroup yeelight
+ * @{
+ *
+ * @package       yeelight
+ * @file          DebugHelper.php
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.16
+ *
+ */
+
 namespace Yeelight;
 
 /**
  * DebugHelper ergänzt SendDebug um die Möglichkeit Array und Objekte auszugeben.
+ * Eigene Variante statt libs/helper/DebugHelper.php, da RPC_Data und RPCException aufbereitet werden.
  */
 trait DebugHelper
 {
@@ -31,7 +45,7 @@ trait DebugHelper
                     $this->SendDebug($Message, $DebugData, 0);
                 }
             } else {
-                if (is_null($Data->Id)) {
+                if (!is_null($Data->Id)) {
                     $Message .= ':' . $Data->Id;
                 }
                 $this->SendDebug($Message . ':Method', $Data->Method, $Format);
@@ -52,9 +66,11 @@ trait DebugHelper
             }
         } elseif (is_bool($Data)) {
             parent::SendDebug($Message, ($Data ? 'TRUE' : 'FALSE'), 0);
+        } elseif (is_null($Data)) {
+            parent::SendDebug($Message, 'NULL', 0);
         } else {
             if (IPS_GetKernelRunlevel() == KR_READY) {
-                parent::SendDebug($Message, $Data, $Format);
+                parent::SendDebug($Message, (string) $Data, $Format);
             } else {
                 $this->LogMessage($Message . ':' . (string) $Data, KL_DEBUG);
             }

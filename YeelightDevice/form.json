@@ -8,7 +8,7 @@
         {
             "name": "HUESlider",
             "type": "CheckBox",
-            "caption": "Display HSL-Slider (only Webfront)"
+            "caption": "Display HSV slider (only WebFront)"
         },
         {
             "type": "Select",
@@ -34,7 +34,7 @@
         {
             "code": 201,
             "icon": "error",
-            "caption": "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to IPS. Please check firewall or NAT forwarding."
+            "caption": "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to Symcon. Please check firewall or NAT forwarding."
         }
     ],
     "actions": [

@@ -25,7 +25,7 @@
         "if ($_IPS['DURATION'] < 0.03){",
         "    YEELIGHT_SetRGB($_IPS['TARGET'], $R, $G, $B);",
         "} else {",
-        "    YEELIGHT_SetRGBSmooth($_IPS['TARGET'], $R, $G, $B, $_IPS['DURATION'] * 1000);",
+        "    YEELIGHT_SetRGBSmooth($_IPS['TARGET'], $R, $G, $B, (int) ($_IPS['DURATION'] * 1000));",
         "}"
     ],
     "readable": [
@@ -37,7 +37,7 @@
         "   printf($OUT, $_IPS['TARGET'], $R, $G, $B);",
         "} else {",
         "   $OUT = 'YEELIGHT_SetRGBSmooth(%d, %d, %d, %d, %d);';",
-        "   printf($OUT, $_IPS['TARGET'], $R, $G, $B, $_IPS['DURATION'] * 1000);",
+        "   printf($OUT, $_IPS['TARGET'], $R, $G, $B, (int) ($_IPS['DURATION'] * 1000));",
         "}"
     ],
     "category": "target",

@@ -2,7 +2,7 @@
     "id": "{0A5C0F63-79DA-49E1-AD22-02F185A4E638}",
     "caption": "Save default for background",
     "form": [],
-    "action": "YEELIGHT_SetDefault($_IPS['TARGET']);",
+    "action": "YEELIGHT_SetBgDefault($_IPS['TARGET']);",
     "category": "target",
     "restrictions": {
         "objectType": [

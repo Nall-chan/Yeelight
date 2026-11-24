@@ -16,7 +16,7 @@
                     "caption": "Color (RGB)"
                 },
                 {
-                    "value": 4,
+                    "value": 3,
                     "caption": "Color (HSV)"
                 },
                 {
@@ -40,13 +40,13 @@
         "   if ($_IPS['DURATION'] < 0.03){",
         "       YEELIGHT_SetPower($_IPS['TARGET'],true);",
         "   } else {",
-        "       YEELIGHT_SetPowerSmooth($_IPS['TARGET'], true, $_IPS['DURATION'] * 1000);",
+        "       YEELIGHT_SetPowerSmooth($_IPS['TARGET'], true, (int) ($_IPS['DURATION'] * 1000));",
         "   }",
         "} else {",
         "   if ($_IPS['DURATION'] < 0.03){",
         "       YEELIGHT_SetMode($_IPS['TARGET'], $_IPS['MODE']);",
         "   } else {",
-        "       YEELIGHT_SetModeSmooth($_IPS['TARGET'], $_IPS['MODE'], $_IPS['DURATION'] * 1000);",
+        "       YEELIGHT_SetModeSmooth($_IPS['TARGET'], $_IPS['MODE'], (int) ($_IPS['DURATION'] * 1000));",
         "   }",
         "}"
     ],
@@ -55,13 +55,13 @@
         "   if ($_IPS['DURATION'] < 0.03){",
         "       $OUT = 'YEELIGHT_SetPower('.$_IPS['TARGET'].', true);';",
         "   } else {",
-        "       $OUT = 'YEELIGHT_SetPowerSmooth('.$_IPS['TARGET'].', true, '.$_IPS['DURATION'] * 1000.');';",
+        "       $OUT = 'YEELIGHT_SetPowerSmooth('.$_IPS['TARGET'].', true, '.(int) ($_IPS['DURATION'] * 1000).');';",
         "   }",
         "} else {",
         "   if ($_IPS['DURATION'] < 0.03){",
         "       $OUT = 'YEELIGHT_SetMode('.$_IPS['TARGET'].', '.$_IPS['MODE'].');';",
         "   } else {",
-        "       $OUT = 'YEELIGHT_SetModeSmooth('.$_IPS['TARGET'].', '.$_IPS['MODE'].', '.$_IPS['DURATION'] * 1000.');';",
+        "       $OUT = 'YEELIGHT_SetModeSmooth('.$_IPS['TARGET'].', '.$_IPS['MODE'].', '.(int) ($_IPS['DURATION'] * 1000).');';",
         "   }",
         "}",
         "echo $OUT;"

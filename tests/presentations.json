@@ -1,0 +1,49 @@
+{
+    "_comment": "Parameternamen je Darstellung und Variablentyp, aus IPS_GetPresentation (Symcon 9.1, 2026-11-24). Typen: 0 = Boolean, 1 = Integer, 2 = Float, 3 = String.",
+    "{60AE6B26-B3E2-BDB1-A3A1-BE232940664B}": {
+        "name": "Switch",
+        "types": [0],
+        "parameters": ["GLOW_COLOR", "GLOW_INTENSITY", "ICON_FALSE", "ICON_TRUE", "USAGE_TYPE", "USE_ICON_FALSE"],
+        "groups": {}
+    },
+    "{6B9CAEEC-5958-C223-30F7-BD36569FC57A}": {
+        "name": "Slider",
+        "types": [1, 2],
+        "parameters": ["CUSTOM_GRADIENT", "DECIMAL_SEPARATOR", "DIGITS", "GRADIENT_TYPE", "ICON", "INTERVALS", "INTERVALS_ACTIVE", "MAX", "MIN", "PERCENTAGE", "PREFIX", "STEP_SIZE", "SUFFIX", "THOUSANDS_SEPARATOR", "USAGE_TYPE"],
+        "groups": {}
+    },
+    "{05CC3CC2-A0B2-5837-A4A7-A07EA0B9DDFB}": {
+        "name": "Color",
+        "types": [1, 3],
+        "parameters": ["COLOR_CURVE", "COLOR_SPACE", "CUSTOM_COLOR_CURVE", "CUSTOM_COLOR_SPACE", "ENCODING", "PRESET_VALUES", "SELECTION"],
+        "groups": {}
+    },
+    "{9DE1D610-5106-97FB-714D-1AADEDF8377A}": {
+        "name": "Web Content",
+        "types": [3],
+        "parameters": ["HTML_TYPE", "PADDING"],
+        "groups": {}
+    },
+    "{52D9E126-D7D2-2CBB-5E62-4CF7BA7C5D82}": {
+        "name": "Enumeration",
+        "types": [0, 1, 2, 3],
+        "parameters": ["DISPLAY", "ICON", "LAYOUT"],
+        "groups": {
+            "0": {"OPTIONS": ["Caption", "Color", "IconActive", "IconValue", "Value"]},
+            "1": {"OPTIONS": ["Caption", "Color", "IconActive", "IconValue", "Value"]},
+            "2": {"OPTIONS": ["Caption", "Color", "IconActive", "IconValue", "Value"]},
+            "3": {"OPTIONS": ["Caption", "Color", "IconActive", "IconValue", "Value"]}
+        }
+    },
+    "{3319437D-7CDE-699D-750A-3C6A3841FA75}": {
+        "name": "Value Presentation",
+        "types": [0, 1, 2, 3],
+        "parameters": ["COLOR", "CONTENT_COLOR", "DISPLAY_TYPE", "ICON", "PERCENTAGE", "PREFIX", "PREVIEW_STYLE", "SHOW_PREVIEW", "SUFFIX", "USAGE_TYPE"],
+        "groups": {
+            "0": {"OPTIONS": ["Caption", "ColorActive", "ColorValue", "ContentColorActive", "ContentColorValue", "IconActive", "IconValue", "Value"]},
+            "1": {"DECIMAL_SEPARATOR": [], "DIGITS": [], "INTERVALS": [], "INTERVALS_ACTIVE": [], "MAX": [], "MIN": [], "THOUSANDS_SEPARATOR": []},
+            "2": {"DECIMAL_SEPARATOR": [], "DIGITS": [], "INTERVALS": [], "INTERVALS_ACTIVE": [], "MAX": [], "MIN": [], "THOUSANDS_SEPARATOR": []},
+            "3": {"MULTILINE": [], "OPTIONS": ["Caption", "ColorActive", "ColorValue", "ContentColorActive", "ContentColorValue", "IconActive", "IconValue", "Value"]}
+        }
+    }
+}

@@ -7,49 +7,58 @@ declare(strict_types=1);
  *
  * @package       yeelight
  * @file          module.php
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2023 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
- * @version       2.13
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.16
  *
  */
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/BufferHelper.php') . '}');
-require_once __DIR__ . '/../libs/DebugHelper.php';  // diverse Klassen
+require_once __DIR__ . '/../libs/DebugHelper.php';  // SendDebug für RPC-Objekte
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/ParentIOHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/SemaphoreHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableHelper.php') . '}');
 eval('declare(strict_types=1);namespace YeelightDevice {?>' . file_get_contents(__DIR__ . '/../libs/helper/VariableProfileHelper.php') . '}');
-require_once __DIR__ . '/../libs/YeelightRPC.php';  // diverse Klassen
+require_once __DIR__ . '/../libs/YeelightRPC.php';  // Konstanten, Variablen und RPC-Klassen
+
+use Yeelight\DataPoints;
+use Yeelight\Duration;
+use Yeelight\GUID;
+use Yeelight\Hook;
+use Yeelight\Locks;
+use Yeelight\Network;
+use Yeelight\Property;
+use Yeelight\RPC_Data;
+use Yeelight\RPCException;
+use Yeelight\Variables;
 
 /**
- * YeelightDevice Klasse implementiert.
+ * YeelightDevice Klasse für die Anbindung eines Yeelight Gerätes über einen Client Socket.
  *
- * @author        Michael Tröger <micha@nall-chan.net>
- * @copyright     2023 Michael Tröger
- * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
  *
- * @version       2.13
+ * @version       2.16
  *
  * @example <b>Ohne</b>
  * @property int $ParentID
- * @property array $Capabilities
- * @property array $Propertys
+ * @property array $Capabilities Vom Gerät per SSDP gemeldete Methoden
+ * @property array $Propertys Vom Gerät unterstützte Properties
  * @property string $BufferIN Receive-Buffer
- * @property \Yeelight\RPC_Data[] $ReplyJSONData Send/Receive Buffer
- * @property string $Host
- * @property int $HUE
- * @property int $SAT
- * @property int $BG_HUE
- * @property int $BG_SAT
+ * @property array $ReplyJSONData Send/Receive Buffer (Id => '' oder \Yeelight\RPC_Data)
+ * @property string $Host IP-Adresse bzw. Hostname des Gerätes (vom Client Socket)
+ * @property int $HUE Letzter Farbton
+ * @property int $SAT Letzte Sättigung
+ * @property int $BG_HUE Letzter Farbton Hintergrund
+ * @property int $BG_SAT Letzte Sättigung Hintergrund
+ * @property bool $BgPower Letzter Zustand Hintergrund
  * @property int $ConnectionState
  * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
  * @method bool IORequestAction(string $Ident, mixed $Value)
  * @method int IORegisterParent()
  * @method int FindIDForIdent(string $Ident)
  * @method void UnregisterProfile(string $Name)
- * @method void RegisterProfileInteger(string $Name, string $Icon, string $Prefix, string $Suffix, int $MinValue, int $MaxValue, int $StepSize)
- * @method void RegisterProfileIntegerEx(string $Name, string $Icon, string $Prefix, string $Suffix, array $Associations, int $MaxValue = -1, float $StepSize = 0)
- * @method bool RegisterHook(string $WebHook)
  * @method bool lock(string $ident)
  * @method void unlock(string $ident)
  */
@@ -70,23 +79,28 @@ class YeelightDevice extends IPSModuleStrict
     public const isConnected = 1;
     public const isReconnecting = 2;
 
+    /** Version, mit der die veralteten Funktionsnamen entfernt werden. */
+    private const DeprecatedRemoveVersion = '2.20';
+
     /**
      * Interne Funktion des SDK.
      */
     public function Create(): void
     {
         parent::Create();
-        $this->RegisterPropertyBoolean('HUESlider', true);
-        $this->RegisterPropertyBoolean('SetSmooth', false);
-        $this->RegisterPropertyInteger('Mode', 0);
+        $this->RegisterPropertyBoolean(Property::HUESlider, true);
+        $this->RegisterPropertyBoolean(Property::SetSmooth, false);
+        $this->RegisterPropertyInteger(Property::Mode, 0);
         $this->ReplyJSONData = [];
         $this->BufferIN = '';
         $this->Capabilities = [];
         $this->Propertys = [];
+        $this->Host = '';
         $this->HUE = 1;
         $this->SAT = 1;
         $this->BG_HUE = 1;
         $this->BG_SAT = 1;
+        $this->BgPower = false;
         $this->ParentID = 0;
         $this->ConnectionState = self::isDisconnected;
     }
@@ -98,7 +112,7 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function GetCompatibleParents(): string
     {
-        return '{"type": "require", "moduleIDs": ["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"]}';
+        return json_encode(['type' => 'require', 'moduleIDs' => [GUID::ClientSocket]]);
     }
 
     /**
@@ -113,33 +127,25 @@ class YeelightDevice extends IPSModuleStrict
         $this->BufferIN = '';
         $this->Capabilities = [];
         $this->Propertys = [];
+        $this->Host = '';
         $this->ConnectionState = self::isDisconnected;
+        // Profile älterer Versionen entfernen
         $this->UnregisterProfile('Yeelight.WhiteTemp');
         $this->UnregisterProfile('Yeelight.WhiteTemp2');
         $this->UnregisterProfile('Yeelight.ModeColor');
         $this->UnregisterProfile('Yeelight.ModeColorWNight');
         $this->UnregisterProfile('Yeelight.ModeWNight');
-        if (!$this->ReadPropertyBoolean('HUESlider')) {
-            $this->UnregisterVariable('hue');
-            $this->UnregisterVariable('sat');
-            $this->UnregisterVariable('bg_hue');
-            $this->UnregisterVariable('bg_sat');
+        if (!$this->ReadPropertyBoolean(Property::HUESlider)) {
+            // Nur die Slider-Variablen (JavaScript) gehören zur Option, Sättigung bleibt erhalten.
+            $this->UnregisterVariable(DataPoints::HUE);
+            $this->UnregisterVariable(DataPoints::BgHUE);
         }
         if (IPS_GetKernelRunlevel() != KR_READY) {
             $this->RegisterMessage(0, IPS_KERNELSTARTED);
             return;
         }
-        if ($this->ReadPropertyBoolean('HUESlider')) {
-            $this->RegisterHook('Yeelight' . $this->InstanceID);
-        } else {
-            //$this->UnregisterHook('Yeelight' . $this->InstanceID);
-        }
+        $this->RegisterWebHook();
         $this->RegisterParent();
-
-        // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
-        if ($this->HasActiveParent()) {
-            $this->IOChangeState(IS_ACTIVE);
-        }
     }
 
     /**
@@ -164,56 +170,56 @@ class YeelightDevice extends IPSModuleStrict
             return;
         }
         switch ($Ident) {
-            case \Yeelight\DataPoints::Power:
+            case DataPoints::Power:
                 $this->SetPower((bool) $Value);
                 break;
-            case \Yeelight\DataPoints::Bright:
+            case DataPoints::Bright:
                 $this->SetBrightness((int) $Value);
                 break;
-            case \Yeelight\DataPoints::RGB:
-                $this->SetColor((int) $Value, $this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
+            case DataPoints::RGB:
+                $this->SetColor((int) $Value, $this->DefaultDuration());
                 break;
-            case \Yeelight\DataPoints::HSV:
-                $Values = json_decode($Value, true);
-                $this->SetHSV((int) $Values['h'], (int) $Values['s']);
+            case DataPoints::HSV:
+                $HSV = $this->DecodeHSVValue($Value);
+                if ($HSV !== false) {
+                    $this->SetHSV($HSV[0], $HSV[1]);
+                }
                 break;
-            case \Yeelight\DataPoints::SAT:
-                $this->SetSaturation((int) $Value);
+            case DataPoints::SAT:
+                $this->SetHSV($this->HUE, (int) $Value);
                 break;
-            case \Yeelight\DataPoints::CT:
+            case DataPoints::CT:
                 $this->SetWhite((int) $Value);
                 break;
-            case \Yeelight\DataPoints::BgPower:
+            case DataPoints::ColorMode:
+                $this->SetMode((int) $Value);
+                break;
+            case DataPoints::BgPower:
                 $this->SetBgPower((bool) $Value);
                 break;
-            case \Yeelight\DataPoints::BgBright:
+            case DataPoints::BgBright:
                 $this->SetBgBrightness((int) $Value);
                 break;
-            case \Yeelight\DataPoints::BgRGB:
-                $this->SetBgColor((int) $Value, $this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
+            case DataPoints::BgRGB:
+                $this->SetBgColor((int) $Value, $this->DefaultDuration());
                 break;
-            case \Yeelight\DataPoints::BgHSV:
-                $Values = json_decode($Value, true);
-                $this->SetBgHSV((int) $Values['h'], (int) $Values['s']);
+            case DataPoints::BgHSV:
+                $HSV = $this->DecodeHSVValue($Value);
+                if ($HSV !== false) {
+                    $this->SetBgHSV($HSV[0], $HSV[1]);
+                }
                 break;
-            case \Yeelight\DataPoints::BgSAT:
-                $this->SetBgSaturation((int) $Value);
+            case DataPoints::BgSAT:
+                $this->SetBgHSV($this->BG_HUE, (int) $Value);
                 break;
-            case \Yeelight\DataPoints::BgCT:
+            case DataPoints::BgCT:
                 $this->SetBgWhite((int) $Value);
                 break;
-            case \Yeelight\DataPoints::ColorMode:
-                if ((int) $Value != 4) {
-                    $this->SetMode((int) $Value);
-                }
-                break;
-            case \Yeelight\DataPoints::BgColorMode:
-                if ((int) $Value != 4) {
-                    $this->SetBgMode((int) $Value);
-                }
+            case DataPoints::BgColorMode:
+                $this->SetBgMode((int) $Value);
                 break;
             default:
-                echo sprintf($this->Translate('Invalid Ident: %s'), $Ident);
+                echo sprintf($this->Translate('Invalid Ident: %s'), $Ident) . PHP_EOL;
         }
     }
 
@@ -222,778 +228,760 @@ class YeelightDevice extends IPSModuleStrict
     /**
      * Liest den Zustand des Gerätes und führt alle Statusvariablen nach.
      *
-     * @return bool
+     * @return bool true bei Erfolg, sonst false
      */
     public function RequestState(): bool
     {
-        return $this->get_prop($this->Propertys);
+        $Propertys = $this->Propertys;
+        if (count($Propertys) == 0) {
+            $Propertys = DataPoints::getReadableList();
+        }
+        return $this->get_prop($Propertys);
     }
 
     /**
      * Setzt den in '$Temperature' übergebenen Weißton.
      *
-     * @param int $Temperature Weißton
+     * @param int $Temperature Weißton in Kelvin (1700 bis 6500)
      *
-     * @return bool
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetWhite(int $Temperature): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetWhiteSmooth($Temperature, $Duration);
+        return $this->SetWhiteSmooth($Temperature, $this->DefaultDuration());
     }
 
     /**
-     * Setzt den in '$Temperature' übergebenen Weißton.
+     * Setzt den in '$Temperature' übergebenen Weißton des Hintergrunds.
      *
-     * @param int $Temperature Weißton
+     * @param int $Temperature Weißton in Kelvin (1700 bis 6500)
      *
-     * @return bool
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgWhite(int $Temperature): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBgWhiteSmooth($Temperature, $Duration);
+        return $this->SetBgWhiteSmooth($Temperature, $this->DefaultDuration());
     }
 
     /**
-     * Setzt den in '$Temperature' übergebenen Weißton mit der in '$Duration' übergebenen Transitionzeit.
+     * Setzt den in '$Temperature' übergebenen Weißton mit der in '$Duration' übergebenen Übergangszeit.
      *
-     * @param int $Temperature Weißton
-     * @param int $Duration    Transitionzeit
+     * @param int $Temperature Weißton in Kelvin (1700 bis 6500)
+     * @param int $Duration    Übergangszeit in Millisekunden (unter 30 = sofort)
      *
-     * @return bool
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetWhiteSmooth(int $Temperature, int $Duration): bool
     {
-        if ($Duration <= 30) {
-            $Params = [$Temperature, 'sudden', 0];
-        } else {
-            $Params = [$Temperature, 'smooth', $Duration];
+        if (!$this->CheckWhite($Temperature)) {
+            return false;
         }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_ct_abx($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_ct_abx', array_merge([$Temperature], $this->Effect($Duration)));
     }
 
     /**
-     * Setzt den in '$Temperature' übergebenen Weißton mit der in '$Duration' übergebenen Transitionzeit.
+     * Setzt den in '$Temperature' übergebenen Weißton des Hintergrunds mit der in '$Duration' übergebenen Übergangszeit.
      *
-     * @param int $Temperature Weißton
-     * @param int $Duration    Transitionzeit
+     * @param int $Temperature Weißton in Kelvin (1700 bis 6500)
+     * @param int $Duration    Übergangszeit in Millisekunden (unter 30 = sofort)
      *
-     * @return bool
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgWhiteSmooth(int $Temperature, int $Duration): bool
     {
-        if ($Duration <= 30) {
-            $Params = [$Temperature, 'sudden', 0];
-        } else {
-            $Params = [$Temperature, 'smooth', $Duration];
+        if (!$this->CheckWhite($Temperature)) {
+            return false;
         }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_ct_abx($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_ct_abx', array_merge([$Temperature], $this->Effect($Duration)));
     }
 
     /**
-     * @param int $Red
-     * @param int $Green
-     * @param int $Blue
+     * Setzt die Farbe aus den Anteilen Rot, Grün und Blau.
      *
-     * @return bool
+     * @param int $Red   Rot (0 bis 255)
+     * @param int $Green Grün (0 bis 255)
+     * @param int $Blue  Blau (0 bis 255)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetRGB(int $Red, int $Green, int $Blue): bool
     {
-        if (($Red < 0) || ($Red > 255) || ($Green < 0) || ($Green > 255) || ($Blue < 0) || ($Blue > 255)) {
-            trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
-            return false;
-        }
-        $Color = ($Red << 16) + ($Green << 8) + $Blue;
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetColor($Color, $Duration);
+        return $this->SetRGBSmooth($Red, $Green, $Blue, $this->DefaultDuration());
     }
 
     /**
-     * @param int $Red
-     * @param int $Green
-     * @param int $Blue
+     * Setzt die Farbe des Hintergrunds aus den Anteilen Rot, Grün und Blau.
      *
-     * @return bool
+     * @param int $Red   Rot (0 bis 255)
+     * @param int $Green Grün (0 bis 255)
+     * @param int $Blue  Blau (0 bis 255)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgRGB(int $Red, int $Green, int $Blue): bool
     {
-        if (($Red < 0) || ($Red > 255) || ($Green < 0) || ($Green > 255) || ($Blue < 0) || ($Blue > 255)) {
-            trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
-            return false;
-        }
-        $Color = ($Red << 16) + ($Green << 8) + $Blue;
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBgColor($Color, $Duration);
+        return $this->SetBgRGBSmooth($Red, $Green, $Blue, $this->DefaultDuration());
     }
 
     /**
-     * @param int $Red
-     * @param int $Green
-     * @param int $Blue
-     * @param int $Duration
+     * Setzt die Farbe aus den Anteilen Rot, Grün und Blau mit Übergangszeit.
      *
-     * @return bool
+     * @param int $Red      Rot (0 bis 255)
+     * @param int $Green    Grün (0 bis 255)
+     * @param int $Blue     Blau (0 bis 255)
+     * @param int $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetRGBSmooth(int $Red, int $Green, int $Blue, int $Duration): bool
     {
-        if (($Red < 0) || ($Red > 255) || ($Green < 0) || ($Green > 255) || ($Blue < 0) || ($Blue > 255)) {
-            trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
+        $Color = $this->RGBToColor($Red, $Green, $Blue);
+        if ($Color === false) {
             return false;
         }
-        $Color = ($Red << 16) + ($Green << 8) + $Blue;
         return $this->SetColor($Color, $Duration);
     }
 
     /**
-     * @param int $Red
-     * @param int $Green
-     * @param int $Blue
-     * @param int $Duration
+     * Setzt die Farbe des Hintergrunds aus den Anteilen Rot, Grün und Blau mit Übergangszeit.
      *
-     * @return bool
+     * @param int $Red      Rot (0 bis 255)
+     * @param int $Green    Grün (0 bis 255)
+     * @param int $Blue     Blau (0 bis 255)
+     * @param int $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgRGBSmooth(int $Red, int $Green, int $Blue, int $Duration): bool
     {
-        if (($Red < 0) || ($Red > 255) || ($Green < 0) || ($Green > 255) || ($Blue < 0) || ($Blue > 255)) {
-            trigger_error($this->Translate('Invalid parameter.'), E_USER_WARNING);
+        $Color = $this->RGBToColor($Red, $Green, $Blue);
+        if ($Color === false) {
             return false;
         }
-        $Color = ($Red << 16) + ($Green << 8) + $Blue;
         return $this->SetBgColor($Color, $Duration);
     }
 
     /**
-     * @param int $HUE
-     * @param int $Saturation
+     * Setzt die Farbe im HSV-Farbraum.
      *
-     * @return bool
+     * @param int $HUE        Farbton (0 bis 359)
+     * @param int $Saturation Sättigung (0 bis 100)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetHSV(int $HUE, int $Saturation): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetHSVSmooth($HUE, $Saturation, $Duration);
+        return $this->SetHSVSmooth($HUE, $Saturation, $this->DefaultDuration());
     }
 
     /**
-     * @param int $HUE
-     * @param int $Saturation
+     * Setzt die Farbe des Hintergrunds im HSV-Farbraum.
      *
-     * @return bool
+     * @param int $HUE        Farbton (0 bis 359)
+     * @param int $Saturation Sättigung (0 bis 100)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgHSV(int $HUE, int $Saturation): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBgHSVSmooth($HUE, $Saturation, $Duration);
+        return $this->SetBgHSVSmooth($HUE, $Saturation, $this->DefaultDuration());
     }
 
     /**
-     * @param int $HUE
-     * @param int $Saturation
-     * @param int $Duration
+     * Setzt die Farbe im HSV-Farbraum mit Übergangszeit.
      *
-     * @return bool
+     * @param int $HUE        Farbton (0 bis 359)
+     * @param int $Saturation Sättigung (0 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetHSVSmooth(int $HUE, int $Saturation, int $Duration): bool
     {
-        if (($HUE < 0) || ($HUE > 359)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
+        if (!$this->CheckHSV($HUE, $Saturation)) {
             return false;
         }
-        if (($Saturation < 1) || ($Saturation > 100)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'Saturation'), E_USER_WARNING);
+        if (!$this->SendCommand('set_hsv', array_merge([$HUE, $Saturation], $this->Effect($Duration)))) {
             return false;
         }
-        if ($Duration < 30) {
-            $Params = [$HUE, $Saturation, 'sudden', 0];
-        } else {
-            $Params = [$HUE, $Saturation, 'smooth', $Duration];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_hsv($Params);
-        $Result = $this->Send($YeelightData);
-        if ($Result) {
-            $this->HUE = $HUE;
-            $this->SAT = $Saturation;
-        }
-        return $Result;
+        $this->HUE = $HUE;
+        $this->SAT = $Saturation;
+        return true;
     }
 
     /**
-     * @param int $HUE
-     * @param int $Saturation
-     * @param int $Duration
+     * Setzt die Farbe des Hintergrunds im HSV-Farbraum mit Übergangszeit.
      *
-     * @return bool
+     * @param int $HUE        Farbton (0 bis 359)
+     * @param int $Saturation Sättigung (0 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgHSVSmooth(int $HUE, int $Saturation, int $Duration): bool
     {
-        if (($HUE < 0) || ($HUE > 359)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'HUE'), E_USER_WARNING);
+        if (!$this->CheckHSV($HUE, $Saturation)) {
             return false;
         }
-        if (($Saturation < 1) || ($Saturation > 100)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'Value'), E_USER_WARNING);
+        if (!$this->SendCommand('bg_set_hsv', array_merge([$HUE, $Saturation], $this->Effect($Duration)))) {
             return false;
         }
-        if ($Duration < 30) {
-            $Params = [$HUE, $Saturation, 'sudden', 0];
-        } else {
-            $Params = [$HUE, $Saturation, 'smooth', $Duration];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_hsv($Params);
-        $Result = $this->Send($YeelightData);
-        if ($Result) {
-            $this->BG_HUE = $HUE;
-            $this->BG_SAT = $Saturation;
-        }
-        return $Result;
+        $this->BG_HUE = $HUE;
+        $this->BG_SAT = $Saturation;
+        return true;
     }
 
     /**
-     * @param int $Level
+     * Setzt die Helligkeit.
      *
-     * @return bool
+     * @param int $Level Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBrightness(int $Level): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBrightnessSmooth($Level, $Duration);
+        return $this->SetBrightnessSmooth($Level, $this->DefaultDuration());
     }
 
     /**
-     * @param int $Level
+     * Setzt die Helligkeit des Hintergrunds.
      *
-     * @return bool
+     * @param int $Level Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgBrightness(int $Level): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBgBrightnessSmooth($Level, $Duration);
+        return $this->SetBgBrightnessSmooth($Level, $this->DefaultDuration());
     }
 
     /**
-     * @param int $Level
-     * @param int $Duration
+     * Setzt die Helligkeit mit Übergangszeit.
      *
-     * @return bool
+     * @param int $Level    Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     * @param int $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBrightnessSmooth(int $Level, int $Duration): bool
     {
-        if (($Level < 0) || ($Level > 100)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'Level'), E_USER_WARNING);
+        $Level = $this->CheckBrightness($Level);
+        if ($Level === false) {
             return false;
         }
-        if ($Level == 0) {
-            $Level = 1;
-        }
-        if ($Level > 100) {
-            $Level = 100;
-        }
-        if ($Duration < 30) {
-            $Params = [$Level, 'sudden', 0];
-        } else {
-            $Params = [$Level, 'smooth', $Duration];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_bright($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_bright', array_merge([$Level], $this->Effect($Duration)));
     }
 
     /**
-     * @param int $Level
-     * @param int $Duration
+     * Setzt die Helligkeit des Hintergrunds mit Übergangszeit.
      *
-     * @return bool
+     * @param int $Level    Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     * @param int $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgBrightnessSmooth(int $Level, int $Duration): bool
     {
-        if (($Level < 0) || ($Level > 100)) {
-            trigger_error(sprintf($this->Translate('%s out of range.'), 'Level'), E_USER_WARNING);
+        $Level = $this->CheckBrightness($Level);
+        if ($Level === false) {
             return false;
         }
-        if ($Level == 0) {
-            $Level = 1;
-        }
-        if ($Level > 100) {
-            $Level = 100;
-        }
-        if ($Duration < 30) {
-            $Params = [$Level, 'sudden', 0];
-        } else {
-            $Params = [$Level, 'smooth', $Duration];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_bright($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_bright', array_merge([$Level], $this->Effect($Duration)));
     }
 
     /**
-     * @param bool $Value
+     * Schaltet das Gerät ein oder aus.
      *
-     * @return bool
+     * @param bool $Value true = ein, false = aus
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetPower(bool $Value): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetPowerSmooth($Value, $Duration);
+        return $this->SetPowerSmooth($Value, $this->DefaultDuration());
     }
 
     /**
-     * @param bool $Value
+     * Schaltet den Hintergrund ein oder aus.
      *
-     * @return bool
+     * @param bool $Value true = ein, false = aus
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgPower(bool $Value): bool
     {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBgPowerSmooth($Value, $Duration);
+        return $this->SetBgPowerSmooth($Value, $this->DefaultDuration());
     }
 
     /**
-     * @param bool $Value
-     * @param int  $Duration
+     * Schaltet das Gerät mit Übergangszeit ein oder aus.
      *
-     * @return bool
+     * @param bool $Value    true = ein, false = aus
+     * @param int  $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetPowerSmooth(bool $Value, int $Duration): bool
     {
-        if ($Duration < 30) {
-            $Params = [$Value ? 'on' : 'off', 'sudden', 0];
-        } else {
-            $Params = [$Value ? 'on' : 'off', 'smooth', $Duration];
-        }
-
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_power($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_power', array_merge([$Value ? 'on' : 'off'], $this->Effect($Duration)));
     }
 
     /**
-     * @param bool $Value
-     * @param int  $Duration
+     * Schaltet den Hintergrund mit Übergangszeit ein oder aus.
      *
-     * @return bool
+     * @param bool $Value    true = ein, false = aus
+     * @param int  $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgPowerSmooth(bool $Value, int $Duration): bool
     {
-        if ($Duration < 30) {
-            $Params = [$Value ? 'on' : 'off', 'sudden', 0];
-        } else {
-            $Params = [$Value ? 'on' : 'off', 'smooth', $Duration];
-        }
-
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_power($Params);
-        return $this->Send($YeelightData);
-    }
-
-    public function SetMode(int $Mode): bool
-    {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetModeSmooth($Mode, $Duration);
-    }
-
-    public function SetModeSmooth(int $Mode, int $Duration): bool
-    {
-        switch ($Mode) {
-            case 1:
-                $Mode = 2;
-                break;
-            case 2:
-                $Mode = 1;
-                break;
-        }
-        if ($Duration < 30) {
-            $Params = ['on', 'sudden', 0, $Mode];
-        } else {
-            $Params = ['on', 'smooth', $Duration, $Mode];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_power($Params);
-        return $this->Send($YeelightData);
-    }
-
-    public function SetBgMode(int $Mode): bool
-    {
-        $Duration = ($this->ReadPropertyBoolean('SetSmooth') ? 500 : 0);
-        return $this->SetBgModeSmooth($Mode, $Duration);
-    }
-
-    public function SetBgModeSmooth(int $Mode, int $Duration): bool
-    {
-        switch ($Mode) {
-            case 1:
-                $Mode = 2;
-                break;
-            case 2:
-                $Mode = 1;
-                break;
-        }
-        $Power = $this->GetValue('bg_power');
-        if ($Duration < 30) {
-            $Params = [$Power ? 'on' : 'off', 'sudden', 0, $Mode];
-        } else {
-            $Params = [$Power ? 'on' : 'off', 'smooth', $Duration, $Mode];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_power($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_power', array_merge([$Value ? 'on' : 'off'], $this->Effect($Duration)));
     }
 
     /**
-     * @return bool
+     * Schaltet das Gerät ein und setzt den Modus.
+     *
+     * @param int $Mode 0 = Standard, 1 = RGB, 2 = Weiß, 3 = HSV, 5 = Nachtlicht
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetMode(int $Mode): bool
+    {
+        return $this->SetModeSmooth($Mode, $this->DefaultDuration());
+    }
+
+    /**
+     * Schaltet das Gerät mit Übergangszeit ein und setzt den Modus.
+     *
+     * @param int $Mode     0 = Standard, 1 = RGB, 2 = Weiß, 3 = HSV, 5 = Nachtlicht
+     * @param int $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetModeSmooth(int $Mode, int $Duration): bool
+    {
+        $PowerMode = $this->ModeToPowerMode($Mode);
+        if ($PowerMode === false) {
+            return false;
+        }
+        return $this->SendCommand('set_power', array_merge(['on'], $this->Effect($Duration), [$PowerMode]));
+    }
+
+    /**
+     * Setzt den Modus des Hintergrunds, der Ein-/Aus-Zustand bleibt erhalten.
+     *
+     * @param int $Mode 0 = Standard, 1 = RGB, 2 = Weiß, 3 = HSV, 5 = Nachtlicht
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgMode(int $Mode): bool
+    {
+        return $this->SetBgModeSmooth($Mode, $this->DefaultDuration());
+    }
+
+    /**
+     * Setzt den Modus des Hintergrunds mit Übergangszeit, der Ein-/Aus-Zustand bleibt erhalten.
+     *
+     * @param int $Mode     0 = Standard, 1 = RGB, 2 = Weiß, 3 = HSV, 5 = Nachtlicht
+     * @param int $Duration Übergangszeit in Millisekunden (unter 30 = sofort)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgModeSmooth(int $Mode, int $Duration): bool
+    {
+        $PowerMode = $this->ModeToPowerMode($Mode);
+        if ($PowerMode === false) {
+            return false;
+        }
+        return $this->SendCommand('bg_set_power', array_merge([$this->BgPower ? 'on' : 'off'], $this->Effect($Duration), [$PowerMode]));
+    }
+
+    /**
+     * Schaltet das Gerät um (ein/aus).
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetToggle(): bool
+    {
+        return $this->SendCommand('toggle');
+    }
+
+    /**
+     * Schaltet den Hintergrund um (ein/aus).
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgToggle(): bool
+    {
+        return $this->SendCommand('bg_toggle');
+    }
+
+    /**
+     * Schaltet Haupt- und Hintergrundlicht um (ein/aus).
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetToggleBoth(): bool
+    {
+        return $this->SendCommand('dev_toggle');
+    }
+
+    /**
+     * Veraltet, siehe SetToggle.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetToogle(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->toogle();
-        return $this->Send($YeelightData);
+        $this->DeprecatedFunction(__FUNCTION__, 'SetToggle');
+        return $this->SetToggle();
     }
 
     /**
-     * @return bool
+     * Veraltet, siehe SetBgToggle.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgToogle(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_toogle();
-        return $this->Send($YeelightData);
+        $this->DeprecatedFunction(__FUNCTION__, 'SetBgToggle');
+        return $this->SetBgToggle();
     }
 
     /**
-     * @return bool
+     * Veraltet, siehe SetToggleBoth.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetToogleBoth(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->dev_toogle();
-        return $this->Send($YeelightData);
+        $this->DeprecatedFunction(__FUNCTION__, 'SetToggleBoth');
+        return $this->SetToggleBoth();
     }
 
     /**
-     * @return bool
+     * Speichert den aktuellen Zustand als Einschaltzustand im Gerät.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetDefault(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_default();
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_default');
     }
 
     /**
-     * @return bool
+     * Speichert den aktuellen Zustand des Hintergrunds als Einschaltzustand im Gerät.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetBgDefault(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_default();
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_default');
     }
 
-    /*
-     * [duration, mode, value, brightness]:
-      Duration: Gradual change time or sleep time, in milliseconds,
-      minimum value 50.
-      Mode: 1 – color, 2 – color temperature, 7 – sleep.
-      Value: RGB value when mode is 1, CT value when mode is 2,
-      Ignored when mode is 7.
-      Brightness: Brightness value, -1 or 1 ~ 100. Ignored when mode is 7.
-      When this value is -1, brightness in this tuple is ignored (only color or CT change takes
-      effect).
-     */
-
     /**
-     * @param int    $Loops
-     * @param int    $RecoverState
-     * @param string $Flow
+     * Startet eine Farbsequenz.
      *
-     * @return bool
+     * Jeder Schritt besteht aus vier Werten [Dauer, Modus, Wert, Helligkeit]:
+     * Dauer in ms (mindestens 50), Modus 1 = Farbe, 2 = Farbtemperatur, 7 = Pause,
+     * Wert = RGB-Farbe bzw. Farbtemperatur (bei Pause ignoriert),
+     * Helligkeit -1 oder 1 bis 100 (bei Pause ignoriert, -1 = unverändert).
+     *
+     * @param int    $Loops        Anzahl der Durchläufe (0 = endlos)
+     * @param int    $RecoverState 0 = vorherigen Zustand wiederherstellen, 1 = Endzustand bleibt, 2 = ausschalten
+     * @param string $Flow         JSON-Array mit allen Werten der Schritte hintereinander
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function StartColorFlow(int $Loops, int $RecoverState, string $Flow): bool
     {
-        $FlowArray = json_decode($Flow);
-        if ($FlowArray === null) {
-            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Flow'), E_USER_WARNING);
+        $Params = $this->BuildColorFlow($Loops, $RecoverState, $Flow);
+        if ($Params === false) {
             return false;
         }
-        $FlowData = array_values($FlowArray);
-        if ((count($FlowData) % 4) != 0) {
-            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Flow'), E_USER_WARNING);
-            return false;
-        }
-        $FlowString = implode(',', $FlowData);
-        $Params = [$Loops, $RecoverState, $FlowString];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->start_cf($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('start_cf', $Params);
     }
 
     /**
-     * @param int    $Loops
-     * @param int    $RecoverState
-     * @param string $Flow
+     * Startet eine Farbsequenz im Hintergrund, Parameter siehe StartColorFlow.
      *
-     * @return bool
+     * @param int    $Loops        Anzahl der Durchläufe (0 = endlos)
+     * @param int    $RecoverState 0 = vorherigen Zustand wiederherstellen, 1 = Endzustand bleibt, 2 = ausschalten
+     * @param string $Flow         JSON-Array mit allen Werten der Schritte hintereinander
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function StartBgColorFlow(int $Loops, int $RecoverState, string $Flow): bool
     {
-        $FlowArray = json_decode($Flow);
-        if ($FlowArray === null) {
-            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Flow'), E_USER_WARNING);
+        $Params = $this->BuildColorFlow($Loops, $RecoverState, $Flow);
+        if ($Params === false) {
             return false;
         }
-        $FlowData = array_values($FlowArray);
-        if ((count($FlowData) % 4) != 0) {
-            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Flow'), E_USER_WARNING);
-            return false;
-        }
-        $FlowString = implode(',', $FlowData);
-        $Params = [$Loops, $RecoverState, $FlowString];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_start_cf($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_start_cf', $Params);
     }
 
     /**
-     * @return bool
+     * Stoppt eine laufende Farbsequenz.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function StopColorFlow(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->stop_cf();
-        return $this->Send($YeelightData);
+        return $this->SendCommand('stop_cf');
     }
 
     /**
-     * @return bool
+     * Stoppt eine laufende Farbsequenz im Hintergrund.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function StopBgColorFlow(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_stop_cf();
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_stop_cf');
     }
 
     /**
-     * @param int $Minutes
+     * Startet den Einschlaf-Timer, das Gerät schaltet nach Ablauf aus.
      *
-     * @return bool
+     * @param int $Minutes Minuten bis zum Ausschalten (ab 1)
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetSleep(int $Minutes): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->cron_add([0, $Minutes]);
-        return $this->Send($YeelightData);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function GetSleep()
-    {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->cron_get([0]);
-        $Result = $this->Send($YeelightData);
-        if ($Result !== false) {
-            return $Result['delay'];
+        if ($Minutes < 1) {
+            echo sprintf($this->Translate('%s out of range.'), 'Minutes') . PHP_EOL;
+            return false;
         }
-        return false;
+        return $this->SendCommand('cron_add', [0, $Minutes]);
     }
 
     /**
-     * @return bool
+     * Liest die Restlaufzeit des Einschlaf-Timers.
+     *
+     * @return int Minuten bis zum Ausschalten, 0 wenn kein Timer läuft
+     */
+    public function GetSleep(): int
+    {
+        $Result = $this->Send(new RPC_Data('cron_get', [0]));
+        if (($Result === false) || (count($Result) == 0)) {
+            return 0;
+        }
+        $Entry = (array) $Result[0];
+        return (int) ($Entry['delay'] ?? 0);
+    }
+
+    /**
+     * Löscht den Einschlaf-Timer.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function DelSleep(): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->cron_del([0]);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('cron_del', [0]);
     }
 
     /**
-     * @return bool
+     * Erhöht die Helligkeit um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function IncreaseBright(): bool
     {
-        $Params = ['increase', 'bright'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_adjust', ['increase', 'bright']);
     }
 
     /**
-     * @return bool
+     * Verringert die Helligkeit um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function DecreaseBright(): bool
     {
-        $Params = ['decrease', 'bright'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_adjust', ['decrease', 'bright']);
     }
 
     /**
-     * @return bool
+     * Erhöht die Farbtemperatur um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function IncreaseWhiteTemp(): bool
     {
-        $Params = ['increase', 'ct'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_adjust', ['increase', 'ct']);
     }
 
     /**
-     * @return bool
+     * Verringert die Farbtemperatur um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function DecreaseWhiteTemp(): bool
     {
-        $Params = ['decrease', 'ct'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_adjust', ['decrease', 'ct']);
     }
 
     /**
-     * @return bool
+     * Wechselt zur nächsten Farbe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function RotateColor(): bool
     {
-        $Params = ['circle', 'color'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_adjust', ['circle', 'color']);
     }
 
     /**
-     * @return bool
+     * Erhöht die Helligkeit des Hintergrunds um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function IncreaseBgBright(): bool
     {
-        $Params = ['increase', 'bright'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_adjust', ['increase', 'bright']);
     }
 
     /**
-     * @return bool
+     * Verringert die Helligkeit des Hintergrunds um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function DecreaseBgBright(): bool
     {
-        $Params = ['decrease', 'bright'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_adjust', ['decrease', 'bright']);
     }
 
     /**
-     * @return bool
+     * Erhöht die Farbtemperatur des Hintergrunds um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function IncreaseBgWhiteTemp(): bool
     {
-        $Params = ['increase', 'ct'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_adjust', ['increase', 'ct']);
     }
 
     /**
-     * @return bool
+     * Verringert die Farbtemperatur des Hintergrunds um eine Stufe.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function DecreaseBgWhiteTemp(): bool
     {
-        $Params = ['decrease', 'ct'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_adjust($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_adjust', ['decrease', 'ct']);
     }
 
     /**
-     * @return bool
+     * Wechselt zur nächsten Farbe des Hintergrunds.
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function RotateBgColor(): bool
+    {
+        return $this->SendCommand('bg_set_adjust', ['circle', 'color']);
+    }
+
+    /**
+     * Veraltet, siehe RotateBgColor.
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function CircleBgColor(): bool
     {
-        $Params = ['circle', 'color'];
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_adjust($Params);
-        return $this->Send($YeelightData);
+        $this->DeprecatedFunction(__FUNCTION__, 'RotateBgColor');
+        return $this->RotateBgColor();
     }
 
     /**
-     * @param string $Name
+     * Setzt den im Gerät gespeicherten Namen.
      *
-     * @return bool
+     * @param string $Name Neuer Name
+     *
+     * @return bool true bei Erfolg, sonst false
      */
     public function SetName(string $Name): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_name([$Name]);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_name', [$Name]);
     }
 
+    /**
+     * Setzt eine Szene (Parameter laut Spezifikation von set_scene).
+     *
+     * @param string $Params JSON-Array, z. B. ["color", 65280, 70] oder ["ct", 5400, 100]
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetScene(string $Params): bool
+    {
+        $SceneParams = $this->DecodeSceneParams($Params);
+        if ($SceneParams === false) {
+            return false;
+        }
+        return $this->SendCommand('set_scene', $SceneParams);
+    }
+
+    /**
+     * Setzt eine Szene im Hintergrund (Parameter laut Spezifikation von bg_set_scene).
+     *
+     * @param string $Params JSON-Array, z. B. ["color", 65280, 70] oder ["ct", 5400, 100]
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgScene(string $Params): bool
+    {
+        $SceneParams = $this->DecodeSceneParams($Params);
+        if ($SceneParams === false) {
+            return false;
+        }
+        return $this->SendCommand('bg_set_scene', $SceneParams);
+    }
+
+    /**
+     * Konfiguration für den Client Socket.
+     *
+     * @return string JSON mit dem Port der Gerätesteuerung
+     */
     public function GetConfigurationForParent(): string
     {
-        return json_encode(['Port' => 55443]);
+        return json_encode(['Port' => Network::ControlPort]);
     }
+
     /**
      * Empfängt Daten vom Parent.
      *
      * @param string $JSONString Das empfangene JSON-kodierte Objekt vom Parent.
-     * @return bool True wenn Daten verarbeitet wurden, sonst false.
+     *
+     * @return string immer ein leerer String
      */
     public function ReceiveData(string $JSONString): string
     {
-        $data = hex2bin(json_decode($JSONString)->Buffer);
-        $head = $this->BufferIN;
-        $Data = $head . $data;
+        $Packet = json_decode($JSONString);
+        if (!is_object($Packet) || !property_exists($Packet, 'Buffer')) {
+            return '';
+        }
+        $Data = $this->BufferIN . hex2bin($Packet->Buffer);
         $JSONLines = explode("\r\n", $Data);
         $this->BufferIN = array_pop($JSONLines);
 
         foreach ($JSONLines as $JSON) {
-            $this->SendDebug('Receive', $JSON, 0);
-            $YeelightData = new \Yeelight\RPC_Data();
-            if (!$YeelightData->CreateFromJSONString($JSON)) {
-                $this->SendDebug('Receive', $YeelightData, 0);
+            if ($JSON === '') {
                 continue;
             }
-            if ($YeelightData->Typ == \Yeelight\RPC_Data::$isResult) { //Reply
-                $this->SendQueueUpdate($YeelightData->Id, $YeelightData);
-            } elseif ($YeelightData->Typ == \Yeelight\RPC_Data::$isEvent) { //Event
+            $this->SendDebug('Receive', $JSON, 0);
+            $YeelightData = new RPC_Data();
+            if (!$YeelightData->CreateFromJSONString($JSON)) {
+                $this->SendDebug('Receive', 'Invalid JSON', 0);
+                continue;
+            }
+            if ($YeelightData->Typ == RPC_Data::$isResult) {
+                $this->SendQueueUpdate((int) $YeelightData->Id, $YeelightData);
+            } elseif ($YeelightData->Typ == RPC_Data::$isEvent) {
                 $this->SendDebug('Event', $YeelightData, 0);
                 $this->Decode($YeelightData);
             }
         }
         return '';
-    }
-
-    public function SetScene(string $Params): bool
-    {
-        $Params = json_decode($Params, true);
-        if ($Params === null) {
-            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Params'), E_USER_WARNING);
-            return false;
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_scene($Params);
-        return $this->Send($YeelightData);
-    }
-    public function SetBgScene(string $Params): bool
-    {
-        $Params = json_decode($Params, true);
-        if ($Params === null) {
-            trigger_error(sprintf($this->Translate('%s is invalid.'), 'Params'), E_USER_WARNING);
-            return false;
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_scene($Params);
-        return $this->Send($YeelightData);
     }
 
     /**
@@ -1002,278 +990,466 @@ class YeelightDevice extends IPSModuleStrict
     protected function KernelReady(): void
     {
         $this->UnregisterMessage(0, IPS_KERNELSTARTED);
+        $this->RegisterWebHook();
         $this->RegisterParent();
     }
 
+    /**
+     * Ermittelt den Parent und startet die Anmeldung am Gerät, wenn der Parent aktiv ist.
+     */
     protected function RegisterParent(): void
     {
         $IOId = $this->IORegisterParent();
-
         if ($IOId > 0) {
-            $this->Host = IPS_GetProperty($this->ParentID, 'Host');
-            $this->SetSummary(IPS_GetProperty($IOId, 'Host'));
-            // Wenn Parent aktiv, dann Anmeldung an der Hardware bzw. Datenabgleich starten
+            $this->Host = (string) IPS_GetProperty($IOId, 'Host');
+            $this->SetSummary($this->Host);
             if ($this->HasActiveParent()) {
                 $this->IOChangeState(IS_ACTIVE);
             }
             return;
         }
         $this->Host = '';
-        $this->SetSummary(('none'));
+        $this->SetSummary($this->Translate('none'));
     }
 
     /**
      * Wird ausgeführt wenn sich der Status vom Parent ändert.
+     *
+     * @param int $State Neuer Status des Parent
      */
     protected function IOChangeState(int $State): void
     {
-        if (!$this->lock('IOChangeState')) {
+        if (!$this->lock(Locks::IOChangeState)) {
             return;
         }
-        if ($State == IS_ACTIVE) {
-            if ($this->ConnectionState == self::isReconnecting) {
-                $this->unlock('IOChangeState');
-                return;
-            }
-            $this->ConnectionState = self::isReconnecting;
-            if (!$this->GetCapabilities()) {
-                $this->SetStatus(IS_EBASE + 1);
-                $this->ConnectionState = self::isDisconnected;
-                $this->unlock('IOChangeState');
-                return;
-            }
-            $this->ConnectionState = self::isConnected;
-            $this->get_prop(\Yeelight\DataPoints::getReadableList(), true);
-            $this->SetStatus(IS_ACTIVE);
-            $this->SendDebug('Propertys read:', implode(' ', $this->Propertys), 0);
-            $this->unlock('IOChangeState');
-            return;
-        } else {
+        if ($State != IS_ACTIVE) {
             $this->ConnectionState = self::isDisconnected;
+            $this->unlock(Locks::IOChangeState);
+            return;
         }
-        $this->unlock('IOChangeState');
+        if ($this->ConnectionState == self::isReconnecting) {
+            $this->unlock(Locks::IOChangeState);
+            return;
+        }
+        $this->ConnectionState = self::isReconnecting;
+        if ($this->ParentID > 0) {
+            // Host kann sich am Client Socket geändert haben
+            $this->Host = (string) IPS_GetProperty($this->ParentID, 'Host');
+        }
+        if (!$this->GetCapabilities()) {
+            $this->SetStatus(IS_EBASE + 1);
+            $this->ConnectionState = self::isDisconnected;
+            $this->unlock(Locks::IOChangeState);
+            return;
+        }
+        $this->ConnectionState = self::isConnected;
+        $this->get_prop(DataPoints::getReadableList(), true);
+        $this->SetStatus(IS_ACTIVE);
+        $this->SendDebug('Propertys read:', implode(' ', $this->Propertys), 0);
+        $this->unlock(Locks::IOChangeState);
     }
 
     //################# Send / Receive
 
     /**
-     * Error-Handler für die Send-Routine. Gibt die Fehlermeldung an den Aufrufer als Klartext zurück.
-     *
-     * @param int $errno
-     * @param string $errstr
-     */
-    protected function ModulErrorHandler(int $errno, string $errstr): bool
-    {
-        $this->SendDebug('ERROR', $errstr, 0);
-        echo $errstr . PHP_EOL;
-        return true;
-    }
-
-    /**
      * Versendet ein RPC-Objekt und empfängt die Antwort.
+     * Fehler werden per echo an den Aufrufer gemeldet.
      *
-     * @param \Yeelight\RPC_Data $YeelightData Das Objekt welches versendet werden soll.
-     * @return mixed Enthält die Antwort auf das Versendete Objekt oder NULL im Fehlerfall.
+     * @param RPC_Data $YeelightData Das Objekt welches versendet werden soll.
+     * @param bool     $Retry        Bei 'Quota exceeded' neu verbinden und erneut senden.
+     *
+     * @return false|array Ergebnis-Array der Antwort oder false im Fehlerfall.
      */
-    protected function Send(\Yeelight\RPC_Data $YeelightData): mixed
+    protected function Send(RPC_Data $YeelightData, bool $Retry = true): false|array
     {
-        set_error_handler([$this, 'ModulErrorHandler']);
-        try {
-            if ($this->ConnectionState == self::isReconnecting) {
-                if (!$this->WaitForActive()) {
-                    throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
-                }
-            }
-            if ($this->ConnectionState == self::isDisconnected) {
-                throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
-            }
-
-            if (!$this->HasActiveParent()) {
-                throw new Exception($this->Translate('Instance has no active parent.'), E_USER_WARNING);
-            }
-            if (count($this->Capabilities) == 0) {
-                $this->LogMessage($this->Translate('Capabilities of device are unknown. Please check your Firewall.'), KL_WARNING);
-            } else {
-                if (!in_array($YeelightData->Method, $this->Capabilities)) {
-                    throw new Exception($this->Translate('Device not support this command.'), E_USER_WARNING);
-                }
-            }
-
-            $this->SendDebug('Send', $YeelightData, 0);
-            $this->SendQueuePush($YeelightData->Id);
-            $SendData = new stdClass();
-            $SendData->DataID = '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}';
-            $YeelightJSON = $YeelightData->ToJSONString();
-            $SendData->Buffer = bin2hex($YeelightJSON . "\r\n");
-            $this->SendDebug('Send', $YeelightJSON, 0);
-            $this->SendDataToParent(json_encode($SendData));
-            $ReplyYeelightData = $this->WaitForResponse($YeelightData->Id);
-
-            if ($ReplyYeelightData === false) {
-                throw new Exception('No answer from Device', E_USER_WARNING);
-            }
-            $ret = $ReplyYeelightData->GetResult();
-            if (is_a($ret, '\Yeelight\RPCException')) {
-                throw $ret;
-            }
-            $this->SendDebug('Result', $ReplyYeelightData, 0);
-            restore_error_handler();
-            if (count($ret) == 1) {
-                return $ret[0] == 'ok';
-            }
-            return $ret;
-        } catch (\Yeelight\RPCException $ex) {
-            $this->SendDebug('Result', $ex, 0);
-            if ((int) $ex->getCode() == -1) {
-                if ($this->lock('Reconnect')) {
-                    $this->ConnectionState = self::isReconnecting;
-                    $this->SendDebug('Quata exceeded', 'Force reconnect', 0);
-                    //Quata exceeded -> Force reconnect
-                    $this->SetStatus(IS_INACTIVE);
-                    IPS_RunScriptTextWait('IPS_SetProperty(' . $this->ParentID . ', "Open", false); IPS_ApplyChanges(' . $this->ParentID . ');');
-                    IPS_RunScriptText('IPS_SetProperty(' . $this->ParentID . ', "Open", true); IPS_ApplyChanges(' . $this->ParentID . ');');
-                    if ($this->WaitForActive()) {
-                        $this->SendDebug('Force reconnect', 'successfully', 0);
-                        $this->Send($YeelightData); // resend
-                    } else {
-                        $this->ConnectionState = self::isDisconnected;
-                        $this->SendDebug('Force reconnect', 'failed', 0);
-                        trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
-                    }
-                    $this->unlock('Reconnect');
-                } else {
-                    $this->SendDebug('Reconnect in progress', '', 0);
-                }
-            } else {
-                trigger_error('Error (' . $ex->getCode() . '): ' . $ex->getMessage(), E_USER_WARNING);
-            }
-        } catch (Exception $ex) {
-            $this->SendDebug('Result', $ex->getMessage(), 0);
-            trigger_error($ex->getMessage(), $ex->getCode());
+        if (($this->ConnectionState == self::isReconnecting) && !$this->WaitForActive()) {
+            return $this->ReportError($this->Translate('Instance has no active parent.'));
         }
-        restore_error_handler();
-        return false;
+        if (($this->ConnectionState == self::isDisconnected) || !$this->HasActiveParent()) {
+            return $this->ReportError($this->Translate('Instance has no active parent.'));
+        }
+        if (count($this->Capabilities) == 0) {
+            $this->SendDebug('Warning', 'Capabilities of device are unknown', 0);
+        } elseif (!in_array($YeelightData->Method, $this->Capabilities)) {
+            return $this->ReportError($this->Translate('Device not support this command.'));
+        }
+
+        $this->SendDebug('Send', $YeelightData, 0);
+        if (!$this->SendQueuePush((int) $YeelightData->Id)) {
+            return $this->ReportError($this->Translate('Send queue is locked.'));
+        }
+        $YeelightJSON = $YeelightData->ToJSONString();
+        $this->SendDebug('Send', $YeelightJSON, 0);
+        $this->SendDataToParent(json_encode([
+            'DataID' => GUID::SendToIO,
+            'Buffer' => bin2hex($YeelightJSON . "\r\n")
+        ]));
+        $ReplyYeelightData = $this->WaitForResponse((int) $YeelightData->Id);
+        if ($ReplyYeelightData === false) {
+            return $this->ReportError($this->Translate('No answer from device.'));
+        }
+        $Result = $ReplyYeelightData->GetResult();
+        if ($Result instanceof RPCException) {
+            $this->SendDebug('Result', $Result, 0);
+            return $this->HandleRPCError($YeelightData, $Result, $Retry);
+        }
+        $this->SendDebug('Result', $ReplyYeelightData, 0);
+        return (array) $Result;
     }
+
     //################# Webhook
 
     /**
      * Interne Funktion des SDK.
      */
-    protected function ProcessHookdata(): void
+    protected function ProcessHookData(): void
     {
-        if (isset($_GET['script'])) {
-            switch ($_GET['script']) {
-                case 'hueSliderEvents':
-                    $this->SendJSFile('SliderEvents.js');
-                    return;
-                case 'bg_hueSliderEvents':
-                    $this->SendJSFile('SliderBgEvents.js');
-                    return;
-                case 'hueSlider':
-                    $this->SendJSFile('Slider.js', 'var InstanceID =' . $this->InstanceID . ';');
-                    return;
-                case 'bg_hueSlider':
-                    $this->SendJSFile('SliderBg.js', 'var InstanceID =' . $this->InstanceID . ';');
-                    return;
-                case 'hueSliderRequestAction':
-                    $this->SendJSFile('SliderRequestAction.js');
-                    return;
-                case 'bg_hueSliderRequestAction':
-                    $this->SendJSFile('SliderBgRequestAction.js');
-                    return;
-            }
+        $Scripts = [
+            'hueSliderEvents'           => ['SliderEvents.js', false],
+            'bg_hueSliderEvents'        => ['SliderBgEvents.js', false],
+            'hueSlider'                 => ['Slider.js', true],
+            'bg_hueSlider'              => ['SliderBg.js', true],
+            'hueSliderRequestAction'    => ['SliderRequestAction.js', false],
+            'bg_hueSliderRequestAction' => ['SliderBgRequestAction.js', false]
+        ];
+        $Script = (string) ($_GET['script'] ?? '');
+        if (array_key_exists($Script, $Scripts)) {
+            [$File, $WithInstanceID] = $Scripts[$Script];
+            $this->SendJSFile($File, $WithInstanceID ? 'var InstanceID =' . $this->InstanceID . ';' : '');
+            return;
         }
-        if (isset($_GET['ident'])) {
+        $Ident = (string) ($_GET['ident'] ?? '');
+        $Action = (string) ($_GET['action'] ?? '');
+        if (($Ident == DataPoints::HUE) || ($Ident == DataPoints::BgHUE)) {
             $this->SendDebug('HookData', $_GET, 0);
-            switch ($_GET['ident']) {
-                case 'hue':
-                    if ($_GET['action'] == 'GetValue') {
-                        http_response_code(200);
-                        header('Connection: close');
-                        header('Server: Symcon ' . IPS_GetKernelVersion());
-                        header('X-Powered-By: Hook Reverse Proxy');
-                        header('Cache-Control: no-cache');
-                        header('Content-Type: text/plain');
-                        echo 'OK,' . $this->InstanceID . ',' . $this->HUE;
-                        return;
-                    }
-                    if ($_GET['action'] == 'SetValue') {
-                        http_response_code(200);
-                        header('Connection: close');
-                        header('Server: Symcon ' . IPS_GetKernelVersion());
-                        header('X-Powered-By: Hook Reverse Proxy');
-                        header('Cache-Control: no-cache');
-                        header('Content-Type: text/plain');
-                        if ($this->SetHUE((int) $_GET['value'])) {
-                            echo 'OK';
-                        }
-                        return;
-                    }
-                    break;
-                case 'bg_hue':
-                    if ($_GET['action'] == 'GetValue') {
-                        http_response_code(200);
-                        header('Connection: close');
-                        header('Server: Symcon ' . IPS_GetKernelVersion());
-                        header('X-Powered-By: Hook Reverse Proxy');
-                        header('Cache-Control: no-cache');
-                        header('Content-Type: text/plain');
-                        echo 'OK,Bg' . $this->InstanceID . ',' . $this->BG_HUE;
-                        return;
-                    }
-                    if ($_GET['action'] == 'SetValue') {
-                        http_response_code(200);
-                        header('Connection: close');
-                        header('Server: Symcon ' . IPS_GetKernelVersion());
-                        header('X-Powered-By: Hook Reverse Proxy');
-                        header('Cache-Control: no-cache');
-                        header('Content-Type: text/plain');
-                        if ($this->SetBgHUE((int) $_GET['value'])) {
-                            echo 'OK';
-                        }
-                        return;
-                    }
+            $Background = ($Ident == DataPoints::BgHUE);
+            if ($Action == 'GetValue') {
+                $this->SendTextResponse('OK,' . ($Background ? 'Bg' : '') . $this->InstanceID . ',' . ($Background ? $this->BG_HUE : $this->HUE));
+                return;
+            }
+            if (($Action == 'SetValue') && isset($_GET['value'])) {
+                $Hue = (int) $_GET['value'];
+                ob_start();
+                $Result = $Background ? $this->SetBgHSV($Hue, $this->BG_SAT) : $this->SetHSV($Hue, $this->SAT);
+                $Error = (string) ob_get_clean();
+                $this->SendTextResponse($Result ? 'OK' : trim($Error));
+                return;
             }
         }
         $this->SendFileNotFound();
-        return;
     }
 
+    //################# Helper
+
+    /**
+     * Meldet einen Fehler an den Aufrufer.
+     *
+     * @param string $Message Übersetzte Fehlermeldung
+     *
+     * @return false
+     */
+    private function ReportError(string $Message): false
+    {
+        $this->SendDebug('Error', $Message, 0);
+        echo $Message . PHP_EOL;
+        return false;
+    }
+
+    /**
+     * Behandelt eine Fehlermeldung des Gerätes.
+     * Bei 'Quota exceeded' (-1) wird die Verbindung neu aufgebaut und der Befehl erneut gesendet.
+     * Ein anderer Weg zum Neuverbinden des Client Socket existiert nicht (vom Store genehmigte Ausnahme).
+     *
+     * @param RPC_Data     $YeelightData Gesendeter Befehl
+     * @param RPCException $Exception    Fehler des Gerätes
+     * @param bool         $Retry        Neu verbinden und erneut senden erlaubt
+     *
+     * @return false|array Ergebnis des erneuten Sendens oder false
+     */
+    private function HandleRPCError(RPC_Data $YeelightData, RPCException $Exception, bool $Retry): false|array
+    {
+        $Message = sprintf($this->Translate('Error (%d): %s'), $Exception->getCode(), $Exception->getMessage());
+        if (($Exception->getCode() != -1) || !$Retry) {
+            return $this->ReportError($Message);
+        }
+        if (!$this->lock(Locks::Reconnect)) {
+            $this->SendDebug('Reconnect in progress', '', 0);
+            return $this->ReportError($Message);
+        }
+        $this->ConnectionState = self::isReconnecting;
+        $this->SendDebug('Quota exceeded', 'Force reconnect', 0);
+        $this->SetStatus(IS_INACTIVE);
+        IPS_RunScriptTextWait('IPS_SetProperty(' . $this->ParentID . ', "Open", false); IPS_ApplyChanges(' . $this->ParentID . ');');
+        IPS_RunScriptText('IPS_SetProperty(' . $this->ParentID . ', "Open", true); IPS_ApplyChanges(' . $this->ParentID . ');');
+        $Reconnected = $this->WaitForActive();
+        $this->unlock(Locks::Reconnect);
+        if (!$Reconnected) {
+            $this->ConnectionState = self::isDisconnected;
+            $this->SendDebug('Force reconnect', 'failed', 0);
+            return $this->ReportError($Message);
+        }
+        $this->SendDebug('Force reconnect', 'successfully', 0);
+        return $this->Send($YeelightData, false);
+    }
+
+    /**
+     * Sendet einen Befehl und wertet nur Erfolg oder Fehler aus.
+     *
+     * @param string $Method Name der RPC-Methode
+     * @param array  $Params Parameter der Methode
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    private function SendCommand(string $Method, array $Params = []): bool
+    {
+        return $this->Send(new RPC_Data($Method, $Params)) !== false;
+    }
+
+    /**
+     * Liefert die Übergangszeit aus der Eigenschaft 'Licht sanft ändern'.
+     *
+     * @return int Übergangszeit in Millisekunden
+     */
+    private function DefaultDuration(): int
+    {
+        return $this->ReadPropertyBoolean(Property::SetSmooth) ? Duration::Smooth : 0;
+    }
+
+    /**
+     * Liefert die Effekt-Parameter für eine Übergangszeit.
+     *
+     * @param int $Duration Übergangszeit in Millisekunden
+     *
+     * @return array ['sudden', 0] oder ['smooth', $Duration]
+     */
+    private function Effect(int $Duration): array
+    {
+        if ($Duration < Duration::Minimum) {
+            return ['sudden', 0];
+        }
+        return ['smooth', $Duration];
+    }
+
+    /**
+     * Meldet einen veralteten Funktionsnamen im Log.
+     *
+     * @param string $Old Alter Funktionsname
+     * @param string $New Neuer Funktionsname
+     */
+    private function DeprecatedFunction(string $Old, string $New): void
+    {
+        $this->LogMessage(sprintf($this->Translate('%s is deprecated and will be removed in version %s, please use %s.'), 'YEELIGHT_' . $Old, self::DeprecatedRemoveVersion, 'YEELIGHT_' . $New), KL_WARNING);
+    }
+
+    /**
+     * Registriert bzw. entfernt den WebHook für den HUE-Slider.
+     */
+    private function RegisterWebHook(): void
+    {
+        if ($this->ReadPropertyBoolean(Property::HUESlider)) {
+            $this->RegisterHook(Hook::Name . $this->InstanceID);
+        } else {
+            $this->UnregisterHook(Hook::Name . $this->InstanceID);
+        }
+    }
+
+    /**
+     * Prüft den Weißton.
+     *
+     * @param int $Temperature Weißton in Kelvin
+     *
+     * @return bool true wenn gültig
+     */
+    private function CheckWhite(int $Temperature): bool
+    {
+        if (($Temperature < 1700) || ($Temperature > 6500)) {
+            echo sprintf($this->Translate('%s out of range.'), 'Temperature') . PHP_EOL;
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Prüft Farbton und Sättigung.
+     *
+     * @param int $HUE        Farbton
+     * @param int $Saturation Sättigung
+     *
+     * @return bool true wenn gültig
+     */
+    private function CheckHSV(int $HUE, int $Saturation): bool
+    {
+        if (($HUE < 0) || ($HUE > 359)) {
+            echo sprintf($this->Translate('%s out of range.'), 'HUE') . PHP_EOL;
+            return false;
+        }
+        if (($Saturation < 0) || ($Saturation > 100)) {
+            echo sprintf($this->Translate('%s out of range.'), 'Saturation') . PHP_EOL;
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Prüft die Helligkeit, 0 wird zu 1 (kleinster Wert des Gerätes).
+     *
+     * @param int $Level Helligkeit in Prozent
+     *
+     * @return false|int Zu sendende Helligkeit oder false
+     */
+    private function CheckBrightness(int $Level): false|int
+    {
+        if (($Level < 0) || ($Level > 100)) {
+            echo sprintf($this->Translate('%s out of range.'), 'Level') . PHP_EOL;
+            return false;
+        }
+        return max(1, $Level);
+    }
+
+    /**
+     * Wandelt RGB-Anteile in einen Farbwert.
+     *
+     * @param int $Red   Rot
+     * @param int $Green Grün
+     * @param int $Blue  Blau
+     *
+     * @return false|int Farbwert oder false
+     */
+    private function RGBToColor(int $Red, int $Green, int $Blue): false|int
+    {
+        foreach ([$Red, $Green, $Blue] as $Value) {
+            if (($Value < 0) || ($Value > 255)) {
+                echo $this->Translate('Invalid parameter.') . PHP_EOL;
+                return false;
+            }
+        }
+        return ($Red << 16) + ($Green << 8) + $Blue;
+    }
+
+    /**
+     * Wandelt den Modus der Statusvariable in den Modus von set_power.
+     *
+     * @param int $Mode 0 = Standard, 1 = RGB, 2 = Weiß, 3 = HSV, 5 = Nachtlicht
+     *
+     * @return false|int Modus für set_power oder false
+     */
+    private function ModeToPowerMode(int $Mode): false|int
+    {
+        $Map = [0 => 0, 1 => 2, 2 => 1, 3 => 3, 5 => 5];
+        if (!array_key_exists($Mode, $Map)) {
+            echo sprintf($this->Translate('Mode %d is not supported.'), $Mode) . PHP_EOL;
+            return false;
+        }
+        return $Map[$Mode];
+    }
+
+    /**
+     * Prüft die Parameter einer Farbsequenz.
+     *
+     * @param int    $Loops        Anzahl der Durchläufe
+     * @param int    $RecoverState Verhalten nach Ablauf
+     * @param string $Flow         JSON-Array der Schritte
+     *
+     * @return false|array Parameter für start_cf oder false
+     */
+    private function BuildColorFlow(int $Loops, int $RecoverState, string $Flow): false|array
+    {
+        if ($Loops < 0) {
+            echo sprintf($this->Translate('%s out of range.'), 'Loops') . PHP_EOL;
+            return false;
+        }
+        if (($RecoverState < 0) || ($RecoverState > 2)) {
+            echo sprintf($this->Translate('%s out of range.'), 'RecoverState') . PHP_EOL;
+            return false;
+        }
+        $FlowData = json_decode($Flow, true);
+        if (!is_array($FlowData) || (count($FlowData) == 0) || ((count($FlowData) % 4) != 0)) {
+            echo sprintf($this->Translate('%s is invalid.'), 'Flow') . PHP_EOL;
+            return false;
+        }
+        return [$Loops, $RecoverState, implode(',', array_values($FlowData))];
+    }
+
+    /**
+     * Prüft die Parameter einer Szene.
+     *
+     * @param string $Params JSON-Array der Parameter
+     *
+     * @return false|array Parameter oder false
+     */
+    private function DecodeSceneParams(string $Params): false|array
+    {
+        $SceneParams = json_decode($Params, true);
+        if (!is_array($SceneParams) || (count($SceneParams) == 0)) {
+            echo sprintf($this->Translate('%s is invalid.'), 'Params') . PHP_EOL;
+            return false;
+        }
+        return array_values($SceneParams);
+    }
+
+    /**
+     * Wandelt den Wert einer HSV-Farbvariable (Kodierung HSV, s und v von 0 bis 1) in Farbton und Sättigung.
+     *
+     * @param mixed $Value JSON-String {"h":…, "s":…, "v":…}
+     *
+     * @return false|array [Farbton, Sättigung in Prozent] oder false
+     */
+    private function DecodeHSVValue(mixed $Value): false|array
+    {
+        $HSV = json_decode((string) $Value, true);
+        if (!is_array($HSV) || !isset($HSV['h'], $HSV['s'])) {
+            echo $this->Translate('Invalid value.') . PHP_EOL;
+            return false;
+        }
+        $Hue = ((int) round((float) $HSV['h'])) % 360;
+        $Saturation = (int) round((float) $HSV['s'] * 100);
+        return [$Hue, min(100, max(0, $Saturation))];
+    }
+
+    /**
+     * Wartet bis die Verbindung zum Gerät aufgebaut ist.
+     *
+     * @return bool true wenn verbunden
+     */
     private function WaitForActive(): bool
     {
         for ($i = 0; $i < 1000; $i++) {
             if ($this->ConnectionState == self::isConnected) {
                 return true;
             }
-            IPS_Sleep(5);
+            usleep(5000);
         }
         return false;
     }
 
-    //################# Helper
-
+    /**
+     * Liest Properties vom Gerät und führt die Statusvariablen nach.
+     *
+     * @param array $Propertys Zu lesende Properties
+     * @param bool  $Init      true = unterstützte Properties merken
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
     private function get_prop(array $Propertys, bool $Init = false): bool
     {
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->get_prop($Propertys);
-        $Result = $this->Send($YeelightData);
+        $Propertys = array_values($Propertys);
+        $Result = $this->Send(new RPC_Data('get_prop', $Propertys));
         if ($Result === false) {
             return false;
         }
-        if ($Init) {
-            $props = $this->Propertys;
-            foreach ($Propertys as $Index => $Property) {
-                if ($Result[$Index] !== '' && !in_array($Property, $props)) {
-                    $props[] = $Property;
-                }
-            }
-            $this->Propertys = $props;
-        }
+        $Supported = $this->Propertys;
         foreach ($Propertys as $Index => $Property) {
-            if ($Result[$Index] == '') {
+            $Value = $Result[$Index] ?? '';
+            if ($Value === '') {
                 continue;
             }
-            $this->SetStatusVariable($Property, $Result[$Index]);
+            if ($Init && !in_array($Property, $Supported)) {
+                $Supported[] = $Property;
+            }
+            $this->SetStatusVariable($Property, $Value);
+        }
+        if ($Init) {
+            $this->Propertys = $Supported;
         }
         return true;
     }
@@ -1282,93 +1458,28 @@ class YeelightDevice extends IPSModuleStrict
      * Sendet set_rgb an das Gerät.
      *
      * @param int $Color    RGB Farbe
-     * @param int $Duration Transitionzeit
+     * @param int $Duration Übergangszeit in Millisekunden
      *
      * @return bool true bei Erfolg, sonst false
      */
     private function SetColor(int $Color, int $Duration = 0): bool
     {
-        if ($Duration < 30) {
-            $Params = [$Color, 'sudden', 0];
-        } else {
-            $Params = [$Color, 'smooth', 500];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->set_rgb($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('set_rgb', array_merge([$Color], $this->Effect($Duration)));
     }
 
     /**
      * Sendet bg_set_rgb an das Gerät.
      *
      * @param int $Color    RGB Farbe
-     * @param int $Duration Transitionzeit
+     * @param int $Duration Übergangszeit in Millisekunden
      *
      * @return bool true bei Erfolg, sonst false
      */
     private function SetBgColor(int $Color, int $Duration = 0): bool
     {
-        if ($Duration < 30) {
-            $Params = [$Color, 'sudden', 0];
-        } else {
-            $Params = [$Color, 'smooth', 500];
-        }
-        $YeelightData = new \Yeelight\RPC_Data();
-        $YeelightData->bg_set_rgb($Params);
-        return $this->Send($YeelightData);
+        return $this->SendCommand('bg_set_rgb', array_merge([$Color], $this->Effect($Duration)));
     }
 
-    /**
-     * Wenn nur neuer Sättigungswert übertragen werden soll.
-     *
-     * @param int $Saturation
-     *
-     * @return bool true bei Erfolg, sonst false
-     */
-    private function SetSaturation(int $Saturation): bool
-    {
-        $Hue = $this->HUE;
-        return $this->SetHSV($Hue, $Saturation);
-    }
-
-    /**
-     * Wenn nur neuer Sättigungswert übertragen werden soll.
-     *
-     * @param int $Saturation
-     *
-     * @return bool true bei Erfolg, sonst false
-     */
-    private function SetBgSaturation(int $Saturation): bool
-    {
-        $Hue = $this->BG_HUE;
-        return $this->SetBgHSV($Hue, $Saturation);
-    }
-
-    /**
-     * Wenn nur neuer HUE Wert übertragen werden soll.
-     *
-     * @param int $HUE
-     *
-     * @return bool true bei Erfolg, sonst false
-     */
-    private function SetHUE(int $HUE): bool
-    {
-        $Saturation = $this->SAT;
-        return $this->SetHSV($HUE, $Saturation);
-    }
-
-    /**
-     * Wenn nur neuer HUE Wert übertragen werden soll.
-     *
-     * @param int $HUE
-     *
-     * @return bool true bei Erfolg, sonst false
-     */
-    private function SetBgHUE(int $HUE): bool
-    {
-        $Saturation = $this->BG_SAT;
-        return $this->SetBgHSV($HUE, $Saturation);
-    }
     //################# GetCapabilities
 
     /**
@@ -1392,7 +1503,9 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
-     * Fragt alle Fähigkeiten und Eigenschaften des Gerätes ab und speichert diese im Buffer.
+     * Fragt alle Fähigkeiten und Eigenschaften des Gerätes per SSDP ab und speichert diese im Buffer.
+     *
+     * @return bool true wenn die Fähigkeiten ermittelt wurden
      */
     private function GetCapabilities(): bool
     {
@@ -1405,18 +1518,23 @@ class YeelightDevice extends IPSModuleStrict
         if (!$socket) {
             return false;
         }
-        socket_bind($socket, '0.0.0.0', 1983);
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]);
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
+        if (!@socket_bind($socket, '0.0.0.0', Network::SsdpLocalPort)) {
+            $this->SendDebug('Ask capabilities', 'Bind to port ' . Network::SsdpLocalPort . ' failed', 0);
+            socket_close($socket);
+            return false;
+        }
         $message = [
             'M-SEARCH * HTTP/1.1',
-            'HOST: ' . $this->Host . ':1982',
+            'HOST: ' . $this->Host . ':' . Network::SsdpPort,
             'MAN: "ssdp:discover"',
             'ST: wifi_bulb'
         ];
         $SendData = implode("\r\n", $message) . "\r\n\r\n";
         $this->SendDebug('Ask capabilities', $SendData, 0);
-        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, $this->Host, 1982) === false) {
+        if (@socket_sendto($socket, $SendData, strlen($SendData), 0, $this->Host, Network::SsdpPort) === false) {
+            socket_close($socket);
             return false;
         }
         usleep(100000);
@@ -1442,9 +1560,7 @@ class YeelightDevice extends IPSModuleStrict
                 $this->SendDebug('Got capabilities', $Data['support'], 0);
                 $index = array_keys(array_keys($Data), 'support');
                 $Propertys = array_keys(array_slice($Data, $index[0] + 1));
-                if (in_array('name', $Propertys)) {
-                    unset($Propertys[array_keys($Propertys, 'name')[0]]);
-                }
+                $Propertys = array_values(array_diff($Propertys, ['name']));
                 $this->Propertys = $Propertys;
                 $this->SendDebug('Got propertys', implode(' ', $Propertys), 0);
                 break;
@@ -1459,119 +1575,194 @@ class YeelightDevice extends IPSModuleStrict
     /**
      * Decodiert ein Event und führt die Statusvariablen nach.
      *
-     * @param \Yeelight\RPC_Data $YeelightData
+     * @param RPC_Data $YeelightData
      */
-    private function Decode(\Yeelight\RPC_Data $YeelightData): void
+    private function Decode(RPC_Data $YeelightData): void
     {
-        if ($YeelightData->Method != 'props') {
-            $this->LogMessage($this->Translate('Invalid event method received.'), KL_WARNING);
+        if (($YeelightData->Method != 'props') || (!is_object($YeelightData->Params) && !is_array($YeelightData->Params))) {
+            $this->SendDebug('Unknown event', $YeelightData->Method, 0);
             return;
         }
         foreach ($YeelightData->Params as $Ident => $Value) {
-            $this->SetStatusVariable($Ident, $Value);
+            $this->SetStatusVariable((string) $Ident, $Value);
         }
     }
 
     /**
-     * @param string $Ident Ident der Statusvariable
+     * Schreibt einen vom Gerät gemeldeten Wert in die Statusvariable.
+     *
+     * @param string $Ident Ident der Statusvariable (Property-Name des Gerätes)
      * @param mixed  $Value Neuer Wert der Statusvariable
      */
-    private function SetStatusVariable(string $Ident, $Value): void
+    private function SetStatusVariable(string $Ident, mixed $Value): void
     {
-        if (!array_key_exists($Ident, \Yeelight\Variables::$List)) {
-            $this->LogMessage(sprintf($this->Translate('Property %s actually not supported.'), $Ident), KL_MESSAGE);
+        if ($Ident == DataPoints::ActiveMode) {
+            // active_mode: 0 = Tageslicht, 1 = Nachtlicht
+            $Ident = DataPoints::ColorMode;
+            $Value = ((int) $Value == 1) ? 5 : 2;
+        }
+        if (!array_key_exists($Ident, Variables::$List)) {
+            $this->SendDebug('Unsupported property', $Ident . ': ' . json_encode($Value), 0);
             return;
         }
-        $StatusVariable = \Yeelight\Variables::$List[$Ident];
-
-        if (str_ends_with('hue', $Ident)) {
-            $this->HUE = (int) $Value;
-            if ($this->ReadPropertyBoolean('HUESlider')) {
-                $this->MaintainVariable($Ident, $this->Translate($StatusVariable[\Yeelight\Variables::Name]), $StatusVariable[\Yeelight\Variables::Type], $StatusVariable[\Yeelight\Variables::Presentation], 0, true);
-                $HueSlider = $this->FindIDForIdent($Ident);
-                if (!$HueSlider || ($this->GetValue($Ident) == '')) {
-                    $Value = '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'SliderRequestAction"></script>';
-                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'SliderEvents"></script>';
-                    $Value .= '<script src="hook/Yeelight' . $this->InstanceID . '?script=' . $Ident . 'Slider"></script>';
-                    $this->SetValue($Ident, $Value);
-                }
+        switch ($Ident) {
+            case DataPoints::HUE:
+            case DataPoints::BgHUE:
+                $this->UpdateHue($Ident, (int) $Value);
+                return;
+            case DataPoints::SAT:
+                $this->SAT = (int) $Value;
+                $this->UpdateHSV(DataPoints::HSV, null, (int) $Value);
+                break;
+            case DataPoints::BgSAT:
+                $this->BG_SAT = (int) $Value;
+                $this->UpdateHSV(DataPoints::BgHSV, null, (int) $Value);
+                break;
+        }
+        $StatusVariable = Variables::$List[$Ident];
+        if (array_key_exists(Variables::Mapping, $StatusVariable)) {
+            if (!is_scalar($Value) || !array_key_exists($Value, $StatusVariable[Variables::Mapping])) {
+                $this->SendDebug('Unknown value', $Ident . ': ' . json_encode($Value), 0);
+                return;
             }
-
-            $HSVIdent = $Ident == 'hue' ? 'hsv' : 'bg_hsv';
-            $this->MaintainVariable($HSVIdent, $this->Translate(\Yeelight\Variables::$List[$HSVIdent][\Yeelight\Variables::Name]), \Yeelight\Variables::$List[$HSVIdent][\Yeelight\Variables::Type], \Yeelight\Variables::$List[$HSVIdent][\Yeelight\Variables::Presentation], 0, true);
-            $this->EnableAction($HSVIdent);
-            $HSV = json_decode($this->GetValue($HSVIdent), true);
-            $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
-            $HSV['h'] = (int) $Value;
-            $this->SetValue($HSVIdent, json_encode($HSV));
-            return;
+            $Value = $StatusVariable[Variables::Mapping][$Value];
         }
-        if ($Ident == 'sat') {
-            $this->SAT = (int) $Value;
-            if ($this->FindIDForIdent('hsv')) {
-                $HSV = json_decode($this->GetValue('hsv'), true);
-                $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
-                $HSV['s'] = (int) $Value;
-                $this->SetValue('hsv', json_encode($HSV));
-            }
+        if ($Ident == DataPoints::BgPower) {
+            $this->BgPower = (bool) $Value;
         }
-        if ($Ident == 'bg_sat') {
-            $this->BG_SAT = (int) $Value;
-            if ($this->FindIDForIdent('bg_hsv')) {
-                $HSV = json_decode($this->GetValue('bg_hsv'), true);
-                $HSV ??= ['h'=>0, 's'=>0, 'v'=>100];
-                $HSV['s'] = (int) $Value;
-                $this->SetValue('bg_hsv', json_encode($HSV));
-            }
-        }
-        if ($Ident == 'active_mode') {
-            $Ident = 'color_mode';
-            if ((int) $Value == 1) {
-                $Value = 5;
-            } else {
-                $Value = 2;
-            }
-        }
-        if (($Ident == 'color_mode') || ($Ident == 'bg_lmode') || ($Ident == 'ct') || ($Ident == 'bg_ct')) {
-            $StatusVariable[\Yeelight\Variables::Presentation] = $StatusVariable[\Yeelight\Variables::Presentation . $this->ReadPropertyInteger('Mode')];
-        }
-        $this->MaintainVariable($Ident, $this->Translate($StatusVariable[\Yeelight\Variables::Name]), $StatusVariable[\Yeelight\Variables::Type], $this->TranslatePresentation($StatusVariable[\Yeelight\Variables::Presentation]), 0, true);
-        if ($StatusVariable[\Yeelight\Variables::enableAction]) {
-            $this->EnableAction($Ident);
-        }
-        if (array_key_exists(\Yeelight\Variables::Mapping, $StatusVariable)) {
-            $Value = $StatusVariable[\Yeelight\Variables::Mapping][$Value];
-        }
-        $this->SetValue($Ident, $Value);
+        $this->MaintainStatusVariable($Ident);
+        $this->SetValue($Ident, $this->ConvertValue($Value, $StatusVariable[Variables::Type]));
     }
 
+    /**
+     * Legt eine Statusvariable an bzw. aktualisiert ihre Darstellung.
+     *
+     * @param string $Ident Ident der Statusvariable
+     */
+    private function MaintainStatusVariable(string $Ident): void
+    {
+        $StatusVariable = Variables::$List[$Ident];
+        $Presentation = Variables::getPresentation($Ident, $this->ReadPropertyInteger(Property::Mode));
+        $this->MaintainVariable($Ident, $this->Translate($StatusVariable[Variables::Name]), $StatusVariable[Variables::Type], $this->TranslatePresentation($Presentation), 0, true);
+        if ($StatusVariable[Variables::enableAction]) {
+            $this->EnableAction($Ident);
+        }
+    }
+
+    /**
+     * Verarbeitet einen neuen Farbton (hue bzw. bg_hue).
+     *
+     * @param string $Ident Ident hue oder bg_hue
+     * @param int    $Hue   Farbton
+     */
+    private function UpdateHue(string $Ident, int $Hue): void
+    {
+        if ($Ident == DataPoints::HUE) {
+            $this->HUE = $Hue;
+            $HSVIdent = DataPoints::HSV;
+        } else {
+            $this->BG_HUE = $Hue;
+            $HSVIdent = DataPoints::BgHSV;
+        }
+        if ($this->ReadPropertyBoolean(Property::HUESlider)) {
+            $this->MaintainStatusVariable($Ident);
+            if ($this->GetValue($Ident) == '') {
+                $Hook = 'hook/' . Hook::Name . $this->InstanceID;
+                $Script = '<script src="' . $Hook . '?script=' . $Ident . 'SliderRequestAction"></script>';
+                $Script .= '<script src="' . $Hook . '?script=' . $Ident . 'SliderEvents"></script>';
+                $Script .= '<script src="' . $Hook . '?script=' . $Ident . 'Slider"></script>';
+                $this->SetValue($Ident, $Script);
+            }
+        }
+        $this->UpdateHSV($HSVIdent, $Hue, null);
+    }
+
+    /**
+     * Aktualisiert die HSV-Farbvariable (Kodierung HSV, s und v von 0 bis 1).
+     * Eine neue Sättigung allein legt die Variable nicht an.
+     *
+     * @param string   $HSVIdent   Ident hsv oder bg_hsv
+     * @param int|null $Hue        Neuer Farbton oder null
+     * @param int|null $Saturation Neue Sättigung in Prozent oder null
+     */
+    private function UpdateHSV(string $HSVIdent, ?int $Hue, ?int $Saturation): void
+    {
+        $Exists = $this->FindIDForIdent($HSVIdent) > 0;
+        if (!$Exists && ($Hue === null)) {
+            return;
+        }
+        $HSV = $Exists ? json_decode((string) $this->GetValue($HSVIdent), true) : null;
+        if (!is_array($HSV)) {
+            $HSV = ['h' => 0, 's' => 1.0, 'v' => 1.0];
+        }
+        // Werte älterer Versionen (0 bis 100) umrechnen
+        foreach (['s', 'v'] as $Key) {
+            $HSV[$Key] = (float) ($HSV[$Key] ?? 1.0);
+            if ($HSV[$Key] > 1) {
+                $HSV[$Key] = $HSV[$Key] / 100;
+            }
+        }
+        if ($Hue !== null) {
+            $HSV['h'] = $Hue;
+        }
+        if ($Saturation !== null) {
+            $HSV['s'] = $Saturation / 100;
+        }
+        $this->MaintainStatusVariable($HSVIdent);
+        $this->SetValue($HSVIdent, json_encode($HSV));
+    }
+
+    /**
+     * Wandelt einen Wert in den Typ der Statusvariable.
+     *
+     * @param mixed $Value Wert
+     * @param int   $Type  Variablentyp
+     *
+     * @return mixed Gewandelter Wert
+     */
+    private function ConvertValue(mixed $Value, int $Type): mixed
+    {
+        switch ($Type) {
+            case VARIABLETYPE_BOOLEAN:
+                return (bool) $Value;
+            case VARIABLETYPE_INTEGER:
+                return (int) $Value;
+            case VARIABLETYPE_FLOAT:
+                return (float) $Value;
+            default:
+                return (string) $Value;
+        }
+    }
+
+    /**
+     * Übersetzt die Texte einer Darstellung und kodiert Listen als JSON.
+     *
+     * @param array $Presentation Darstellung
+     *
+     * @return array Darstellung für MaintainVariable
+     */
     private function TranslatePresentation(array $Presentation): array
     {
-
         if (isset($Presentation['PREFIX'])) {
             $Presentation['PREFIX'] = $this->Translate($Presentation['PREFIX']);
         }
         if (isset($Presentation['SUFFIX'])) {
             $Presentation['SUFFIX'] = $this->Translate($Presentation['SUFFIX']);
         }
-        if (isset($Presentation['OPTIONS'])) {
+        if (isset($Presentation['OPTIONS']) && is_array($Presentation['OPTIONS'])) {
             $Options = $Presentation['OPTIONS'];
             foreach ($Options as &$Option) {
                 $Option['Caption'] = $this->Translate($Option['Caption']);
             }
             $Presentation['OPTIONS'] = json_encode($Options);
         }
-        if (isset($Presentation['INTERVALS'])) {
+        if (isset($Presentation['INTERVALS']) && is_array($Presentation['INTERVALS'])) {
             $Intervals = $Presentation['INTERVALS'];
             foreach ($Intervals as &$Interval) {
-                if (isset($Interval['ConstantValue'])) {
-                    $Interval['ConstantValue'] = $this->Translate($Interval['ConstantValue']);
-                }
-                if (isset($Interval['PrefixValue'])) {
-                    $Interval['PrefixValue'] = $this->Translate($Interval['PrefixValue']);
-                }
-                if (isset($Interval['SuffixValue'])) {
-                    $Interval['SuffixValue'] = $this->Translate($Interval['SuffixValue']);
+                foreach (['ConstantValue', 'PrefixValue', 'SuffixValue'] as $Key) {
+                    if (isset($Interval[$Key])) {
+                        $Interval[$Key] = $this->Translate($Interval[$Key]);
+                    }
                 }
             }
             $Presentation['INTERVALS'] = json_encode($Intervals);
@@ -1585,19 +1776,20 @@ class YeelightDevice extends IPSModuleStrict
      * Wartet auf eine RPC-Antwort.
      *
      * @param int $Id Die RPC-ID auf die gewartet wird.
-     * @return false|\Yeelight\RPC_Data Enthält ein Kodi_RPC_Data-Objekt mit der Antwort, oder false bei einem Timeout.
+     *
+     * @return false|RPC_Data Antwort oder false bei einem Timeout.
      */
-    private function WaitForResponse($Id): false|\Yeelight\RPC_Data
+    private function WaitForResponse(int $Id): false|RPC_Data
     {
         for ($i = 0; $i < 1000; $i++) {
             $ret = $this->ReplyJSONData;
-            if (!array_key_exists(intval($Id), $ret)) {
+            if (!array_key_exists($Id, $ret)) {
                 return false;
             }
-            if ($ret[$Id] != '') {
+            if ($ret[$Id] instanceof RPC_Data) {
                 return $this->SendQueuePop($Id);
             }
-            IPS_Sleep(1);
+            usleep(1000);
         }
         $this->SendQueueRemove($Id);
         return false;
@@ -1607,35 +1799,39 @@ class YeelightDevice extends IPSModuleStrict
      * Fügt eine Anfrage in die SendQueue ein.
      *
      * @param int $Id die RPC-ID des versendeten RPC-Objektes.
+     *
+     * @return bool false wenn die Queue gesperrt war
      */
-    private function SendQueuePush(int $Id): void
+    private function SendQueuePush(int $Id): bool
     {
-        if (!$this->lock('ReplyJSONData')) {
-            throw new Exception('ReplyJSONData is locked', E_USER_WARNING);
+        if (!$this->lock(Locks::ReplyJSONData)) {
+            return false;
         }
         $data = $this->ReplyJSONData;
         $data[$Id] = '';
         $this->ReplyJSONData = $data;
-        $this->unlock('ReplyJSONData');
+        $this->unlock(Locks::ReplyJSONData);
+        return true;
     }
 
     /**
      * Fügt eine RPC-Antwort in die SendQueue ein.
      *
-     * @param int                        $Id           die RPC-ID des empfangenen Objektes.
-     * @param \Yeelight\RPC_Data $YeelightData Das empfangene RPC-Result.
+     * @param int      $Id           die RPC-ID des empfangenen Objektes.
+     * @param RPC_Data $YeelightData Das empfangene RPC-Result.
      */
-    private function SendQueueUpdate(int $Id, \Yeelight\RPC_Data $YeelightData): void
+    private function SendQueueUpdate(int $Id, RPC_Data $YeelightData): void
     {
-        if (!$this->lock('ReplyJSONData')) {
-            throw new Exception('ReplyJSONData is locked', E_USER_WARNING);
+        if (!$this->lock(Locks::ReplyJSONData)) {
+            $this->SendDebug('SendQueue', 'locked, reply ' . $Id . ' dropped', 0);
+            return;
         }
         $data = $this->ReplyJSONData;
-        if (array_key_exists(intval($Id), $data)) {
+        if (array_key_exists($Id, $data)) {
             $data[$Id] = $YeelightData;
         }
         $this->ReplyJSONData = $data;
-        $this->unlock('ReplyJSONData');
+        $this->unlock(Locks::ReplyJSONData);
     }
 
     /**
@@ -1643,12 +1839,11 @@ class YeelightDevice extends IPSModuleStrict
      *
      * @param int $Id die RPC-ID des empfangenen Objektes.
      *
-     * @return \Yeelight\RPC_Data Das empfangene RPC-Result.
+     * @return RPC_Data Das empfangene RPC-Result.
      */
-    private function SendQueuePop(int $Id): \Yeelight\RPC_Data
+    private function SendQueuePop(int $Id): RPC_Data
     {
-        $data = $this->ReplyJSONData;
-        $Result = $data[$Id];
+        $Result = $this->ReplyJSONData[$Id];
         $this->SendQueueRemove($Id);
         return $Result;
     }
@@ -1660,13 +1855,40 @@ class YeelightDevice extends IPSModuleStrict
      */
     private function SendQueueRemove(int $Id): void
     {
-        if (!$this->lock('ReplyJSONData')) {
-            throw new Exception('ReplyJSONData is locked', E_USER_WARNING);
+        if (!$this->lock(Locks::ReplyJSONData)) {
+            return;
         }
         $data = $this->ReplyJSONData;
         unset($data[$Id]);
         $this->ReplyJSONData = $data;
-        $this->unlock('ReplyJSONData');
+        $this->unlock(Locks::ReplyJSONData);
+    }
+
+    /**
+     * Sendet die Standard-Header einer HTTP-Antwort.
+     *
+     * @param int    $Code        HTTP-Statuscode
+     * @param string $ContentType Content-Type
+     */
+    private function SendHTTPHeader(int $Code, string $ContentType): void
+    {
+        http_response_code($Code);
+        header('Connection: close');
+        header('Server: Symcon ' . IPS_GetKernelVersion());
+        header('X-Powered-By: Hook Reverse Proxy');
+        header('Cache-Control: no-cache');
+        header('Content-Type: ' . $ContentType);
+    }
+
+    /**
+     * Liefert einen Text als HTTP-Response.
+     *
+     * @param string $Text Inhalt
+     */
+    private function SendTextResponse(string $Text): void
+    {
+        $this->SendHTTPHeader(200, 'text/plain');
+        echo $Text;
     }
 
     /**
@@ -1677,18 +1899,8 @@ class YeelightDevice extends IPSModuleStrict
      */
     private function SendJSFile(string $File, string $PreCode = ''): void
     {
-        http_response_code(200);
-        header('Connection: close');
-        header('Server: Symcon ' . IPS_GetKernelVersion());
-        header('X-Powered-By: Hook Reverse Proxy');
-
-        header('Content-Type: application/javascript');
-        if ($File != '') {
-            header('Cache-Control: no-cache');
-            echo $PreCode;
-        } else {
-            header('Cache-Control: max-age=3600');
-        }
+        $this->SendHTTPHeader(200, 'application/javascript');
+        echo $PreCode;
         readfile(__DIR__ . '/../libs/' . $File);
     }
 
@@ -1697,13 +1909,10 @@ class YeelightDevice extends IPSModuleStrict
      */
     private function SendFileNotFound(): void
     {
-        http_response_code(404);
-        header('Connection: close');
-        header('Server: Symcon ' . IPS_GetKernelVersion());
-        header('X-Powered-By: Hook Reverse Proxy');
+        $this->SendHTTPHeader(404, 'text/plain');
         header('Expires: 0');
-        header('Cache-Control: no-cache');
-        header('Content-Type: text/plain');
         echo 'File not found!';
     }
 }
+
+/* @} */

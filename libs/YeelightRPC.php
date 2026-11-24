@@ -2,16 +2,91 @@
 
 declare(strict_types=1);
 
-namespace Yeelight;
-
 /*
  * @addtogroup yeelight
  * @{
  *
- * @package yeelight
- * @file YeelightRPC.php
- * @author Michael Tröger
+ * @package       yeelight
+ * @file          YeelightRPC.php
+ * @author        Michael Tröger <nall4chan@gmail.com>
+ * @copyright     2026 Michael Tröger
+ * @license       Custom Non-Commercial Share-Alike License (see LICENSE)
+ * @version       2.16
  *
+ */
+
+namespace Yeelight;
+
+/**
+ * GUIDs der Module und Datenschnittstellen.
+ */
+class GUID
+{
+    /** Modul Yeelight Device. */
+    public const Device = '{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}';
+    /** Modul Client Socket. */
+    public const ClientSocket = '{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}';
+    /** Datenschnittstelle Client Socket (Senden an den IO). */
+    public const SendToIO = '{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}';
+}
+
+/**
+ * Namen der Instanz-Eigenschaften.
+ */
+class Property
+{
+    public const HUESlider = 'HUESlider';
+    public const SetSmooth = 'SetSmooth';
+    public const Mode = 'Mode';
+}
+
+/**
+ * Namen der Semaphoren.
+ */
+class Locks
+{
+    public const IOChangeState = 'IOChangeState';
+    public const Reconnect = 'Reconnect';
+    public const ReplyJSONData = 'ReplyJSONData';
+}
+
+/**
+ * Namen und Parameter des WebHook.
+ */
+class Hook
+{
+    /** Name für RegisterHook (Symcon setzt /hook/ davor), ergänzt um die InstanzID. */
+    public const Name = 'Yeelight';
+}
+
+/**
+ * Netzwerkparameter des Yeelight-Protokolls.
+ */
+class Network
+{
+    /** TCP-Port der Gerätesteuerung. */
+    public const ControlPort = 55443;
+    /** UDP-Port der SSDP-Anfragen an das Gerät. */
+    public const SsdpPort = 1982;
+    /** Lokaler UDP-Port für die SSDP-Antworten. */
+    public const SsdpLocalPort = 1983;
+    /** Multicast-Adresse der SSDP-Suche. */
+    public const SsdpMulticast = '239.255.255.250';
+}
+
+/**
+ * Übergangszeiten in Millisekunden.
+ */
+class Duration
+{
+    /** Übergangszeit, wenn 'Licht sanft ändern' aktiv ist. */
+    public const Smooth = 500;
+    /** Kleinste Übergangszeit laut Spezifikation, darunter wird 'sudden' gesendet. */
+    public const Minimum = 30;
+}
+
+/**
+ * Idents der Statusvariablen (entsprechen den Property-Namen des Gerätes).
  */
 class DataPoints
 {
@@ -27,6 +102,7 @@ class DataPoints
     public const BgCT = 'bg_ct';
     public const ColorMode = 'color_mode';
     public const BgColorMode = 'bg_lmode';
+    public const ActiveMode = 'active_mode';
     public const HUE = 'hue';
     public const HSV = 'hsv';
     public const BgHUE = 'bg_hue';
@@ -35,25 +111,11 @@ class DataPoints
     public const Flowing = 'flowing';
     public const BgFlowing = 'bg_flowing';
 
-    public static $List = [
-        self::BgBright,
-        self::BgColorMode,
-        self::BgCT,
-        self::BgFlowing,
-        self::BgHUE,
-        self::BgPower,
-        self::BgRGB,
-        self::BgSAT,
-        self::Bright,
-        self::ColorMode,
-        self::CT,
-        self::Flowing,
-        self::HUE,
-        self::NightLightBright,
-        self::Power,
-        self::RGB,
-        self::SAT
-    ];
+    /**
+     * Liefert alle Properties, welche per get_prop gelesen werden.
+     *
+     * @return string[]
+     */
     public static function getReadableList(): array
     {
         return array_keys(array_filter(Variables::$List, function ($item)
@@ -62,6 +124,10 @@ class DataPoints
         }));
     }
 }
+
+/**
+ * Definition der Statusvariablen.
+ */
 class Variables
 {
     public const Readable = 'Readable';
@@ -73,471 +139,277 @@ class Variables
     public const Presentation2 = 'Presentation2';
     public const enableAction = 'enableAction';
     public const Mapping = 'Mapping';
-    public static $List = [
-        DataPoints::Power => [
-            self::Readable          => true,
-            self::Name              => 'State',
-            self::Type              => VARIABLETYPE_BOOLEAN,
-            self::Presentation      => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
-            ],
-            self::enableAction      => true,
-            self::Mapping           => ['on' => true, 'off' => false]
-        ],
-        DataPoints::BgPower => [
-            self::Readable          => true,
-            self::Name              => 'State Background',
-            self::Type              => VARIABLETYPE_BOOLEAN,
-            self::Presentation      => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
-            ],
-            self::enableAction      => true,
-            self::Mapping           => ['on' => true, 'off' => false]
-        ],
-        DataPoints::Bright => [
-            self::Readable          => true,
-            self::Name              => 'Brightness',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
-                'DIGITS'              => 0,
-                'CUSTOM_GRADIENT'     => '[]',
-                'ICON'                => 'brightness',
-                'GRADIENT_TYPE'       => 0,
-                'MAX'                 => 100,
-                'INTERVALS'           => '[]',
-                'INTERVALS_ACTIVE'    => false,
-                'MIN'                 => 0,
-                'PERCENTAGE'          => false,
-                'PREFIX'              => '',
-                'STEP_SIZE'           => 1,
-                'SUFFIX'              => ' %',
-                'THOUSANDS_SEPARATOR' => '',
-                'USAGE_TYPE'          => 2,
-            ],
-            self::enableAction      => true
-        ],
-        DataPoints::BgBright => [
-            self::Readable          => true,
-            self::Name              => 'Brightness Background',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
-                'DIGITS'              => 0,
-                'CUSTOM_GRADIENT'     => '[]',
-                'ICON'                => 'brightness',
-                'GRADIENT_TYPE'       => 0,
-                'MAX'                 => 100,
-                'INTERVALS'           => '[]',
-                'INTERVALS_ACTIVE'    => false,
-                'MIN'                 => 0,
-                'PERCENTAGE'          => false,
-                'PREFIX'              => '',
-                'STEP_SIZE'           => 1,
-                'SUFFIX'              => ' %',
-                'THOUSANDS_SEPARATOR' => '',
-                'USAGE_TYPE'          => 2,
-            ],
-            self::enableAction      => true
-        ],
-        DataPoints::RGB => [
-            self::Readable          => true,
-            self::Name              => 'RGB Color',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
-            ],
-            self::enableAction      => true
-        ],
-        DataPoints::BgRGB => [
-            self::Readable          => true,
-            self::Name              => 'RGB Color Background',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
-            ],
-            self::enableAction      => true
-        ],
-        DataPoints::SAT => [
-            self::Readable          => true,
-            self::Name              => 'HSV Saturation',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
-                'DIGITS'              => 0,
-                'CUSTOM_GRADIENT'     => '[]',
-                'ICON'                => 'dial-med-low',
-                'GRADIENT_TYPE'       => 0,
-                'MAX'                 => 100,
-                'INTERVALS'           => '[]',
-                'INTERVALS_ACTIVE'    => false,
-                'MIN'                 => 0,
-                'PERCENTAGE'          => false,
-                'PREFIX'              => '',
-                'STEP_SIZE'           => 1,
-                'SUFFIX'              => ' %',
-                'THOUSANDS_SEPARATOR' => '',
-                'USAGE_TYPE'          => 2,
-            ],
-            self::enableAction      => true
-        ],
-        DataPoints::BgSAT => [
-            self::Readable          => true,
-            self::Name              => 'HSV Saturation Background',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
-                'DIGITS'              => 0,
-                'CUSTOM_GRADIENT'     => '[]',
-                'ICON'                => 'dial-med-low',
-                'GRADIENT_TYPE'       => 0,
-                'MAX'                 => 100,
-                'INTERVALS'           => '[]',
-                'INTERVALS_ACTIVE'    => false,
-                'MIN'                 => 0,
-                'PERCENTAGE'          => false,
-                'PREFIX'              => '',
-                'STEP_SIZE'           => 1,
-                'SUFFIX'              => ' %',
-                'THOUSANDS_SEPARATOR' => '',
-                'USAGE_TYPE'          => 2,
-            ],
-            self::enableAction      => true
-        ],
-        DataPoints::CT => [
-            self::Readable              => true,
-            self::Name                  => 'White',
-            self::Type                  => VARIABLETYPE_INTEGER,
-            self::Presentation0         => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
-                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
-                'MIN'                => 1700,
-                'MAX'                => 6500,
-            ],
-            self::Presentation1         => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
-                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
-                'MIN'                => 1700,
-                'MAX'                => 6500,
-            ],
-            self::Presentation2         => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
-                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
-                'MIN'                => 2700,
-                'MAX'                => 6500,
-            ],
-            self::enableAction     => true
-        ],
-        DataPoints::BgCT => [
-            self::Readable              => true,
-            self::Name                  => 'White Background',
-            self::Type                  => VARIABLETYPE_INTEGER,
-            self::Presentation0         => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
-                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
-                'MIN'                => 1700,
-                'MAX'                => 6500,
-            ],
-            self::Presentation1         => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
-                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
-                'MIN'                => 1700,
-                'MAX'                => 6500,
-            ],
-            self::Presentation2         => [
-                'PRESENTATION'       => VARIABLE_PRESENTATION_SLIDER,
-                'TEMPLATE'           => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
-                'MIN'                => 2700,
-                'MAX'                => 6500,
-            ],
-            self::enableAction     => true
-        ],
-        DataPoints::ColorMode => [
-            self::Readable              => true,
-            self::Name                  => 'Current mode',
-            self::Type                  => VARIABLETYPE_INTEGER,
-            self::Presentation0         => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-                'ICON'         => '',
-                'OPTIONS'      => [
-                    [
-                        'Value'       => 1,
-                        'Caption'     => 'RGB',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 2,
-                        'Caption'     => 'White',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 3,
-                        'Caption'     => 'HSV',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ]
-                ],
-            ],
-            self::Presentation1         => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => '',
-                'OPTIONS'      => [
-                    [
-                        'Value'       => 1,
-                        'Caption'     => 'RGB',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 2,
-                        'Caption'     => 'White',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 3,
-                        'Caption'     => 'HSV',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 5,
-                        'Caption'     => 'Nightlight',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ]
-                ],
-            ],
-            self::Presentation2         => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => '',
-                'OPTIONS'      => [
-                    [
-                        'Value'       => 1,
-                        'Caption'     => 'White',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 5,
-                        'Caption'     => 'Nightlight',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ]
-                ],
-            ],
-            self::enableAction          => true
-        ],
-        DataPoints::BgColorMode => [
-            self::Readable              => true,
-            self::Name                  => 'Current mode Background',
-            self::Type                  => VARIABLETYPE_INTEGER,
-            self::Presentation0         => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => '',
-                'OPTIONS'      => [
-                    [
-                        'Value'       => 1,
-                        'Caption'     => 'RGB',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 2,
-                        'Caption'     => 'White',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 3,
-                        'Caption'     => 'HSV',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ]
-                ],
-            ],
-            self::Presentation1         => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => '',
-                'OPTIONS'      => [
-                    [
-                        'Value'       => 1,
-                        'Caption'     => 'RGB',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 2,
-                        'Caption'     => 'White',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 3,
-                        'Caption'     => 'HSV',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 5,
-                        'Caption'     => 'Nightlight',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ]
-                ],
-            ],
-            self::Presentation2         => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => '',
-                'OPTIONS'      => [
-                    [
-                        'Value'       => 1,
-                        'Caption'     => 'White',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ],
-                    [
-                        'Value'       => 5,
-                        'Caption'     => 'Nightlight',
-                        'IconActive'  => false,
-                        'IconValue'   => '',
-                        'ColorActive' => false,
-                        'ColorValue'  => -1
-                    ]
-                ],
-            ],
-            self::enableAction          => true
-        ],
-        DataPoints::HUE => [
-            self::Readable      => true,
-            self::Name          => 'HSV Hue',
-            self::Type          => VARIABLETYPE_STRING,
-            self::Presentation  => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_WEB_CONTENT
-            ]
-        ],
-        DataPoints::HSV => [
-            self::Readable          => false,
-            self::Name              => 'HSV Color',
-            self::Type              => VARIABLETYPE_STRING,
-            self::enableAction      => true,
-            self::Presentation      => [
-                'COLOR_CURVE'        => 0,
-                'COLOR_SPACE'        => 1,
-                'SELECTION'          => 0,
-                'CUSTOM_COLOR_CURVE' => '[]',
-                'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
-                'ENCODING'           => 2,
-                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
-                'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
-            ]
-        ],
-        DataPoints::BgHUE => [
-            self::Readable      => true,
-            self::Name          => 'HSV Hue Background',
-            self::Type          => VARIABLETYPE_STRING,
-            self::Presentation  => [
-                'PRESENTATION' => VARIABLE_PRESENTATION_WEB_CONTENT
-            ]
-        ],
-        DataPoints::BgHSV => [
-            self::Readable          => false,
-            self::Name              => 'HSV Color',
-            self::Type              => VARIABLETYPE_STRING,
-            self::enableAction      => true,
-            self::Presentation      => [
-                'COLOR_CURVE'        => 0,
-                'COLOR_SPACE'        => 1,
-                'SELECTION'          => 0,
-                'CUSTOM_COLOR_CURVE' => '[]',
-                'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
-                'ENCODING'           => 2,
-                'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
-                'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
-            ]
-        ],
-        DataPoints::NightLightBright => [
-            self::Readable          => true,
-            self::Name              => 'Brightness Nightlight',
-            self::Type              => VARIABLETYPE_INTEGER,
-            self::Presentation      => [
-                'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
-                'DIGITS'              => 0,
-                'CUSTOM_GRADIENT'     => '[]',
-                'ICON'                => 'brightness',
-                'GRADIENT_TYPE'       => 0,
-                'MAX'                 => 100,
-                'INTERVALS'           => '[]',
-                'INTERVALS_ACTIVE'    => false,
-                'MIN'                 => 0,
-                'PERCENTAGE'          => false,
-                'PREFIX'              => '',
-                'STEP_SIZE'           => 1,
-                'SUFFIX'              => ' %',
-                'THOUSANDS_SEPARATOR' => '',
-                'USAGE_TYPE'          => 2,
-            ],
-            self::enableAction      => false
-        ],
-        DataPoints::Flowing => [
-            self::Readable          => true,
-            self::Name              => 'Sequenz active',
-            self::Type              => VARIABLETYPE_BOOLEAN,
-            self::Presentation      => [],
-            self::enableAction      => false
-        ],
-        DataPoints::BgFlowing => [
-            self::Readable          => true,
-            self::Name              => 'Sequenz active Background',
-            self::Type              => VARIABLETYPE_BOOLEAN,
-            self::Presentation      => [],
-            self::enableAction      => false
+
+    private const PercentSlider = [
+        'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+        'DIGITS'              => 0,
+        'CUSTOM_GRADIENT'     => '[]',
+        'ICON'                => 'brightness',
+        'GRADIENT_TYPE'       => 0,
+        'MAX'                 => 100,
+        'INTERVALS'           => '[]',
+        'INTERVALS_ACTIVE'    => false,
+        'MIN'                 => 0,
+        'PERCENTAGE'          => false,
+        'PREFIX'              => '',
+        'STEP_SIZE'           => 1,
+        'SUFFIX'              => ' %',
+        'THOUSANDS_SEPARATOR' => '',
+        'USAGE_TYPE'          => 2,
+    ];
+
+    private const SaturationSlider = [
+        'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+        'DIGITS'              => 0,
+        'CUSTOM_GRADIENT'     => '[]',
+        'ICON'                => 'dial-med-low',
+        'GRADIENT_TYPE'       => 0,
+        'MAX'                 => 100,
+        'INTERVALS'           => '[]',
+        'INTERVALS_ACTIVE'    => false,
+        'MIN'                 => 0,
+        'PERCENTAGE'          => false,
+        'PREFIX'              => '',
+        'STEP_SIZE'           => 1,
+        'SUFFIX'              => ' %',
+        'THOUSANDS_SEPARATOR' => '',
+        'USAGE_TYPE'          => 2,
+    ];
+
+    private const WhiteSlider = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+        'TEMPLATE'     => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+        'MIN'          => 1700,
+        'MAX'          => 6500,
+    ];
+
+    private const WhiteSliderNightlight = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+        'TEMPLATE'     => VARIABLE_TEMPLATE_SLIDER_COLOR_TEMPERATURE,
+        'MIN'          => 2700,
+        'MAX'          => 6500,
+    ];
+
+    private const HSVColor = [
+        'COLOR_CURVE'        => 0,
+        'COLOR_SPACE'        => 1,
+        'SELECTION'          => 0,
+        'CUSTOM_COLOR_CURVE' => '[]',
+        'CUSTOM_COLOR_SPACE' => '[{"x":0.64,"y":0.33},{"x":0.3,"y":0.6},{"x":0.15,"y":0.06},{"x":0.3127,"y":0.329}]',
+        'ENCODING'           => 2,
+        'PRESENTATION'       => VARIABLE_PRESENTATION_COLOR,
+        'PRESET_VALUES'      => '[{"Color":16007990},{"Color":16761095},{"Color":10233776},{"Color":48340},{"Color":2201331},{"Color":15277667}]'
+    ];
+
+    private const OptionRGB = ['Value' => 1, 'Caption' => 'RGB', 'IconActive' => false, 'IconValue' => '', 'Color' => -1];
+    private const OptionWhite = ['Value' => 2, 'Caption' => 'White', 'IconActive' => false, 'IconValue' => '', 'Color' => -1];
+    private const OptionHSV = ['Value' => 3, 'Caption' => 'HSV', 'IconActive' => false, 'IconValue' => '', 'Color' => -1];
+    private const OptionNightlight = ['Value' => 5, 'Caption' => 'Nightlight', 'IconActive' => false, 'IconValue' => '', 'Color' => -1];
+
+    private const ModeColor = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+        'ICON'         => '',
+        'OPTIONS'      => [self::OptionRGB, self::OptionWhite, self::OptionHSV]
+    ];
+
+    private const ModeColorNightlight = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+        'ICON'         => '',
+        'OPTIONS'      => [self::OptionRGB, self::OptionWhite, self::OptionHSV, self::OptionNightlight]
+    ];
+
+    private const ModeWhiteNightlight = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
+        'ICON'         => '',
+        'OPTIONS'      => [self::OptionWhite, self::OptionNightlight]
+    ];
+
+    private const ActiveState = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+        'OPTIONS'      => [
+            ['Value' => false, 'Caption' => 'inactive', 'IconActive' => false, 'IconValue' => '', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1],
+            ['Value' => true, 'Caption' => 'active', 'IconActive' => false, 'IconValue' => '', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1]
         ]
     ];
 
+    /**
+     * Alle Statusvariablen, Schlüssel ist der Ident.
+     * Presentation0..2 werden passend zur Eigenschaft 'Mode' gewählt.
+     *
+     * @var array<string, array>
+     */
+    public static $List = [
+        DataPoints::Power => [
+            self::Readable     => true,
+            self::Name         => 'State',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Presentation => ['PRESENTATION' => VARIABLE_PRESENTATION_SWITCH],
+            self::enableAction => true,
+            self::Mapping      => ['on' => true, 'off' => false]
+        ],
+        DataPoints::BgPower => [
+            self::Readable     => true,
+            self::Name         => 'State Background',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Presentation => ['PRESENTATION' => VARIABLE_PRESENTATION_SWITCH],
+            self::enableAction => true,
+            self::Mapping      => ['on' => true, 'off' => false]
+        ],
+        DataPoints::Bright => [
+            self::Readable     => true,
+            self::Name         => 'Brightness',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => self::PercentSlider,
+            self::enableAction => true
+        ],
+        DataPoints::BgBright => [
+            self::Readable     => true,
+            self::Name         => 'Brightness Background',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => self::PercentSlider,
+            self::enableAction => true
+        ],
+        DataPoints::RGB => [
+            self::Readable     => true,
+            self::Name         => 'RGB Color',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => ['PRESENTATION' => VARIABLE_PRESENTATION_COLOR],
+            self::enableAction => true
+        ],
+        DataPoints::BgRGB => [
+            self::Readable     => true,
+            self::Name         => 'RGB Color Background',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => ['PRESENTATION' => VARIABLE_PRESENTATION_COLOR],
+            self::enableAction => true
+        ],
+        DataPoints::SAT => [
+            self::Readable     => true,
+            self::Name         => 'HSV Saturation',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => self::SaturationSlider,
+            self::enableAction => true
+        ],
+        DataPoints::BgSAT => [
+            self::Readable     => true,
+            self::Name         => 'HSV Saturation Background',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => self::SaturationSlider,
+            self::enableAction => true
+        ],
+        DataPoints::CT => [
+            self::Readable      => true,
+            self::Name          => 'White',
+            self::Type          => VARIABLETYPE_INTEGER,
+            self::Presentation0 => self::WhiteSlider,
+            self::Presentation1 => self::WhiteSlider,
+            self::Presentation2 => self::WhiteSliderNightlight,
+            self::enableAction  => true
+        ],
+        DataPoints::BgCT => [
+            self::Readable      => true,
+            self::Name          => 'White Background',
+            self::Type          => VARIABLETYPE_INTEGER,
+            self::Presentation0 => self::WhiteSlider,
+            self::Presentation1 => self::WhiteSlider,
+            self::Presentation2 => self::WhiteSliderNightlight,
+            self::enableAction  => true
+        ],
+        DataPoints::ColorMode => [
+            self::Readable      => true,
+            self::Name          => 'Current mode',
+            self::Type          => VARIABLETYPE_INTEGER,
+            self::Presentation0 => self::ModeColor,
+            self::Presentation1 => self::ModeColorNightlight,
+            self::Presentation2 => self::ModeWhiteNightlight,
+            self::enableAction  => true
+        ],
+        DataPoints::BgColorMode => [
+            self::Readable      => true,
+            self::Name          => 'Current mode Background',
+            self::Type          => VARIABLETYPE_INTEGER,
+            self::Presentation0 => self::ModeColor,
+            self::Presentation1 => self::ModeColorNightlight,
+            self::Presentation2 => self::ModeWhiteNightlight,
+            self::enableAction  => true
+        ],
+        DataPoints::HUE => [
+            self::Readable     => true,
+            self::Name         => 'HSV Hue',
+            self::Type         => VARIABLETYPE_STRING,
+            self::Presentation => ['PRESENTATION' => VARIABLE_PRESENTATION_WEB_CONTENT],
+            self::enableAction => false
+        ],
+        DataPoints::HSV => [
+            self::Readable     => false,
+            self::Name         => 'HSV Color',
+            self::Type         => VARIABLETYPE_STRING,
+            self::Presentation => self::HSVColor,
+            self::enableAction => true
+        ],
+        DataPoints::BgHUE => [
+            self::Readable     => true,
+            self::Name         => 'HSV Hue Background',
+            self::Type         => VARIABLETYPE_STRING,
+            self::Presentation => ['PRESENTATION' => VARIABLE_PRESENTATION_WEB_CONTENT],
+            self::enableAction => false
+        ],
+        DataPoints::BgHSV => [
+            self::Readable     => false,
+            self::Name         => 'HSV Color Background',
+            self::Type         => VARIABLETYPE_STRING,
+            self::Presentation => self::HSVColor,
+            self::enableAction => true
+        ],
+        DataPoints::NightLightBright => [
+            self::Readable     => true,
+            self::Name         => 'Brightness Nightlight',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => self::PercentSlider,
+            self::enableAction => false
+        ],
+        DataPoints::Flowing => [
+            self::Readable     => true,
+            self::Name         => 'Sequence active',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Presentation => self::ActiveState,
+            self::enableAction => false,
+            self::Mapping      => [0 => false, 1 => true]
+        ],
+        DataPoints::BgFlowing => [
+            self::Readable     => true,
+            self::Name         => 'Sequence active Background',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Presentation => self::ActiveState,
+            self::enableAction => false,
+            self::Mapping      => [0 => false, 1 => true]
+        ]
+    ];
+
+    /**
+     * Liefert die Darstellung einer Statusvariable passend zum Modus der Instanz.
+     *
+     * @param string $Ident Ident der Statusvariable
+     * @param int    $Mode  Wert der Eigenschaft 'Mode' (0 = Farbe, 1 = Farbe und Nachtlicht, 2 = Weiß und Nachtlicht)
+     *
+     * @return array Darstellung (Parameter wie bei MaintainVariable)
+     */
+    public static function getPresentation(string $Ident, int $Mode): array
+    {
+        $Variable = self::$List[$Ident];
+        if (array_key_exists(self::Presentation . $Mode, $Variable)) {
+            return $Variable[self::Presentation . $Mode];
+        }
+        return $Variable[self::Presentation];
+    }
 }
+
 /**
  * Definiert eine RPCException.
  */
 class RPCException extends \Exception
 {
-    public function __construct($message, $code, ?\Exception $previous = null)
+    public function __construct(string $message, int $code, ?\Exception $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
@@ -546,48 +418,52 @@ class RPCException extends \Exception
 /**
  * Enthält einen Yeelight-RPC Datensatz.
  *
- * @method void send(array $Params (mixed)) Sendet einen Request.
- *
- * @property-read int $Id Id des RPC-Objektes
+ * @property-read int|null $Id Id des RPC-Objektes
  * @property-read string $Method Command des RPC-Objektes
- * @property-read array $Params Params des RPC-Objektes
- * @phpstan-type RPC_Data_Type {RPC_Data::isCommand, RPC_Data::isResult, RPC_Data::isEvent}
- * @property-read RPC_Data_Type $Typ
+ * @property-read array|object $Params Params des RPC-Objektes
+ * @property-read int $Typ Typ der Daten (RPC_Data::$isCommand, RPC_Data::$isResult oder RPC_Data::$isEvent)
+ * @property-read object|null $Error Fehler der Antwort
+ * @property-read mixed $Result Ergebnis der Antwort
  *
- * @method void set_ct_abx(array $Params) Setzt die Farbtemperatur mit Smooth-Übergang.
- * @method void bg_set_ct_abx(array $Params) Setzt die Farbtemperatur mit Smooth-Übergang.
+ * @method void get_prop(array $Params) Liest Properties des Gerätes.
+ *
+ * @method void set_ct_abx(array $Params) Setzt die Farbtemperatur.
+ * @method void bg_set_ct_abx(array $Params) Setzt die Farbtemperatur des Hintergrunds.
+ *
+ * @method void set_rgb(array $Params) Setzt die Farbe im RGB-Farbraum.
+ * @method void bg_set_rgb(array $Params) Setzt die Farbe des Hintergrunds im RGB-Farbraum.
  *
  * @method void set_hsv(array $Params) Setzt die Farbe im HSV-Farbraum.
- * @method void bg_set_hsv(array $Params) Setzt die Farbe im HSV-Farbraum.
+ * @method void bg_set_hsv(array $Params) Setzt die Farbe des Hintergrunds im HSV-Farbraum.
  *
  * @method void set_scene(array $Params) Setzt die Szene.
- * @method void bg_set_scene(array $Params) Setzt die Szene.
+ * @method void bg_set_scene(array $Params) Setzt die Szene des Hintergrunds.
  *
  * @method void set_bright(array $Params) Setzt die Helligkeit.
- * @method void bg_set_bright(array $Params) Setzt die Helligkeit.
+ * @method void bg_set_bright(array $Params) Setzt die Helligkeit des Hintergrunds.
  *
  * @method void set_power(array $Params) Setzt den Ein-/Aus-Zustand.
- * @method void bg_set_power(array $Params) Setzt den Ein-/Aus-Zustand.
+ * @method void bg_set_power(array $Params) Setzt den Ein-/Aus-Zustand des Hintergrunds.
  *
- * @method void toogle() Schaltet den Ein-/Aus-Zustand um.
- * @method void bg_toogle() Schaltet den Ein-/Aus-Zustand um.
- * @method void dev_toogle() Schaltet beide Ein-/Aus-Zustand um.
+ * @method void toggle() Schaltet den Ein-/Aus-Zustand um.
+ * @method void bg_toggle() Schaltet den Ein-/Aus-Zustand des Hintergrunds um.
+ * @method void dev_toggle() Schaltet beide Ein-/Aus-Zustände um.
  *
- * @method void set_default() Setzt die Werkseinstellungen.
- * @method void bg_set_default() Setzt die Werkseinstellungen.
+ * @method void set_default() Speichert den aktuellen Zustand als Standard.
+ * @method void bg_set_default() Speichert den aktuellen Zustand des Hintergrunds als Standard.
  *
  * @method void start_cf(array $Params) Startet eine Farbsequenz.
- * @method void bg_start_cf(array $Params) Startet eine Farbsequenz.
+ * @method void bg_start_cf(array $Params) Startet eine Farbsequenz im Hintergrund.
  *
  * @method void stop_cf() Stoppt eine Farbsequenz.
- * @method void bg_stop_cf() Stoppt eine Farbsequenz.
+ * @method void bg_stop_cf() Stoppt eine Farbsequenz im Hintergrund.
  *
  * @method void cron_add(array $Params) Fügt einen Eintrag zum Zeitplan hinzu.
  * @method void cron_del(array $Params) Entfernt einen Eintrag aus dem Zeitplan.
  * @method void cron_get(array $Params) Liest den Zeitplan aus.
  *
  * @method void set_adjust(array $Params) Justiert die Helligkeit, Farbtemperatur oder Farbe.
- * @method void bg_set_adjust(array $Params) Justiert die Helligkeit, Farbtemperatur oder Farbe.
+ * @method void bg_set_adjust(array $Params) Justiert die Helligkeit, Farbtemperatur oder Farbe des Hintergrunds.
  *
  * @method void set_name(array $Params) Setzt den Gerätenamen.
  */
@@ -600,8 +476,7 @@ class RPC_Data
     /**
      * Typ der Daten.
      *
-     * @phpstan-type RPC_Data_Type {RPC_Data::isCommand, RPC_Data::isResult, RPC_Data::isEvent}
-     * @var RPC_Data_Type
+     * @var int|null
      */
     private $Typ;
 
@@ -610,40 +485,33 @@ class RPC_Data
      *
      * @var string
      */
-    private $Method;
+    private $Method = '';
 
     /**
      * Enthält Fehlermeldungen der Methode.
      *
-     * @var object
+     * @var object|null
      */
     private $Error;
 
     /**
      * Parameter der Methode.
      *
-     * @var object
+     * @var array|object
      */
     private $Params;
 
     /**
      * Antwort der Methode.
      *
-     * @var object
+     * @var mixed
      */
     private $Result;
 
     /**
-     * Enthält den Typ eines Event.
-     *
-     * @var object
-     */
-    private $Event;
-
-    /**
      * Id des RPC-Objektes.
      *
-     * @var int
+     * @var int|null
      */
     private $Id;
 
@@ -651,10 +519,8 @@ class RPC_Data
      * Erstellt ein RPC_Data Objekt.
      *
      * @param string $Method [optional] Name der RPC-Methode
-     * @param object $Params [optional] Parameter der Methode
-     * @param int $Id [optional] Id des RPC-Objektes
-     *
-     * @return RPC_Data
+     * @param array  $Params [optional] Parameter der Methode
+     * @param int    $Id     [optional] Id des RPC-Objektes
      */
     public function __construct(?string $Method = null, ?array $Params = null, ?int $Id = null)
     {
@@ -669,11 +535,9 @@ class RPC_Data
         }
 
         if (is_null($Id)) {
-            $this->Id = (int) round((explode(' ', microtime())[0] * 10000) + rand(0, 999));
-        } else {
-            if ($Id > 0) {
-                $this->Id = $Id;
-            }
+            $this->Id = self::NewId();
+        } elseif ($Id > 0) {
+            $this->Id = $Id;
         }
     }
 
@@ -688,10 +552,10 @@ class RPC_Data
     }
 
     /**
-     * Führt eine RPC-Methode aus.
+     * Setzt eine RPC-Methode samt Parameter.
      *
-     * @param string $name Auszuführende RPC-Methode
-     * @param array $arguments Parameter der RPC-Methode.
+     * @param string $name      Auszuführende RPC-Methode
+     * @param array  $arguments Parameter der RPC-Methode.
      */
     public function __call(string $name, array $arguments): void
     {
@@ -701,14 +565,14 @@ class RPC_Data
         } else {
             $this->Params = $arguments[0];
         }
-        $this->Id = (int) round((explode(' ', microtime())[0] * 10000) + rand(0, 999));
+        $this->Id = self::NewId();
         $this->Typ = self::$isCommand;
     }
 
     /**
      * Gibt die RPC Antwort auf eine Anfrage zurück.
      *
-     * @return array|object|mixed|RPCException Enthält die Antwort des RPC-Server. Im Fehlerfall wird ein Objekt vom Typ RPCException zurückgegeben.
+     * @return mixed Enthält die Antwort des RPC-Server. Im Fehlerfall wird ein Objekt vom Typ RPCException zurückgegeben.
      */
     public function GetResult(): mixed
     {
@@ -722,33 +586,21 @@ class RPC_Data
     }
 
     /**
-     * Gibt die Daten eines RPC-Event zurück.
-     *
-     * @return object|mixed Enthält die Daten eines RPC-Event des RPC-Server.
-     */
-    public function GetEvent(): mixed
-    {
-        if (property_exists($this, 'Event')) {
-            return $this->Event;
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * Schreibt die Daten aus $Data in das RPC_Data-Objekt.
      *
      * @param string $Data Ein JSON-kodierter RPC-String vom RPC-Server.
+     *
+     * @return bool true wenn $Data ein gültiges JSON-Objekt war.
      */
     public function CreateFromJSONString(string $Data): bool
     {
         $Json = json_decode($Data);
-        if (is_null($Json)) {
+        if (!is_object($Json)) {
             return false;
         }
 
         if (property_exists($Json, 'method')) {
-            $this->Method = $Json->method;
+            $this->Method = (string) $Json->method;
         }
 
         if (property_exists($Json, 'params')) {
@@ -756,7 +608,7 @@ class RPC_Data
         }
 
         if (property_exists($Json, 'id')) {
-            $this->Id = $Json->id;
+            $this->Id = (int) $Json->id;
         } else {
             $this->Id = null;
             $this->Typ = self::$isEvent;
@@ -775,21 +627,27 @@ class RPC_Data
     }
 
     /**
-     * Erzeugt einen, mit der GUID versehenen, JSON-kodierten String zum versand an den RPC-Server.
+     * Erzeugt einen JSON-kodierten String zum Versand an das Gerät.
      *
-     * @return string JSON-kodierter String für IPS-Dateninterface.
+     * @return string JSON-kodierter String.
      */
     public function ToJSONString(): string
     {
         $RPC = new \stdClass();
         $RPC->id = $this->Id;
         $RPC->method = $this->Method;
-        if (!is_null($this->Params)) {
-            $RPC->params = $this->Params;
-        } else {
-            $RPC->params = [];
-        }
+        $RPC->params = $this->Params ?? [];
         return json_encode($RPC);
+    }
+
+    /**
+     * Erzeugt eine neue Id für eine Anfrage.
+     *
+     * @return int
+     */
+    private static function NewId(): int
+    {
+        return random_int(1, 0x7FFFFFFF);
     }
 
     /**
@@ -799,16 +657,8 @@ class RPC_Data
      */
     private function GetErrorObject(): RPCException
     {
-        if (property_exists($this->Error, 'code')) {
-            $code = (int) $this->Error->code;
-        } else {
-            $code = 0;
-        }
-        if (property_exists($this->Error, 'message')) {
-            $message = (string) $this->Error->message;
-        } else {
-            $message = '';
-        }
+        $code = property_exists($this->Error, 'code') ? (int) $this->Error->code : 0;
+        $message = property_exists($this->Error, 'message') ? (string) $this->Error->message : '';
         return new RPCException($message, $code);
     }
 }
