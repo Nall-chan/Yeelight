@@ -25,7 +25,7 @@
     },
     "locale": {
         "de": {
-            "Set sleep timer": "Schlaf Timer setzen",
+            "Set sleep timer": "Einschlaf-Timer setzen",
             "minutes to turn off": "Minuten bis zum Ausschalten",
             "minutes": "Minuten",
             "Sets the sleep timer before the lamp turns off": "Stellt den Einschlaf-Timer ein, bevor sich die Lampe ausschaltet",

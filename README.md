@@ -3,60 +3,82 @@
 [![Symcon Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FNall-chan%2FYeelight%2Frefs%2Fheads%2Fmaster%2Flibrary.json&query=%24.compatibility.version&suffix=%3E&label=Symcon%20Version&color=green)](https://www.symcon.de/de/service/dokumentation/installation/migrationen/v80-v81-q3-2025/)  
 [![License](https://img.shields.io/badge/License-Custom--NC--SA-green.svg)](#6-lizenz)
 [![Check Style](https://github.com/Nall-chan/Yeelight/workflows/Check%20Style/badge.svg)](https://github.com/Nall-chan/Yeelight/actions) [![Run Tests](https://github.com/Nall-chan/Yeelight/workflows/Run%20Tests/badge.svg)](https://github.com/Nall-chan/Yeelight/actions)  
-[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#4-spenden)
-[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#4-spenden)  
+[![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](#3-spenden)
+[![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](#3-spenden)  
 
 # Symcon-Modul: Yeelight <!-- omit in toc -->
 
-Einbinden von Yeelight Geräten in IPS.  
+Einbinden von Yeelight-Leuchten in Symcon über die lokale LAN-Steuerung, ohne Cloud.  
 
 ## Inhaltsverzeichnis <!-- omit in toc -->  
 
 - [1. Funktionsumfang](#1-funktionsumfang)
-  - [Yeelight Discovery:](#yeelight-discovery)
-  - [Yeelight Gerät:](#yeelight-gerät)
+- [Vorbemerkungen](#vorbemerkungen)
+  - [Zur Library](#zur-library)
+  - [Zur Integration von Geräten](#zur-integration-von-geräten)
 - [2. Voraussetzungen](#2-voraussetzungen)
 - [3. Software-Installation](#3-software-installation)
-- [4. Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
+- [4. Enthaltende Module](#4-enthaltende-module)
+  - [Yeelight Discovery](#yeelight-discovery)
+  - [Yeelight Device](#yeelight-device)
 - [5. Anhang](#5-anhang)
   - [1. GUID der Module](#1-guid-der-module)
-  - [2. Hinweise](#2-hinweise)
-    - [1. LAN-Steuerung aktiveren](#1-lan-steuerung-aktiveren)
-    - [2. Discovery-Instanzen erstellen](#2-discovery-instanzen-erstellen)
-  - [3. Backlog](#3-backlog)
-  - [4. Changelog](#4-changelog)
-  - [4. Spenden](#4-spenden)
+  - [2. Changelog](#2-changelog)
+  - [3. Spenden](#3-spenden)
 - [6. Lizenz](#6-lizenz)
 
 ## 1. Funktionsumfang
 
-### [Yeelight Discovery:](YeelightDiscovery/)  
+- Findet alle Yeelight-Leuchten im lokalen Netzwerk und legt die Instanzen in Symcon an.  
+- Zeigt die Zustände der Leuchten in Statusvariablen an und aktualisiert sie sofort, wenn sich etwas an der Leuchte ändert (auch durch App oder Schalter).  
+- Steuert Ein/Aus, Helligkeit, Farbe (RGB und HSV), Weißton, Nachtlicht, Hintergrundlicht, Einschlaf-Timer, Szenen und Farbsequenzen.  
+- Bedienung über die Statusvariablen in der Kachel-Visualisierung und im WebFront, über Aktionen und über PHP-Befehle.  
 
-- Auflisten alle im Netzwerk vorhandenen Yeelight Geräte.  
-- Erstellen von neuen Yeelight Device-Instanzen in IPS.  
-- <span style="color:red">**Funktioniert nicht in einem Docker Container welcher per NAT angebunden ist**</span>
+## Vorbemerkungen
 
-### [Yeelight Gerät:](YeelightDevice/)  
+### Zur Library
 
-- Empfangen und visualisieren der aktuellen Zustände in IPS.  
-- Steuerung per WebFront und per PHP-Funktionen.  
-- <span style="color:red">**Benötigt bei NAT eine Portweiterleitung von Port 1983 UDP ankommend**</span>  
+- Die Library nutzt das offizielle lokale Protokoll von Yeelight („Yeelight Inter-Operation“). Leuchten, die nur über die Xiaomi-Cloud oder Bluetooth gesteuert werden können, werden nicht unterstützt.  
+- Welche Funktionen eine Leuchte hat (z.B. Farbe, Nachtlicht, Hintergrundlicht), meldet sie selbst. Die Instanz legt nur die passenden Statusvariablen an und lehnt Befehle ab, die die Leuchte nicht unterstützt.  
+- Die Leuchten begrenzen die Anzahl der Befehle pro Minute. Wird die Grenze überschritten („Quota exceeded“), baut die Instanz die Verbindung automatisch neu auf und sendet den Befehl erneut.  
+
+### Zur Integration von Geräten
+
+Nachdem die Leuchten mit der Hersteller-App (Yeelight, nicht Xiaomi Home) in das Netzwerk eingebunden wurden, muss die LAN-Steuerung für jede Leuchte einzeln aktiviert werden.  
+Aktuelle Versionen der App fragen dies nach dem Hinzufügen der Leuchte automatisch ab, da das Protokoll auch für die lokale Anbindung an Google Home genutzt wird.  
+
+![App1](imgs/app1.png)![App2](imgs/app2.png)![App3](imgs/app3.png)  
 
 ## 2. Voraussetzungen
 
 - Symcon ab Version 8.2  
-- Yeelight Gerät ( '3th party local control' muss aktiviert werden, siehe [hier](#1-lan-steuerung-aktiveren)  )
+- Yeelight-Leuchte mit aktivierter LAN-Steuerung (siehe [Zur Integration von Geräten](#zur-integration-von-geräten))  
+- Symcon und Leuchten im selben Netzwerk (Multicast für die Suche).  
+
+> [!IMPORTANT]
+> Die Leuchten antworten auf Anfragen mit UDP-Paketen. Eine Firewall auf dem Symcon-System muss diese ankommenden Antworten zulassen.  
+> Läuft Symcon mit NAT-Unterstützung (z.B. Docker ohne Host-Netzwerk), muss zusätzlich Port 1983 (UDP) ankommend an Symcon weitergeleitet werden. Die Discovery funktioniert in dieser Konstellation nicht, die Instanzen werden dann von Hand angelegt.  
 
 ## 3. Software-Installation
 
-  Über den 'Module-Store' in IPS das Modul 'Yeelight' hinzufügen.  
-![Module-Store](imgs/install.png)  
+Über den Module Store in der Konsole die Library 'Yeelight' hinzufügen.  
 
-## 4. Einrichten der Instanzen in IP-Symcon
+![Module Store](imgs/install.png)  
 
-Die [Discovery Instanz](YeelightDiscovery/) wird nach der Installation aus dem Store automatisch angelegt(* [siehe Hinweise](#2-discovery-instanzen-erstellen)) und ermöglicht das einfache einbinden aller Geräte in IPS.  
+Nach der Installation fragt Symcon, ob die enthaltene [Discovery-Instanz](YeelightDiscovery/) angelegt werden soll. Bei Docker mit NAT kann diese Frage verneint werden.  
 
-Eine manuelle Einrichtung der Geräte ist in der [Yeelight Geräte Instanz](YeelightDevice/) beschrieben.  
+## 4. Enthaltende Module
+
+### [Yeelight Discovery](YeelightDiscovery/)
+
+Sucht alle Yeelight-Leuchten im Netzwerk und legt die Instanzen samt Client Socket an. Bereits angelegte Instanzen werden über die Geräte-ID erkannt, auch wenn sich die IP-Adresse der Leuchte geändert hat.  
+
+### [Yeelight Device](YeelightDevice/)
+
+Bindet eine Yeelight-Leuchte über einen Client Socket ein. Stellt die Statusvariablen, Aktionen und PHP-Befehle für alle Funktionen der Leuchte bereit.  
+
+> [!TIP]
+> Instanzen am einfachsten über die Discovery anlegen. Dabei werden Client Socket und Geräte-ID gleich richtig eingetragen.  
 
 ## 5. Anhang
 
@@ -64,31 +86,11 @@ Eine manuelle Einrichtung der Geräte ist in der [Yeelight Geräte Instanz](Yeel
 
 |       Modul        |    Typ    |  Prefix  |                  GUID                  |
 | :----------------: | :-------: | :------: | :------------------------------------: |
-| Yeelight Discovery | Discovery | YeeLight | {7AABB3D2-3D24-4F2C-86CE-A56FB09D188A} |
-|  Yeelight Device   |  Device   | YeeLight | {BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F} |
+| Yeelight Discovery | Discovery | YEELIGHT | {7AABB3D2-3D24-4F2C-86CE-A56FB09D188A} |
+|  Yeelight Device   |  Device   | YEELIGHT | {BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F} |
 
-### 2. Hinweise  
+### 2. Changelog
 
-#### 1. LAN-Steuerung aktiveren  
-
-Nachdem die Geräte mit der Hersteller APP (Yeelight, nicht Xiaomi !) in das Netzwerk integriert wurden, muss die lokale Steuerung für jedes Gerät einzeln aktiviert werden.  
-Aktuelle Versionen der App fragen dies automatisch nach dem hinzufügen der Geräte ab, da dieses Protokoll auch für die lokale Google Home Anbindung benötigt wird.
-
-![App1](imgs/app1.png)![App2](imgs/app2.png)![App3](imgs/app3.png)  
-
-#### 2. Discovery-Instanzen erstellen  
-
-Nach der Installation über den 'Modul-Store' fragt Symcon ob die enthaltende [Discovery Instanz](YeelightDiscovery/) erstellt werden soll.  
-Wird Symcon allerdings unter Docker mit aktivem NAT betrieben, so kann diese Frage verneint werden.  
-Die [Yeelight Geräte Instanzen](YeelightDevice/) müssen in dieser Konstellation per Hand angelegt und konfiguriert werden.  
-
-### 3. Backlog
-
-- Aktionen und PHP-Befehle um Farbtemperatur und Helligkeit mit rotation durchschalten (Main und Hintergrund).  
-- Aktionen und PHP-Befehle um Farbe(HSV), Farbtemperatur und Helligkeit prozentual zu erhöhen oder zu verringern (Main und Hintergrund).  
-- Dokumentation der PHP-Befehlsreferenz vervollständigen.  
-
-### 4. Changelog  
 
 Version 2.16:
 
@@ -120,7 +122,7 @@ Version 2.16:
 - Fehlermeldungen werden ohne Datei- und Zeilenangabe an den Aufrufer gemeldet.  
 - Ungültige Parameter (z.B. Weißton außerhalb 1700 bis 6500 K, Modus 4) werden vor dem Senden abgelehnt.  
 - Unbekannte Eigenschaften des Gerätes erzeugen keine Log-Meldungen mehr, sondern nur Debug-Ausgaben.  
-- Die Discovery sucht auf allen Netzwerkschnittstellen gleichzeitig, die Konfigurationsseite lädt dadurch deutlich schneller.  
+- Die Discovery sucht auf allen Netzwerkschnittstellen gleichzeitig, die Konfigurationsseite lädt dadurch deutlich schneller. Die Höhe der Geräteliste passt sich der Anzahl der Einträge an.  
 - Yeelight Device hat die neue Eigenschaft 'Geräte ID'. Die Discovery trägt sie beim Anlegen ein und ordnet Geräte zuerst über diese ID zu. Eine geänderte IP-Adresse wird so erkannt und die Zeile grau dargestellt. Instanzen ohne Geräte ID werden weiterhin über den Host des Client Socket zugeordnet. Die vom Gerät gemeldete ID kann in der Instanzkonfiguration übernommen werden.  
 
 **Behobene falsche Werte in Statusvariablen**
@@ -135,7 +137,7 @@ Version 2.16:
 - `YEELIGHT_GetSleep` lieferte nie die Restlaufzeit.  
 - `YEELIGHT_SetRGBSmooth` und `YEELIGHT_SetBgRGBSmooth` ignorierten die Übergangszeit.  
 - Aktion 'Hintergrundhelligkeit verringern' hat die Helligkeit erhöht.  
-- Aktion 'Speicher Standard für Hintergrund' hat den Standard des Hauptlichts gespeichert.  
+- Aktion 'Hintergrund als Standard speichern' hat den Standard des Hauptlichts gespeichert.  
 - Aktion 'Einschalten / Modus setzen' mit 'Farbe (HSV)' hat eine Farbsequenz gestartet.  
 - Nach einem automatischen Neuverbinden (Quota exceeded) meldete der Befehl einen Fehler, obwohl er ausgeführt wurde.  
 - Debug-Ausgaben von Ereignissen mit Zahlenwerten brachen mit einem Fehler ab.  
@@ -199,15 +201,17 @@ Version 1.00:
 
 - Erstes offizielles Release  
 
-### 4. Spenden  
-  
-  Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
+### 3. Spenden
 
+Die Library ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:  
+
+PayPal:  
 [![PayPal.Me](https://img.shields.io/badge/PayPal-Me-lightblue.svg)](https://paypal.me/Nall4chan)  
 
+Wunschliste:  
 [![Wunschliste](https://img.shields.io/badge/Wunschliste-Amazon-ff69fb.svg)](https://www.amazon.de/hz/wishlist/ls/YU4AI9AQT9F?ref_=wl_share)  
 
 ## 6. Lizenz
 
-IPS-Modul:  
+Symcon-Modul:  
 [Custom NC-SA](LICENSE)  

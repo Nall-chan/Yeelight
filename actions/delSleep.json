@@ -18,7 +18,7 @@
     },
     "locale": {
         "de": {
-            "Delete sleep timer": "Schlaf Timer löschen",
+            "Delete sleep timer": "Einschlaf-Timer löschen",
             "Deletes the sleep timer": "Löscht den Einschlaf-Timer"
         }
     },

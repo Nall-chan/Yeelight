@@ -18,7 +18,7 @@
     },
     "locale": {
         "de": {
-            "Save default": "Speicher Standard",
+            "Save default": "Als Standard speichern",
             "Save current state as new default values": "Speichert den aktuellen Zustand als neue Standardwerte"
         }
     },

@@ -39,6 +39,10 @@ class YeelightDiscovery extends IPSModuleStrict
 
     /** Suchzeit in Sekunden für alle Interfaces gemeinsam. */
     private const DiscoveryTime = 3;
+    /** Zeilen der Geräteliste zusätzlich zu den Einträgen. */
+    private const MinRowCount = 5;
+    /** Höchstzahl sichtbarer Zeilen der Geräteliste. */
+    private const MaxRowCount = 30;
 
     /**
      * Interne Funktion des SDK.
@@ -134,6 +138,8 @@ class YeelightDiscovery extends IPSModuleStrict
             ];
         }
         $Form['actions'][0]['values'] = $DeviceValues;
+        // Höhe der Liste an die Anzahl der Einträge anpassen (5 Zeilen Reserve, höchstens 30)
+        $Form['actions'][0]['rowCount'] = min(self::MaxRowCount, self::MinRowCount + count($DeviceValues));
         $this->SendDebug('FORM', json_encode($Form), 0);
         $this->SendDebug('FORM', json_last_error_msg(), 0);
         return json_encode($Form);

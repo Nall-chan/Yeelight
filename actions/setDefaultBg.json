@@ -18,7 +18,7 @@
     },
     "locale": {
         "de": {
-            "Save default for background": "Speicher Standard für Hintergrund",
+            "Save default for background": "Hintergrund als Standard speichern",
             "Save current state as new default values for background": "Speichert den aktuellen Zustand als neue Standardwerte für den Hintergrund"
         }
     },
