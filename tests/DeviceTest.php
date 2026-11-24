@@ -134,6 +134,33 @@ class DeviceTest extends TestCase
         $this->assertFalse(@IPS_GetObjectIDByIdent('hue', $Iid));
     }
 
+    public function testNightLightBrightnessIsSwitchable(): void
+    {
+        [$Iid, $Intf] = $this->CreateDevice(['Mode' => 1]);
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"nl_br":20}}');
+        $this->assertTrue(HasAction($this->Id($Iid, 'nl_br')));
+        ob_start();
+        $this->assertFalse($Intf->SetNightLightBrightness(101));
+        $this->assertSame(sprintf($Intf->Translate('%s out of range.'), 'Level') . PHP_EOL, ob_get_clean());
+    }
+
+    public function testSceneParameterChecks(): void
+    {
+        [, $Intf] = $this->CreateDevice();
+        $Cases = [
+            [fn () => $Intf->SetSceneColor(0x1000000, 50), 'Color'],
+            [fn () => $Intf->SetSceneHSV(10, 101, 50), 'Saturation'],
+            [fn () => $Intf->SetSceneWhite(7000, 50), 'Temperature'],
+            [fn () => $Intf->SetBgSceneColor(0xFF0000, 120), 'Level'],
+            [fn () => $Intf->SetSceneAutoOff(50, 0), 'Minutes']
+        ];
+        foreach ($Cases as [$Call, $Parameter]) {
+            ob_start();
+            $this->assertFalse($Call());
+            $this->assertSame(sprintf($Intf->Translate('%s out of range.'), $Parameter) . PHP_EOL, ob_get_clean(), $Parameter);
+        }
+    }
+
     public function testAdjustRangeCheck(): void
     {
         [, $Intf] = $this->CreateDevice();

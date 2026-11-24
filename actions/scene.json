@@ -1,0 +1,137 @@
+{
+    "id": "{F874FD28-B978-4656-8EF1-5D10DB21A7C4}",
+    "caption": "Turn on light with scene",
+    "form": [
+        {
+            "caption": "Scene",
+            "name": "TYPE",
+            "type": "Select",
+            "options": [
+                {
+                    "caption": "Color (RGB)",
+                    "value": 0
+                },
+                {
+                    "caption": "Color (HSV)",
+                    "value": 1
+                },
+                {
+                    "caption": "White",
+                    "value": 2
+                },
+                {
+                    "caption": "Turn off automatically",
+                    "value": 3
+                }
+            ]
+        },
+        {
+            "caption": "Color (only with Color (RGB))",
+            "name": "COLOR",
+            "type": "SelectColor",
+            "allowTransparent": false
+        },
+        {
+            "caption": "Hue (only with Color (HSV))",
+            "name": "HUE",
+            "type": "NumberSpinner",
+            "minimum": 0,
+            "maximum": 359,
+            "suffix": " °"
+        },
+        {
+            "caption": "Saturation (only with Color (HSV))",
+            "name": "SATURATION",
+            "type": "HorizontalSlider",
+            "minimum": 0,
+            "maximum": 100
+        },
+        {
+            "caption": "Color temperature (only with White)",
+            "name": "TEMP",
+            "type": "HorizontalSlider",
+            "minimum": 1700,
+            "maximum": 6500
+        },
+        {
+            "caption": "Brightness",
+            "name": "BRIGHTNESS",
+            "type": "HorizontalSlider",
+            "minimum": 1,
+            "maximum": 100
+        },
+        {
+            "caption": "Minutes until off (only with Turn off automatically)",
+            "name": "MINUTES",
+            "type": "NumberSpinner",
+            "minimum": 1,
+            "maximum": 1440,
+            "suffix": " min"
+        }
+    ],
+    "action": [
+        "switch ($_IPS['TYPE']) {",
+        "    case 0:",
+        "        YEELIGHT_SetSceneColor($_IPS['TARGET'], $_IPS['COLOR'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 1:",
+        "        YEELIGHT_SetSceneHSV($_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 2:",
+        "        YEELIGHT_SetSceneWhite($_IPS['TARGET'], $_IPS['TEMP'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 3:",
+        "        YEELIGHT_SetSceneAutoOff($_IPS['TARGET'], $_IPS['BRIGHTNESS'], $_IPS['MINUTES']);",
+        "        break;",
+        "}"
+    ],
+    "readable": [
+        "switch ($_IPS['TYPE']) {",
+        "    case 0:",
+        "        printf('YEELIGHT_SetSceneColor(%d, %d, %d);', $_IPS['TARGET'], $_IPS['COLOR'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 1:",
+        "        printf('YEELIGHT_SetSceneHSV(%d, %d, %d, %d);', $_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 2:",
+        "        printf('YEELIGHT_SetSceneWhite(%d, %d, %d);', $_IPS['TARGET'], $_IPS['TEMP'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 3:",
+        "        printf('YEELIGHT_SetSceneAutoOff(%d, %d, %d);', $_IPS['TARGET'], $_IPS['BRIGHTNESS'], $_IPS['MINUTES']);",
+        "        break;",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Scene": "Szene",
+            "Color (RGB)": "Farbe (RGB)",
+            "Color (HSV)": "Farbe (HSV)",
+            "White": "Weiß",
+            "Color (only with Color (RGB))": "Farbe (nur bei Farbe (RGB))",
+            "Hue (only with Color (HSV))": "Farbton (nur bei Farbe (HSV))",
+            "Saturation (only with Color (HSV))": "Sättigung (nur bei Farbe (HSV))",
+            "Color temperature (only with White)": "Farbtemperatur (nur bei Weiß)",
+            "Brightness": "Helligkeit",
+            "Turn off automatically": "Automatisch ausschalten",
+            "Minutes until off (only with Turn off automatically)": "Minuten bis aus (nur bei Automatisch ausschalten)",
+            "Turn on light with scene": "Licht mit Szene einschalten",
+            "Turns on the light directly with color, white or brightness, also when it is off": "Schaltet das Licht direkt mit Farbe, Weißton oder Helligkeit ein, auch wenn es aus ist",
+            "Turn on with {TYPE, select, 0 {color} 1 {HSV color} 2 {white} 3 {auto off after {MINUTES} min} other {}} at {BRIGHTNESS} %": "Mit {TYPE, select, 0 {Farbe} 1 {HSV-Farbe} 2 {Weiß} 3 {automatisch aus nach {MINUTES} min} other {}} und {BRIGHTNESS} % einschalten"
+        }
+    },
+    "format": "Turn on with {TYPE, select, 0 {color} 1 {HSV color} 2 {white} 3 {auto off after {MINUTES} min} other {}} at {BRIGHTNESS} %",
+    "description": "Turns on the light directly with color, white or brightness, also when it is off"
+}

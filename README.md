@@ -101,7 +101,9 @@ Version 2.16:
 **Neue Funktionen und Aktionen**
 
 - Yeelight Device: `YEELIGHT_AdjustBrightness`, `YEELIGHT_AdjustWhiteTemp`, `YEELIGHT_AdjustColor` sowie `YEELIGHT_AdjustBgBrightness`, `YEELIGHT_AdjustBgWhiteTemp`, `YEELIGHT_AdjustBgColor` ändern Helligkeit, Farbtemperatur bzw. Farbe prozentual.  
-- Aktionen: Licht umschalten (Haupt-, Hintergrund- und beide Lichter), Farbe (HSV) setzen (auch Hintergrund), Hintergrundfarbe durchwechseln, Licht bzw. Hintergrundlicht prozentual ändern.  
+- Yeelight Device: `YEELIGHT_SetNightLightBrightness` schaltet das Nachtlicht mit der angegebenen Helligkeit ein, 'Helligkeit Nachtlicht' ist bedienbar.  
+- Yeelight Device: `YEELIGHT_SetSceneColor`, `YEELIGHT_SetSceneHSV`, `YEELIGHT_SetSceneWhite` (auch `…Bg…` für den Hintergrund) und `YEELIGHT_SetSceneAutoOff` schalten direkt mit Farbe, Weißton bzw. Einschlaf-Timer und Helligkeit ein, auch aus dem ausgeschalteten Zustand.  
+- Aktionen: Licht umschalten (Haupt-, Hintergrund- und beide Lichter), Farbe (HSV) setzen (auch Hintergrund), Hintergrundfarbe durchwechseln, Licht bzw. Hintergrundlicht prozentual ändern, Nachtlicht einschalten, Licht bzw. Hintergrundlicht mit Szene einschalten.  
 
 **Neue Statusvariablen**
 
@@ -136,6 +138,7 @@ Version 2.16:
 - Nach einem automatischen Neuverbinden (Quota exceeded) meldete der Befehl einen Fehler, obwohl er ausgeführt wurde.  
 - Debug-Ausgaben von Ereignissen mit Zahlenwerten brachen mit einem Fehler ab.  
 - Die Discovery erkannte Docker mit NAT nicht zuverlässig.  
+- Nach einem Neustart von Symcon konnten einzelne Instanzen die Fähigkeiten ihres Gerätes nicht ermitteln (Status 201), weil alle Instanzen gleichzeitig auf Port 1983 abgefragt haben.  
 - Ein geänderter Host am Client Socket wurde erst nach einem Neustart der Instanz berücksichtigt.  
 
 Version 2.15:

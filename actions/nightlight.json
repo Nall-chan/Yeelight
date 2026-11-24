@@ -1,0 +1,42 @@
+{
+    "id": "{0F98F473-6526-413A-A2A3-157D1D127485}",
+    "caption": "Turn on nightlight",
+    "form": [
+        {
+            "caption": "Brightness",
+            "name": "BRIGHTNESS",
+            "type": "HorizontalSlider",
+            "minimum": 1,
+            "maximum": 100
+        }
+    ],
+    "action": [
+        "YEELIGHT_SetNightLightBrightness($_IPS['TARGET'], $_IPS['BRIGHTNESS']);"
+    ],
+    "readable": [
+        "printf('YEELIGHT_SetNightLightBrightness(%d, %d);', $_IPS['TARGET'], $_IPS['BRIGHTNESS']);"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Turn on nightlight": "Nachtlicht einschalten",
+            "Brightness": "Helligkeit",
+            "Turns on the nightlight with the given brightness": "Schaltet das Nachtlicht mit der angegebenen Helligkeit ein",
+            "Turn on nightlight with {BRIGHTNESS} % brightness": "Nachtlicht mit {BRIGHTNESS} % Helligkeit einschalten"
+        }
+    },
+    "format": "Turn on nightlight with {BRIGHTNESS} % brightness",
+    "description": "Turns on the nightlight with the given brightness"
+}

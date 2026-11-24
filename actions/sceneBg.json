@@ -1,0 +1,117 @@
+{
+    "id": "{7EEDAF04-C79D-413C-A7BF-CD311EBBB12A}",
+    "caption": "Turn on background light with scene",
+    "form": [
+        {
+            "caption": "Scene",
+            "name": "TYPE",
+            "type": "Select",
+            "options": [
+                {
+                    "caption": "Color (RGB)",
+                    "value": 0
+                },
+                {
+                    "caption": "Color (HSV)",
+                    "value": 1
+                },
+                {
+                    "caption": "White",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "caption": "Color (only with Color (RGB))",
+            "name": "COLOR",
+            "type": "SelectColor",
+            "allowTransparent": false
+        },
+        {
+            "caption": "Hue (only with Color (HSV))",
+            "name": "HUE",
+            "type": "NumberSpinner",
+            "minimum": 0,
+            "maximum": 359,
+            "suffix": " °"
+        },
+        {
+            "caption": "Saturation (only with Color (HSV))",
+            "name": "SATURATION",
+            "type": "HorizontalSlider",
+            "minimum": 0,
+            "maximum": 100
+        },
+        {
+            "caption": "Color temperature (only with White)",
+            "name": "TEMP",
+            "type": "HorizontalSlider",
+            "minimum": 1700,
+            "maximum": 6500
+        },
+        {
+            "caption": "Brightness",
+            "name": "BRIGHTNESS",
+            "type": "HorizontalSlider",
+            "minimum": 1,
+            "maximum": 100
+        }
+    ],
+    "action": [
+        "switch ($_IPS['TYPE']) {",
+        "    case 0:",
+        "        YEELIGHT_SetBgSceneColor($_IPS['TARGET'], $_IPS['COLOR'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 1:",
+        "        YEELIGHT_SetBgSceneHSV($_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 2:",
+        "        YEELIGHT_SetBgSceneWhite($_IPS['TARGET'], $_IPS['TEMP'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "}"
+    ],
+    "readable": [
+        "switch ($_IPS['TYPE']) {",
+        "    case 0:",
+        "        printf('YEELIGHT_SetBgSceneColor(%d, %d, %d);', $_IPS['TARGET'], $_IPS['COLOR'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 1:",
+        "        printf('YEELIGHT_SetBgSceneHSV(%d, %d, %d, %d);', $_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "    case 2:",
+        "        printf('YEELIGHT_SetBgSceneWhite(%d, %d, %d);', $_IPS['TARGET'], $_IPS['TEMP'], $_IPS['BRIGHTNESS']);",
+        "        break;",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Scene": "Szene",
+            "Color (RGB)": "Farbe (RGB)",
+            "Color (HSV)": "Farbe (HSV)",
+            "White": "Weiß",
+            "Color (only with Color (RGB))": "Farbe (nur bei Farbe (RGB))",
+            "Hue (only with Color (HSV))": "Farbton (nur bei Farbe (HSV))",
+            "Saturation (only with Color (HSV))": "Sättigung (nur bei Farbe (HSV))",
+            "Color temperature (only with White)": "Farbtemperatur (nur bei Weiß)",
+            "Brightness": "Helligkeit",
+            "Turn on background light with scene": "Hintergrundlicht mit Szene einschalten",
+            "Turns on the background light directly with color, white or brightness, also when it is off": "Schaltet das Hintergrundlicht direkt mit Farbe, Weißton oder Helligkeit ein, auch wenn es aus ist",
+            "Turn on with {TYPE, select, 0 {color} 1 {HSV color} 2 {white} other {}} at {BRIGHTNESS} %": "Mit {TYPE, select, 0 {Farbe} 1 {HSV-Farbe} 2 {Weiß} other {}} und {BRIGHTNESS} % einschalten"
+        }
+    },
+    "format": "Turn on with {TYPE, select, 0 {color} 1 {HSV color} 2 {white} other {}} at {BRIGHTNESS} %",
+    "description": "Turns on the background light directly with color, white or brightness, also when it is off"
+}

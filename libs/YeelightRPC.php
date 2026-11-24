@@ -74,6 +74,10 @@ class Network
     public const SsdpLocalPort = 1983;
     /** Multicast-Adresse der SSDP-Suche. */
     public const SsdpMulticast = '239.255.255.250';
+    /** Globale Semaphore für Port 1983, damit Instanzen und Discovery ihn nacheinander nutzen. */
+    public const SsdpLock = 'Yeelight.SSDP1983';
+    /** Wartezeit auf die Semaphore in Millisekunden. */
+    public const SsdpLockTimeout = 10000;
 }
 
 /**
@@ -403,7 +407,7 @@ class Variables
             self::Name         => 'Brightness Nightlight',
             self::Type         => VARIABLETYPE_INTEGER,
             self::Presentation => self::PercentSlider,
-            self::enableAction => false
+            self::enableAction => true
         ],
         DataPoints::Flowing => [
             self::Readable     => true,

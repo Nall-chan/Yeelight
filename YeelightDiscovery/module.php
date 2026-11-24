@@ -216,6 +216,12 @@ class YeelightDiscovery extends IPSModuleStrict
         $SendData = implode("\r\n", $message) . "\r\n\r\n";
         $this->SendDebug('Search', $SendData, 0);
 
+        // Port 1983 nutzen auch die Geräte-Instanzen (Abfrage der Fähigkeiten), daher nacheinander.
+        $Locked = IPS_SemaphoreEnter(Network::SsdpLock, Network::SsdpLockTimeout);
+        if (!$Locked) {
+            $this->SendDebug('Search', 'Port ' . Network::SsdpLocalPort . ' is busy, search anyway', 0);
+        }
+
         // Alle Sockets öffnen und die Suche senden
         $Sockets = [];
         foreach ($Interfaces['ipv4'] as $IP => $Interface) {
@@ -261,6 +267,9 @@ class YeelightDiscovery extends IPSModuleStrict
         }
         foreach ($Sockets as $socket) {
             socket_close($socket);
+        }
+        if ($Locked) {
+            IPS_SemaphoreLeave(Network::SsdpLock);
         }
         return $this->ParseResponses($Responses);
     }

@@ -193,6 +193,9 @@ class YeelightDevice extends IPSModuleStrict
                     $this->SetBrightness($HSV[2]);
                 }
                 break;
+            case DataPoints::NightLightBright:
+                $this->SetNightLightBrightness((int) $Value);
+                break;
             case DataPoints::DelayOff:
                 if ((int) $Value > 0) {
                     $this->SetSleep((int) $Value);
@@ -1011,6 +1014,128 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
+     * Schaltet ein und setzt Farbe und Helligkeit (set_scene "color"), auch aus dem ausgeschalteten Zustand.
+     *
+     * @param int $Color      RGB-Farbe (0 bis 0xFFFFFF)
+     * @param int $Brightness Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetSceneColor(int $Color, int $Brightness): bool
+    {
+        return $this->SendSceneColor('set_scene', $Color, $Brightness);
+    }
+
+    /**
+     * Schaltet den Hintergrund ein und setzt Farbe und Helligkeit (bg_set_scene "color").
+     *
+     * @param int $Color      RGB-Farbe (0 bis 0xFFFFFF)
+     * @param int $Brightness Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgSceneColor(int $Color, int $Brightness): bool
+    {
+        return $this->SendSceneColor('bg_set_scene', $Color, $Brightness);
+    }
+
+    /**
+     * Schaltet ein und setzt Farbton, Sättigung und Helligkeit (set_scene "hsv").
+     *
+     * @param int $HUE        Farbton (0 bis 359)
+     * @param int $Saturation Sättigung (0 bis 100)
+     * @param int $Brightness Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetSceneHSV(int $HUE, int $Saturation, int $Brightness): bool
+    {
+        return $this->SendSceneHSV('set_scene', $HUE, $Saturation, $Brightness);
+    }
+
+    /**
+     * Schaltet den Hintergrund ein und setzt Farbton, Sättigung und Helligkeit (bg_set_scene "hsv").
+     *
+     * @param int $HUE        Farbton (0 bis 359)
+     * @param int $Saturation Sättigung (0 bis 100)
+     * @param int $Brightness Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgSceneHSV(int $HUE, int $Saturation, int $Brightness): bool
+    {
+        return $this->SendSceneHSV('bg_set_scene', $HUE, $Saturation, $Brightness);
+    }
+
+    /**
+     * Schaltet ein und setzt Weißton und Helligkeit (set_scene "ct").
+     *
+     * @param int $Temperature Weißton in Kelvin (1700 bis 6500)
+     * @param int $Brightness  Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetSceneWhite(int $Temperature, int $Brightness): bool
+    {
+        return $this->SendSceneWhite('set_scene', $Temperature, $Brightness);
+    }
+
+    /**
+     * Schaltet den Hintergrund ein und setzt Weißton und Helligkeit (bg_set_scene "ct").
+     *
+     * @param int $Temperature Weißton in Kelvin (1700 bis 6500)
+     * @param int $Brightness  Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetBgSceneWhite(int $Temperature, int $Brightness): bool
+    {
+        return $this->SendSceneWhite('bg_set_scene', $Temperature, $Brightness);
+    }
+
+    /**
+     * Schaltet mit der angegebenen Helligkeit ein und nach Ablauf der Minuten aus (set_scene "auto_delay_off").
+     *
+     * @param int $Brightness Helligkeit in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     * @param int $Minutes    Minuten bis zum Ausschalten (ab 1)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetSceneAutoOff(int $Brightness, int $Minutes): bool
+    {
+        $Brightness = $this->CheckBrightness($Brightness);
+        if ($Brightness === false) {
+            return false;
+        }
+        if ($Minutes < 1) {
+            echo sprintf($this->Translate('%s out of range.'), 'Minutes') . PHP_EOL;
+            return false;
+        }
+        if (!$this->SendCommand('set_scene', ['auto_delay_off', $Brightness, $Minutes])) {
+            return false;
+        }
+        $this->UpdateSleepTimer($Minutes);
+        return true;
+    }
+
+    /**
+     * Schaltet das Nachtlicht mit der angegebenen Helligkeit ein (set_scene "nightlight").
+     * Quelle: Yeelight Forum, Developer API, Beitrag 2 (2017), nicht in der Spezifikation enthalten.
+     *
+     * @param int $Level Helligkeit des Nachtlichts in Prozent (0 bis 100, 0 wird als 1 gesendet)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function SetNightLightBrightness(int $Level): bool
+    {
+        $Level = $this->CheckBrightness($Level);
+        if ($Level === false) {
+            return false;
+        }
+        return $this->SendCommand('set_scene', ['nightlight', $Level]);
+    }
+
+    /**
      * Setzt den im Gerät gespeicherten Namen.
      *
      * @param string $Name Neuer Name
@@ -1320,6 +1445,71 @@ class YeelightDevice extends IPSModuleStrict
     private function SendCommand(string $Method, array $Params = []): bool
     {
         return $this->Send(new RPC_Data($Method, $Params)) !== false;
+    }
+
+    /**
+     * Sendet eine Szene "color".
+     *
+     * @param string $Method     set_scene oder bg_set_scene
+     * @param int    $Color      RGB-Farbe
+     * @param int    $Brightness Helligkeit in Prozent
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    private function SendSceneColor(string $Method, int $Color, int $Brightness): bool
+    {
+        if (($Color < 0) || ($Color > 0xFFFFFF)) {
+            echo sprintf($this->Translate('%s out of range.'), 'Color') . PHP_EOL;
+            return false;
+        }
+        $Brightness = $this->CheckBrightness($Brightness);
+        if ($Brightness === false) {
+            return false;
+        }
+        return $this->SendCommand($Method, ['color', $Color, $Brightness]);
+    }
+
+    /**
+     * Sendet eine Szene "hsv".
+     *
+     * @param string $Method     set_scene oder bg_set_scene
+     * @param int    $HUE        Farbton
+     * @param int    $Saturation Sättigung
+     * @param int    $Brightness Helligkeit in Prozent
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    private function SendSceneHSV(string $Method, int $HUE, int $Saturation, int $Brightness): bool
+    {
+        if (!$this->CheckHSV($HUE, $Saturation)) {
+            return false;
+        }
+        $Brightness = $this->CheckBrightness($Brightness);
+        if ($Brightness === false) {
+            return false;
+        }
+        return $this->SendCommand($Method, ['hsv', $HUE, $Saturation, $Brightness]);
+    }
+
+    /**
+     * Sendet eine Szene "ct".
+     *
+     * @param string $Method      set_scene oder bg_set_scene
+     * @param int    $Temperature Weißton in Kelvin
+     * @param int    $Brightness  Helligkeit in Prozent
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    private function SendSceneWhite(string $Method, int $Temperature, int $Brightness): bool
+    {
+        if (!$this->CheckWhite($Temperature)) {
+            return false;
+        }
+        $Brightness = $this->CheckBrightness($Brightness);
+        if ($Brightness === false) {
+            return false;
+        }
+        return $this->SendCommand($Method, ['ct', $Temperature, $Brightness]);
     }
 
     /**
@@ -1654,6 +1844,8 @@ class YeelightDevice extends IPSModuleStrict
 
     /**
      * Fragt alle Fähigkeiten und Eigenschaften des Gerätes per SSDP ab und speichert diese im Buffer.
+     * Alle Instanzen und die Discovery empfangen auf Port 1983. Fragen mehrere gleichzeitig (Neustart, Modul neu laden),
+     * landet die Antwort ggf. am falschen Socket. Daher wird der Port über eine globale Semaphore nacheinander genutzt.
      *
      * @return bool true wenn die Fähigkeiten ermittelt wurden
      */
@@ -1664,6 +1856,24 @@ class YeelightDevice extends IPSModuleStrict
         if ($this->Host == '') {
             return false;
         }
+        if (!IPS_SemaphoreEnter(Network::SsdpLock, Network::SsdpLockTimeout)) {
+            $this->SendDebug('Ask capabilities', 'Port ' . Network::SsdpLocalPort . ' is busy', 0);
+            return false;
+        }
+        try {
+            return $this->QueryCapabilities();
+        } finally {
+            IPS_SemaphoreLeave(Network::SsdpLock);
+        }
+    }
+
+    /**
+     * Führt die SSDP-Abfrage der Fähigkeiten aus (Aufruf nur über GetCapabilities).
+     *
+     * @return bool true wenn die Fähigkeiten ermittelt wurden
+     */
+    private function QueryCapabilities(): bool
+    {
         $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if (!$socket) {
             return false;
