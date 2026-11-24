@@ -313,7 +313,19 @@ bool YEELIGHT_StartMusicMode(integer $InstanzID, string $Host, integer $Port);
 bool YEELIGHT_StopMusicMode(integer $InstanzID);
 ```
 
-Die Leuchte verbindet sich als TCP-Client zu einem eigenen TCP-Server unter `$Host` (IP-Adresse) und `$Port`. Über diese Verbindung kann ein anderes Programm Befehle ohne Begrenzung pro Minute senden, z.B. für Lichteffekte zur Musik. Den Server muss der Nutzer bereitstellen, die Instanz steuert die Leuchte weiterhin über ihre eigene Verbindung. `StopMusicMode` beendet den Musikmodus, ohne laufenden Musikmodus meldet die Leuchte einen Fehler.  
+Die Leuchte verbindet sich als TCP-Client zu einem eigenen TCP-Server unter `$Host` (IP-Adresse) und `$Port`, z.B. einer 'Server Socket' Instanz in Symcon. Über diese Verbindung kann ein anderes Programm oder Skript Befehle ohne Begrenzung pro Minute senden, z.B. für Lichteffekte zur Musik. Die Befehle haben dasselbe JSON-Format wie in der Yeelight-Spezifikation, jeweils mit `\r\n` abgeschlossen.  
+
+`StopMusicMode` beendet den Musikmodus und liest danach alle Werte der Leuchte neu. Ohne laufenden Musikmodus meldet die Leuchte einen Fehler.  
+
+> [!NOTE]
+> Solange der Musikmodus läuft, meldet die Leuchte keine Änderungen. Die Statusvariablen werden erst nach `StopMusicMode` wieder aktualisiert. Die Instanz kann die Leuchte in dieser Zeit weiterhin über ihre eigene Verbindung steuern.  
+
+```php
+// Musikmodus mit einer Server Socket Instanz (Port 18000) auf dem Symcon-System 192.168.1.10
+YEELIGHT_StartMusicMode(12345, '192.168.1.10', 18000);
+SSCK_SendText(54321, json_encode(['id' => 1, 'method' => 'set_rgb', 'params' => [0x00FF00, 'smooth', 300]]) . "\r\n");
+YEELIGHT_StopMusicMode(12345);
+```
 
 ### Sonstiges
 

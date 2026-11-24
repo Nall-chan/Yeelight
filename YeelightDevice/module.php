@@ -1159,13 +1159,17 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
-     * Beendet den Musikmodus.
+     * Beendet den Musikmodus und liest danach alle Werte neu.
+     * Im Musikmodus sendet das Gerät keine Ereignisse, die Statusvariablen sind danach ggf. veraltet (live geprüft).
      *
      * @return bool true bei Erfolg, sonst false
      */
     public function StopMusicMode(): bool
     {
-        return $this->SendCommand('set_music', [0]);
+        if (!$this->SendCommand('set_music', [0])) {
+            return false;
+        }
+        return $this->RequestState();
     }
 
     /**

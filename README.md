@@ -106,7 +106,7 @@ Version 2.16:
 - Yeelight Device: `YEELIGHT_AdjustBrightness`, `YEELIGHT_AdjustWhiteTemp`, `YEELIGHT_AdjustColor` sowie `YEELIGHT_AdjustBgBrightness`, `YEELIGHT_AdjustBgWhiteTemp`, `YEELIGHT_AdjustBgColor` ändern Helligkeit, Farbtemperatur bzw. Farbe prozentual.  
 - Yeelight Device: `YEELIGHT_SetNightLightBrightness` schaltet das Nachtlicht mit der angegebenen Helligkeit ein, 'Helligkeit Nachtlicht' ist bedienbar.  
 - Yeelight Device: `YEELIGHT_SetSceneColor`, `YEELIGHT_SetSceneHSV`, `YEELIGHT_SetSceneWhite` (auch `…Bg…` für den Hintergrund) und `YEELIGHT_SetSceneAutoOff` schalten direkt mit Farbe, Weißton bzw. Einschlaf-Timer und Helligkeit ein, auch aus dem ausgeschalteten Zustand.  
-- Yeelight Device: `YEELIGHT_StartMusicMode` und `YEELIGHT_StopMusicMode` verbinden das Gerät mit einem eigenen TCP-Server (Musikmodus) bzw. beenden diese Verbindung.  
+- Yeelight Device: `YEELIGHT_StartMusicMode` und `YEELIGHT_StopMusicMode` verbinden das Gerät mit einem eigenen TCP-Server (Musikmodus, z.B. eine Server Socket Instanz) bzw. beenden diese Verbindung. Nach dem Beenden werden alle Statusvariablen neu gelesen.  
 - Aktionen: Licht umschalten (Haupt-, Hintergrund- und beide Lichter), Farbe (HSV) setzen (auch Hintergrund), Hintergrundfarbe durchwechseln, Licht bzw. Hintergrundlicht prozentual ändern, Nachtlicht einschalten, Licht bzw. Hintergrundlicht mit Szene einschalten, Musikmodus starten oder beenden.  
 
 **Neue Statusvariablen**
