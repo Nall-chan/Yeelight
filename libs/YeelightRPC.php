@@ -38,6 +38,8 @@ class Property
     public const HUESlider = 'HUESlider';
     public const SetSmooth = 'SetSmooth';
     public const Mode = 'Mode';
+    /** Geräte-ID aus der SSDP-Antwort (z.B. 0x0000000004d2b2e4), wird von der Discovery gesetzt. */
+    public const DeviceId = 'DeviceId';
 }
 
 /**

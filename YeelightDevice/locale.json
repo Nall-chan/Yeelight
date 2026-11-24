@@ -2,6 +2,9 @@
     "translations": {
         "de": {
             "Change light smooth": "Licht sanft ändern",
+            "Device ID": "Geräte ID",
+            "Apply": "Übernehmen",
+            "Device reports the ID %s": "Gerät meldet die ID %s",
             "Display HSV slider (only WebFront)": "HSV-Slider anzeigen (nur WebFront)",
             "possible modes:": "Mögliche Modi:",
             "color": "Farbe",

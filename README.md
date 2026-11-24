@@ -104,6 +104,8 @@ Version 2.16:
 - Fehlermeldungen werden ohne Datei- und Zeilenangabe an den Aufrufer gemeldet.  
 - Ungültige Parameter (z.B. Weißton außerhalb 1700 bis 6500 K, Modus 4) werden vor dem Senden abgelehnt.  
 - Unbekannte Eigenschaften des Gerätes erzeugen keine Log-Meldungen mehr, sondern nur Debug-Ausgaben.  
+- Die Discovery sucht auf allen Netzwerkschnittstellen gleichzeitig, die Konfigurationsseite lädt dadurch deutlich schneller.  
+- Yeelight Device hat die neue Eigenschaft 'Geräte ID'. Die Discovery trägt sie beim Anlegen ein und ordnet Geräte zuerst über diese ID zu. Eine geänderte IP-Adresse wird so erkannt und die Zeile grau dargestellt. Instanzen ohne Geräte ID werden weiterhin über den Host des Client Socket zugeordnet. Die vom Gerät gemeldete ID kann in der Instanzkonfiguration übernommen werden.  
 
 **Behobene falsche Werte in Statusvariablen**
 

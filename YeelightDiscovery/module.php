@@ -19,6 +19,7 @@ require_once __DIR__ . '/../libs/YeelightRPC.php';  // Konstanten
 
 use Yeelight\GUID;
 use Yeelight\Network;
+use Yeelight\Property;
 
 /**
  * YeelightDiscovery Klasse implementiert.
@@ -35,6 +36,9 @@ use Yeelight\Network;
 class YeelightDiscovery extends IPSModuleStrict
 {
     use \Yeelight\DebugHelper;
+
+    /** Suchzeit in Sekunden für alle Interfaces gemeinsam. */
+    private const DiscoveryTime = 3;
 
     /**
      * Interne Funktion des SDK.
@@ -69,56 +73,60 @@ class YeelightDiscovery extends IPSModuleStrict
         }
 
         $Devices = $this->DiscoverDevices();
-        $DevicesAddress = $this->GetIPSInstances();
+        $Instances = $this->GetIPSInstances();
         if (count($Devices) == 0) {
             $Form['actions'][1]['visible'] = true;
         }
         $DeviceValues = [];
 
-        foreach ($Devices as $id => $Data) {
-            $Data['Hosts'] = array_unique($Data['Hosts']);
-            ksort($Data['Hosts']);
+        foreach ($Devices as $DeviceId => $Data) {
+            $Hosts = array_unique($Data['Hosts']);
+            ksort($Hosts);
+            $Host = $Hosts[array_key_last($Hosts)];
             $AddDevice = [
-                'host'       => $Data['Hosts'][array_key_last($Data['Hosts'])],
-                'id'         => $id,
+                'host'       => $Host,
+                'id'         => $DeviceId,
                 'model'      => $Data['Model'],
                 'name'       => $Data['Name'],
                 'location'   => '',
                 'instanceID' => 0
             ];
-            foreach ($Data['Hosts'] as $Host) {
-                $InstanceID = array_search($Host, $DevicesAddress);
-                if ($InstanceID !== false) {
-                    $AddDevice['name'] = IPS_GetName($InstanceID);
-                    $AddDevice['instanceID'] = $InstanceID;
-                    $AddDevice['host'] = $Host;
-                    $AddDevice['location'] = stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true);
-                    unset($DevicesAddress[$InstanceID]);
+            $InstanceID = $this->FindInstance($Instances, (string) $DeviceId, $Hosts);
+            if ($InstanceID > 0) {
+                // Vom Nutzer gewählte Schreibweise (IP oder Hostname) beibehalten, sofern das Gerät darunter noch erreichbar ist.
+                if (in_array(strtolower($Instances[$InstanceID]['Host']), $Hosts)) {
+                    $Host = strtolower($Instances[$InstanceID]['Host']);
                 }
-
-                $AddDevice['create'] = [
-                    [
-                        'moduleID'      => GUID::Device,
-                        'location'      => [$this->Translate('Yeelight Devices')],
-                        'configuration' => new stdClass()
-                    ],
-                    [
-                        'moduleID'      => GUID::ClientSocket,
-                        'configuration' => [
-                            'Host' => $Host,
-                            'Port' => $Data['Port'],
-                            'Open' => true
-                        ]
-                    ]
-                ];
+                $AddDevice['name'] = IPS_GetName($InstanceID);
+                $AddDevice['instanceID'] = $InstanceID;
+                $AddDevice['host'] = $Host;
+                $AddDevice['location'] = stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true);
+                unset($Instances[$InstanceID]);
             }
+            // Weicht die Instanz davon ab (z.B. neue IP-Adresse oder fehlende Geräte-ID), zeigt der Konfigurator die Zeile grau.
+            $AddDevice['create'] = [
+                [
+                    'moduleID'      => GUID::Device,
+                    'configuration' => [
+                        Property::DeviceId => (string) $DeviceId
+                    ]
+                ],
+                [
+                    'moduleID'      => GUID::ClientSocket,
+                    'configuration' => [
+                        'Host' => $Host,
+                        'Port' => $Data['Port'],
+                        'Open' => true
+                    ]
+                ]
+            ];
             $DeviceValues[] = $AddDevice;
         }
 
-        foreach ($DevicesAddress as $InstanceID => $Host) {
+        foreach ($Instances as $InstanceID => $Instance) {
             $DeviceValues[] = [
-                'host'       => $Host,
-                'id'         => '',
+                'host'       => $Instance['Host'],
+                'id'         => $Instance['DeviceId'],
                 'model'      => '',
                 'name'       => IPS_GetName($InstanceID),
                 'location'   => stristr(IPS_GetLocation($InstanceID), IPS_GetName($InstanceID), true),
@@ -131,15 +139,46 @@ class YeelightDiscovery extends IPSModuleStrict
         return json_encode($Form);
     }
 
+    /**
+     * Sucht die Instanz zu einem gefundenen Gerät.
+     * Zuerst über die Geräte-ID, Instanzen ohne Geräte-ID (ältere Versionen) über den Host des Client Socket.
+     *
+     * @param array  $Instances Vorhandene Instanzen (InstanzID => ['Host' => …, 'DeviceId' => …])
+     * @param string $DeviceId  Geräte-ID aus der SSDP-Antwort
+     * @param array  $Hosts     IP-Adressen und Hostnamen des Gerätes (kleingeschrieben)
+     *
+     * @return int InstanzID oder 0
+     */
+    private function FindInstance(array $Instances, string $DeviceId, array $Hosts): int
+    {
+        foreach ($Instances as $InstanceID => $Instance) {
+            if (($Instance['DeviceId'] !== '') && (strcasecmp($Instance['DeviceId'], $DeviceId) == 0)) {
+                return $InstanceID;
+            }
+        }
+        foreach ($Instances as $InstanceID => $Instance) {
+            if (($Instance['DeviceId'] === '') && in_array(strtolower($Instance['Host']), $Hosts)) {
+                return $InstanceID;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Liefert alle Yeelight Device Instanzen mit Host des Client Socket und Geräte-ID.
+     *
+     * @return array InstanzID => ['Host' => …, 'DeviceId' => …]
+     */
     private function GetIPSInstances(): array
     {
         $InstanceIDList = IPS_GetInstanceListByModuleID(GUID::Device);
         $Devices = [];
         foreach ($InstanceIDList as $InstanceID) {
             $IO = IPS_GetInstance($InstanceID)['ConnectionID'];
-            if ($IO > 0) {
-                $Devices[$InstanceID] = IPS_GetProperty($IO, 'Host');
-            }
+            $Devices[$InstanceID] = [
+                'Host'     => ($IO > 0) ? (string) IPS_GetProperty($IO, 'Host') : '',
+                'DeviceId' => (string) @IPS_GetProperty($InstanceID, Property::DeviceId)
+            ];
         }
         $this->SendDebug('IPS Devices', $Devices, 0);
         return $Devices;
@@ -158,79 +197,137 @@ class YeelightDiscovery extends IPSModuleStrict
         return $Header;
     }
 
+    /**
+     * Sucht Geräte per SSDP auf allen IPv4-Interfaces gleichzeitig.
+     * Je Interface wird ein Socket geöffnet und die Suche gesendet, danach werden alle Sockets
+     * gemeinsam per socket_select bis zum Ablauf der Suchzeit ausgewertet.
+     *
+     * @return array Gefundene Geräte, Schlüssel ist die Geräte-ID
+     */
     private function DiscoverDevices(): array
     {
-
         $Interfaces = $this->getIPAdresses();
-        $DevicesData = [];
+        $message = [
+            'M-SEARCH * HTTP/1.1',
+            'HOST: ' . Network::SsdpMulticast . ':' . Network::SsdpPort,
+            'MAN: "ssdp:discover"',
+            'ST: wifi_bulb'
+        ];
+        $SendData = implode("\r\n", $message) . "\r\n\r\n";
+        $this->SendDebug('Search', $SendData, 0);
 
-        $Index = 0;
+        // Alle Sockets öffnen und die Suche senden
+        $Sockets = [];
         foreach ($Interfaces['ipv4'] as $IP => $Interface) {
-            $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-            if ($socket) {
-                socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 2, 'usec' => 100000]);
-                socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
-                socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
-                socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_IF, $Interface);
-                socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
-                if (@socket_bind($socket, $IP, Network::SsdpLocalPort) == false) {
-                    $this->SendDebug('Error on bind socket', $IP, 0);
-                    socket_close($socket);
-                    continue;
-                }
-                $discoveryTimeout = time() + 3;
-                $message = [
-                    'M-SEARCH * HTTP/1.1',
-                    'HOST: ' . Network::SsdpMulticast . ':' . Network::SsdpPort,
-                    'MAN: "ssdp:discover"',
-                    'ST: wifi_bulb',
-                    '',
-                    ''
-                ];
-                $SendData = implode("\r\n", $message) . "\r\n\r\n";
-                $this->SendDebug('Start Discovery(' . $Interface . ')', $IP, 0);
-                $this->SendDebug('Search', $SendData, 0);
-                if (@socket_sendto($socket, $SendData, strlen($SendData), 0, Network::SsdpMulticast, Network::SsdpPort) === false) {
-                    $this->SendDebug('Error on send discovery message', $IP, 0);
-                    @socket_close($socket);
-                    continue;
-                }
-                $response = '';
+            $socket = $this->OpenSearchSocket((string) $IP, $Interface);
+            if ($socket === false) {
+                continue;
+            }
+            if (@socket_sendto($socket, $SendData, strlen($SendData), 0, Network::SsdpMulticast, Network::SsdpPort) === false) {
+                $this->SendDebug('Error on send discovery message', $IP, 0);
+                socket_close($socket);
+                continue;
+            }
+            $this->SendDebug('Start Discovery(' . $Interface . ')', $IP, 0);
+            $Sockets[] = $socket;
+        }
+
+        // Antworten aller Interfaces gemeinsam empfangen
+        $Responses = [];
+        $DiscoveryTimeout = microtime(true) + self::DiscoveryTime;
+        while (count($Sockets) > 0) {
+            $Remaining = $DiscoveryTimeout - microtime(true);
+            if ($Remaining <= 0) {
+                break;
+            }
+            $Read = $Sockets;
+            $Write = null;
+            $Except = null;
+            $Seconds = (int) $Remaining;
+            $Changed = @socket_select($Read, $Write, $Except, $Seconds, (int) (($Remaining - $Seconds) * 1000000));
+            if (!$Changed) {
+                break; // Fehler oder Suchzeit abgelaufen
+            }
+            foreach ($Read as $socket) {
+                $Response = '';
                 $IPAddress = '';
                 $Port = 0;
-                do {
-                    if (0 == @socket_recvfrom($socket, $response, 2048, 0, $IPAddress, $Port)) {
-                        continue;
-                    }
-                    $this->SendDebug('Receive (' . $IPAddress . ')', $response, 0);
-                    $Data = $this->parseHeader($response);
-
-                    if (!array_key_exists('location', $Data) || !array_key_exists('id', $Data)) {
-                        continue;
-                    }
-                    $Data['name'] ??= '';
-                    $Data['model'] ??= '';
-                    $Location = explode(':', $Data['location']);
-                    if (!isset($Location[2]) || $Location[0] != 'yeelight') {
-                        continue;
-                    }
-                    $Data['port'] = (int) $Location[2];
-                    $IPAddress = parse_url($Data['location'], PHP_URL_HOST);
-                    if ($Data['name'] == '') {
-                        $Data['name'] = 'Yeelight Device - ' . $Data['id'];
-                    }
-
-                    $this->AddDiscoveryEntry($DevicesData, $Data['name'], $Data['model'], $Data['id'], $IPAddress, $Data['port'], 60 + $Index);
-                    $Host = gethostbyaddr($IPAddress);
-                    if ($Host != $IPAddress) {
-                        $this->AddDiscoveryEntry($DevicesData, $Data['name'], $Data['model'], $Data['id'], $Host, $Data['port'], 40 + $Index);
-                    }
-                    $Index++;
-                } while (time() < $discoveryTimeout);
-                socket_close($socket);
-            } else {
-                $this->SendDebug('Error on create Socket ipv4', $IP, 0);
+                if (!@socket_recvfrom($socket, $Response, 2048, 0, $IPAddress, $Port)) {
+                    continue;
+                }
+                $this->SendDebug('Receive (' . $IPAddress . ')', $Response, 0);
+                $Responses[] = $Response;
             }
+        }
+        foreach ($Sockets as $socket) {
+            socket_close($socket);
+        }
+        return $this->ParseResponses($Responses);
+    }
+
+    /**
+     * Öffnet einen UDP-Socket für die Suche auf einem Interface.
+     *
+     * @param string     $IP        Lokale IPv4-Adresse
+     * @param mixed      $Interface Interface für Multicast (Index oder Name)
+     *
+     * @return false|Socket Socket oder false
+     */
+    private function OpenSearchSocket(string $IP, mixed $Interface): false|Socket
+    {
+        $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+        if (!$socket) {
+            $this->SendDebug('Error on create Socket ipv4', $IP, 0);
+            return false;
+        }
+        socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
+        socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
+        @socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_IF, $Interface);
+        socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
+        if (!@socket_bind($socket, $IP, Network::SsdpLocalPort)) {
+            $this->SendDebug('Error on bind socket', $IP, 0);
+            socket_close($socket);
+            return false;
+        }
+        return $socket;
+    }
+
+    /**
+     * Wertet die SSDP-Antworten aus. Der Hostname wird je Geräte-IP nur einmal per Reverse-DNS ermittelt.
+     *
+     * @param string[] $Responses Empfangene SSDP-Antworten
+     *
+     * @return array Gefundene Geräte, Schlüssel ist die Geräte-ID
+     */
+    private function ParseResponses(array $Responses): array
+    {
+        $DevicesData = [];
+        $HostNames = [];
+        $Index = 0;
+        foreach ($Responses as $Response) {
+            $Data = $this->parseHeader($Response);
+            if (!array_key_exists('location', $Data) || !array_key_exists('id', $Data)) {
+                continue;
+            }
+            $Location = explode(':', $Data['location']);
+            if (!isset($Location[2]) || $Location[0] != 'yeelight') {
+                continue;
+            }
+            $IPAddress = (string) parse_url($Data['location'], PHP_URL_HOST);
+            if ($IPAddress === '') {
+                continue;
+            }
+            $Name = (($Data['name'] ?? '') != '') ? $Data['name'] : 'Yeelight Device - ' . $Data['id'];
+            $Model = $Data['model'] ?? '';
+            $Port = (int) $Location[2];
+            $this->AddDiscoveryEntry($DevicesData, $Name, $Model, $Data['id'], $IPAddress, $Port, 60 + $Index);
+            if (!array_key_exists($IPAddress, $HostNames)) {
+                $HostNames[$IPAddress] = (string) gethostbyaddr($IPAddress);
+            }
+            if (($HostNames[$IPAddress] !== '') && ($HostNames[$IPAddress] != $IPAddress)) {
+                $this->AddDiscoveryEntry($DevicesData, $Name, $Model, $Data['id'], $HostNames[$IPAddress], $Port, 40 + $Index);
+            }
+            $Index++;
         }
         return $DevicesData;
     }

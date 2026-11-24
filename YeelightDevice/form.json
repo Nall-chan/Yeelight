@@ -1,6 +1,30 @@
 {
     "elements": [
         {
+            "name": "DeviceId",
+            "type": "ValidationTextBox",
+            "caption": "Device ID",
+            "width": "250px"
+        },
+        {
+            "name": "DeviceIdHint",
+            "type": "RowLayout",
+            "visible": false,
+            "items": [
+                {
+                    "name": "DeviceIdReported",
+                    "type": "Label",
+                    "caption": ""
+                },
+                {
+                    "name": "DeviceIdApply",
+                    "type": "Button",
+                    "caption": "Apply",
+                    "onClick": ""
+                }
+            ]
+        },
+        {
             "name": "SetSmooth",
             "type": "CheckBox",
             "caption": "Change light smooth"

@@ -53,6 +53,7 @@ use Yeelight\Variables;
  * @property int $BG_HUE Letzter Farbton Hintergrund
  * @property int $BG_SAT Letzte Sättigung Hintergrund
  * @property bool $BgPower Letzter Zustand Hintergrund
+ * @property string $ReportedDeviceId Vom Gerät per SSDP gemeldete Geräte-ID
  * @property int $ConnectionState
  * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
  * @method bool IORequestAction(string $Ident, mixed $Value)
@@ -91,7 +92,9 @@ class YeelightDevice extends IPSModuleStrict
         $this->RegisterPropertyBoolean(Property::HUESlider, true);
         $this->RegisterPropertyBoolean(Property::SetSmooth, false);
         $this->RegisterPropertyInteger(Property::Mode, 0);
+        $this->RegisterPropertyString(Property::DeviceId, '');
         $this->ReplyJSONData = [];
+        $this->ReportedDeviceId = '';
         $this->BufferIN = '';
         $this->Capabilities = [];
         $this->Propertys = [];
@@ -128,6 +131,7 @@ class YeelightDevice extends IPSModuleStrict
         $this->Capabilities = [];
         $this->Propertys = [];
         $this->Host = '';
+        $this->ReportedDeviceId = '';
         $this->ConnectionState = self::isDisconnected;
         // Profile älterer Versionen entfernen
         $this->UnregisterProfile('Yeelight.WhiteTemp');
@@ -221,6 +225,22 @@ class YeelightDevice extends IPSModuleStrict
             default:
                 echo sprintf($this->Translate('Invalid Ident: %s'), $Ident) . PHP_EOL;
         }
+    }
+
+    /**
+     * Interne Funktion des SDK.
+     * Bietet die vom Gerät gemeldete Geräte-ID zur Übernahme an, wenn sie von der Eigenschaft abweicht.
+     */
+    public function GetConfigurationForm(): string
+    {
+        $Form = json_decode(file_get_contents(__DIR__ . '/form.json'), true);
+        $ReportedDeviceId = preg_replace('/[^0-9A-Za-z]/', '', $this->ReportedDeviceId);
+        if (($ReportedDeviceId !== '') && (strcasecmp($ReportedDeviceId, $this->ReadPropertyString(Property::DeviceId)) != 0)) {
+            $Form['elements'][1]['visible'] = true;
+            $Form['elements'][1]['items'][0]['caption'] = sprintf($this->Translate('Device reports the ID %s'), $ReportedDeviceId);
+            $Form['elements'][1]['items'][1]['onClick'] = "IPS_UpdateFormField('" . Property::DeviceId . "', 'value', '" . $ReportedDeviceId . "', \$id);";
+        }
+        return json_encode($Form);
     }
 
     //################# Instanz-Funktionen
@@ -1555,6 +1575,13 @@ class YeelightDevice extends IPSModuleStrict
                 continue;
             }
             $Data = $this->parseHeader($buf);
+            if (array_key_exists('id', $Data)) {
+                $this->ReportedDeviceId = $Data['id'];
+                $DeviceId = $this->ReadPropertyString(Property::DeviceId);
+                if (($DeviceId !== '') && (strcasecmp($DeviceId, $Data['id']) != 0)) {
+                    $this->SendDebug('Warning', 'Device reports ID ' . $Data['id'] . ', configured is ' . $DeviceId, 0);
+                }
+            }
             if (array_key_exists('support', $Data)) {
                 $this->Capabilities = explode(' ', $Data['support']);
                 $this->SendDebug('Got capabilities', $Data['support'], 0);
