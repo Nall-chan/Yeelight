@@ -117,6 +117,7 @@ class DataPoints
     public const Flowing = 'flowing';
     public const BgFlowing = 'bg_flowing';
     public const DelayOff = 'delayoff';
+    public const MusicOn = 'music_on';
 
     /**
      * Liefert alle Properties, welche per get_prop gelesen werden.
@@ -215,19 +216,19 @@ class Variables
 
     private const ModeColor = [
         'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-        'ICON'         => '',
+        'ICON'         => 'swatchbook',
         'OPTIONS'      => [self::OptionRGB, self::OptionWhite, self::OptionHSV]
     ];
 
     private const ModeColorNightlight = [
         'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-        'ICON'         => '',
+        'ICON'         => 'swatchbook',
         'OPTIONS'      => [self::OptionRGB, self::OptionWhite, self::OptionHSV, self::OptionNightlight]
     ];
 
     private const ModeWhiteNightlight = [
         'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
-        'ICON'         => '',
+        'ICON'         => 'swatchbook',
         'OPTIONS'      => [self::OptionWhite, self::OptionNightlight]
     ];
 
@@ -265,12 +266,21 @@ class Variables
         'USAGE_TYPE'          => 5,
     ];
 
-    private const ActiveState = [
+    private const ActiveOptions = [
+        ['Value' => false, 'Caption' => 'inactive', 'IconActive' => false, 'IconValue' => '', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1],
+        ['Value' => true, 'Caption' => 'active', 'IconActive' => false, 'IconValue' => '', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1]
+    ];
+
+    private const FlowingState = [
         'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-        'OPTIONS'      => [
-            ['Value' => false, 'Caption' => 'inactive', 'IconActive' => false, 'IconValue' => '', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1],
-            ['Value' => true, 'Caption' => 'active', 'IconActive' => false, 'IconValue' => '', 'ColorActive' => false, 'ColorValue' => -1, 'ContentColorActive' => false, 'ContentColorValue' => -1]
-        ]
+        'ICON'         => 'wand-magic-sparkles',
+        'OPTIONS'      => self::ActiveOptions
+    ];
+
+    private const MusicState = [
+        'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+        'ICON'         => 'music',
+        'OPTIONS'      => self::ActiveOptions
     ];
 
     /**
@@ -413,7 +423,7 @@ class Variables
             self::Readable     => true,
             self::Name         => 'Sequence active',
             self::Type         => VARIABLETYPE_BOOLEAN,
-            self::Presentation => self::ActiveState,
+            self::Presentation => self::FlowingState,
             self::enableAction => false,
             self::Mapping      => [0 => false, 1 => true]
         ],
@@ -421,7 +431,7 @@ class Variables
             self::Readable     => true,
             self::Name         => 'Sequence active Background',
             self::Type         => VARIABLETYPE_BOOLEAN,
-            self::Presentation => self::ActiveState,
+            self::Presentation => self::FlowingState,
             self::enableAction => false,
             self::Mapping      => [0 => false, 1 => true]
         ],
@@ -431,6 +441,14 @@ class Variables
             self::Type         => VARIABLETYPE_INTEGER,
             self::Presentation => self::SleepSlider,
             self::enableAction => true
+        ],
+        DataPoints::MusicOn => [
+            self::Readable     => true,
+            self::Name         => 'Music mode active',
+            self::Type         => VARIABLETYPE_BOOLEAN,
+            self::Presentation => self::MusicState,
+            self::enableAction => false,
+            self::Mapping      => [0 => false, 1 => true]
         ]
     ];
 

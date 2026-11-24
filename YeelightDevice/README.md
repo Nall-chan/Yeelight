@@ -104,6 +104,7 @@ Die Instanz legt nur die Variablen an, deren Werte die Leuchte meldet. Leuchten 
 |    Helligkeit Nachtlicht    | integer |    nl_br    |              Helligkeit des Nachtlichts in Prozent, beim Ändern wird das Nachtlicht eingeschaltet              |
 |    Ablaufprogramm aktiv     |  bool   |   flowing   |                            Eine Farbsequenz läuft (nur Anzeige)                            |
 |       Einschlaf-Timer       | integer |  delayoff   |    Restzeit bis zum Ausschalten in Minuten, ein Wert setzt den Timer, 0 (aus) löscht ihn    |
+|      Musikmodus aktiv       |  bool   |  music_on   |      Der [Musikmodus](#musikmodus) läuft (nur Anzeige), die übrigen Werte werden dann nicht aktualisiert      |
 |           HSV Hue           | string  |     hue     |              Nur mit 'HSV-Slider anzeigen': Farbton-Schieberegler für das WebFront (veraltet)              |
 |     Status Hintergrund      |  bool   |  bg_power   |                              Hintergrundlicht ein- und ausschalten                              |
 |   Helligkeit Hintergrund    | integer |  bg_bright  |                             Helligkeit des Hintergrundlichts in Prozent                             |

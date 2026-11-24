@@ -46,9 +46,9 @@ class DeviceTest extends TestCase
     public function testUnknownValuesAreIgnored(): void
     {
         [$Iid, $Intf] = $this->CreateDevice();
-        $this->ReceiveLine($Intf, '{"method":"props","params":{"power":"unknown","music_on":"1"}}');
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"power":"unknown","name":"Lampe"}}');
         $this->assertFalse(@IPS_GetObjectIDByIdent('power', $Iid));
-        $this->assertFalse(@IPS_GetObjectIDByIdent('music_on', $Iid));
+        $this->assertFalse(@IPS_GetObjectIDByIdent('name', $Iid));
     }
 
     public function testActiveModeMapsToColorMode(): void
@@ -159,6 +159,17 @@ class DeviceTest extends TestCase
             $this->assertFalse($Call());
             $this->assertSame(sprintf($Intf->Translate('%s out of range.'), $Parameter) . PHP_EOL, ob_get_clean(), $Parameter);
         }
+    }
+
+    public function testMusicModeVariable(): void
+    {
+        [$Iid, $Intf] = $this->CreateDevice();
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"music_on":1}}');
+        $Id = $this->Id($Iid, 'music_on');
+        $this->assertTrue(GetValue($Id));
+        $this->assertFalse(HasAction($Id));
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"music_on":0}}');
+        $this->assertFalse(GetValue($Id));
     }
 
     public function testMusicModeParameterChecks(): void

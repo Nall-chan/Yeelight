@@ -112,6 +112,7 @@ Version 2.16:
 **Neue Statusvariablen**
 
 - Yeelight Device: 'Einschlaf-Timer' zeigt die Restlaufzeit in Minuten und kann den Timer setzen bzw. löschen.  
+- Yeelight Device: 'Musikmodus aktiv' zeigt an, ob der Musikmodus läuft.  
 
 **Geändertes Verhalten**
 
