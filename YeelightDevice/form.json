@@ -58,7 +58,7 @@
         {
             "code": 201,
             "icon": "error",
-            "caption": "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to Symcon. Please check firewall or NAT forwarding."
+            "caption": "Capabilities of the device could not be determined. The firewall must allow incoming UDP replies from the device. With NAT (e.g. Docker), port 1983 (UDP) must be forwarded to Symcon."
         }
     ],
     "actions": [

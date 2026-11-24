@@ -1136,6 +1136,39 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
+     * Startet den Musikmodus: Das Gerät verbindet sich als TCP-Client zu dem angegebenen Server.
+     * Über diese Verbindung kann ein anderes System Befehle ohne Begrenzung senden. Den Server stellt der Nutzer
+     * bereit (z.B. eine eigene Server Socket Instanz), die Instanz steuert das Gerät weiterhin über ihre eigene Verbindung.
+     *
+     * @param string $Host IP-Adresse des TCP-Servers
+     * @param int    $Port TCP-Port des Servers (1 bis 65535)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function StartMusicMode(string $Host, int $Port): bool
+    {
+        if (trim($Host) === '') {
+            echo sprintf($this->Translate('%s is invalid.'), 'Host') . PHP_EOL;
+            return false;
+        }
+        if (($Port < 1) || ($Port > 65535)) {
+            echo sprintf($this->Translate('%s out of range.'), 'Port') . PHP_EOL;
+            return false;
+        }
+        return $this->SendCommand('set_music', [1, trim($Host), $Port]);
+    }
+
+    /**
+     * Beendet den Musikmodus.
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function StopMusicMode(): bool
+    {
+        return $this->SendCommand('set_music', [0]);
+    }
+
+    /**
      * Setzt den im Gerät gespeicherten Namen.
      *
      * @param string $Name Neuer Name
@@ -1844,8 +1877,10 @@ class YeelightDevice extends IPSModuleStrict
 
     /**
      * Fragt alle Fähigkeiten und Eigenschaften des Gerätes per SSDP ab und speichert diese im Buffer.
-     * Alle Instanzen und die Discovery empfangen auf Port 1983. Fragen mehrere gleichzeitig (Neustart, Modul neu laden),
-     * landet die Antwort ggf. am falschen Socket. Daher wird der Port über eine globale Semaphore nacheinander genutzt.
+     * Das Gerät antwortet an den Absenderport der Anfrage, aber von einem anderen eigenen Port als 1982 (live geprüft).
+     * Ohne NAT genügt deshalb ein zufälliger lokaler Port. Mit NAT (z.B. Docker) ordnet das NAT die Antwort nicht zu,
+     * dort wird der feste Port 1983 genutzt, den der Nutzer weiterleitet. Diesen Port nutzen alle Instanzen nacheinander
+     * (globale Semaphore), sonst landet beim gleichzeitigen Verbinden eine Antwort am falschen Socket.
      *
      * @return bool true wenn die Fähigkeiten ermittelt wurden
      */
@@ -1856,12 +1891,15 @@ class YeelightDevice extends IPSModuleStrict
         if ($this->Host == '') {
             return false;
         }
+        if (!IPS_GetOption('NATSupport')) {
+            return $this->QueryCapabilities(0);
+        }
         if (!IPS_SemaphoreEnter(Network::SsdpLock, Network::SsdpLockTimeout)) {
             $this->SendDebug('Ask capabilities', 'Port ' . Network::SsdpLocalPort . ' is busy', 0);
             return false;
         }
         try {
-            return $this->QueryCapabilities();
+            return $this->QueryCapabilities(Network::SsdpLocalPort);
         } finally {
             IPS_SemaphoreLeave(Network::SsdpLock);
         }
@@ -1870,9 +1908,11 @@ class YeelightDevice extends IPSModuleStrict
     /**
      * Führt die SSDP-Abfrage der Fähigkeiten aus (Aufruf nur über GetCapabilities).
      *
+     * @param int $LocalPort Lokaler UDP-Port, 0 = zufällig
+     *
      * @return bool true wenn die Fähigkeiten ermittelt wurden
      */
-    private function QueryCapabilities(): bool
+    private function QueryCapabilities(int $LocalPort): bool
     {
         $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if (!$socket) {
@@ -1880,8 +1920,8 @@ class YeelightDevice extends IPSModuleStrict
         }
         socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 0, 'usec' => 100000]);
         socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
-        if (!@socket_bind($socket, '0.0.0.0', Network::SsdpLocalPort)) {
-            $this->SendDebug('Ask capabilities', 'Bind to port ' . Network::SsdpLocalPort . ' failed', 0);
+        if (!@socket_bind($socket, '0.0.0.0', $LocalPort)) {
+            $this->SendDebug('Ask capabilities', 'Bind to port ' . $LocalPort . ' failed', 0);
             socket_close($socket);
             return false;
         }

@@ -1,0 +1,74 @@
+{
+    "id": "{F191F311-87E2-4925-94F3-E51C9264B72B}",
+    "caption": "Start or stop music mode",
+    "form": [
+        {
+            "caption": "Music mode",
+            "name": "START",
+            "type": "Select",
+            "options": [
+                {
+                    "caption": "Start",
+                    "value": true
+                },
+                {
+                    "caption": "Stop",
+                    "value": false
+                }
+            ]
+        },
+        {
+            "caption": "IP address of the TCP server (only with Start)",
+            "name": "HOST",
+            "type": "ValidationTextBox"
+        },
+        {
+            "caption": "Port of the TCP server (only with Start)",
+            "name": "PORT",
+            "type": "NumberSpinner",
+            "minimum": 1,
+            "maximum": 65535
+        }
+    ],
+    "action": [
+        "if ($_IPS['START']) {",
+        "    YEELIGHT_StartMusicMode($_IPS['TARGET'], $_IPS['HOST'], $_IPS['PORT']);",
+        "} else {",
+        "    YEELIGHT_StopMusicMode($_IPS['TARGET']);",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['START']) {",
+        "    printf('YEELIGHT_StartMusicMode(%d, %s, %d);', $_IPS['TARGET'], var_export($_IPS['HOST'], true), $_IPS['PORT']);",
+        "} else {",
+        "    printf('YEELIGHT_StopMusicMode(%d);', $_IPS['TARGET']);",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Start or stop music mode": "Musikmodus starten oder beenden",
+            "Music mode": "Musikmodus",
+            "Start": "Starten",
+            "Stop": "Beenden",
+            "IP address of the TCP server (only with Start)": "IP-Adresse des TCP-Servers (nur bei Starten)",
+            "Port of the TCP server (only with Start)": "Port des TCP-Servers (nur bei Starten)",
+            "The device connects to a TCP server, which can send commands without limit": "Das Gerät verbindet sich zu einem TCP-Server, der Befehle ohne Begrenzung senden kann",
+            "{START, select, true {Start music mode with {HOST}:{PORT}} other {Stop music mode}}": "{START, select, true {Musikmodus mit {HOST}:{PORT} starten} other {Musikmodus beenden}}"
+        }
+    },
+    "format": "{START, select, true {Start music mode with {HOST}:{PORT}} other {Stop music mode}}",
+    "description": "The device connects to a TCP server, which can send commands without limit"
+}

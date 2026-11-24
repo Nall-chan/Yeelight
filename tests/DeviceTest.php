@@ -161,6 +161,17 @@ class DeviceTest extends TestCase
         }
     }
 
+    public function testMusicModeParameterChecks(): void
+    {
+        [, $Intf] = $this->CreateDevice();
+        ob_start();
+        $this->assertFalse($Intf->StartMusicMode(' ', 1234));
+        $this->assertSame(sprintf($Intf->Translate('%s is invalid.'), 'Host') . PHP_EOL, ob_get_clean());
+        ob_start();
+        $this->assertFalse($Intf->StartMusicMode('192.168.1.10', 70000));
+        $this->assertSame(sprintf($Intf->Translate('%s out of range.'), 'Port') . PHP_EOL, ob_get_clean());
+    }
+
     public function testAdjustRangeCheck(): void
     {
         [, $Intf] = $this->CreateDevice();

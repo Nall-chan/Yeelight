@@ -216,12 +216,6 @@ class YeelightDiscovery extends IPSModuleStrict
         $SendData = implode("\r\n", $message) . "\r\n\r\n";
         $this->SendDebug('Search', $SendData, 0);
 
-        // Port 1983 nutzen auch die Geräte-Instanzen (Abfrage der Fähigkeiten), daher nacheinander.
-        $Locked = IPS_SemaphoreEnter(Network::SsdpLock, Network::SsdpLockTimeout);
-        if (!$Locked) {
-            $this->SendDebug('Search', 'Port ' . Network::SsdpLocalPort . ' is busy, search anyway', 0);
-        }
-
         // Alle Sockets öffnen und die Suche senden
         $Sockets = [];
         foreach ($Interfaces['ipv4'] as $IP => $Interface) {
@@ -268,14 +262,11 @@ class YeelightDiscovery extends IPSModuleStrict
         foreach ($Sockets as $socket) {
             socket_close($socket);
         }
-        if ($Locked) {
-            IPS_SemaphoreLeave(Network::SsdpLock);
-        }
         return $this->ParseResponses($Responses);
     }
 
     /**
-     * Öffnet einen UDP-Socket für die Suche auf einem Interface.
+     * Öffnet einen UDP-Socket für die Suche auf einem Interface (zufälliger lokaler Port, die Geräte antworten an diesen).
      *
      * @param string     $IP        Lokale IPv4-Adresse
      * @param mixed      $Interface Interface für Multicast (Index oder Name)
@@ -293,7 +284,7 @@ class YeelightDiscovery extends IPSModuleStrict
         socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_TTL, 4);
         @socket_set_option($socket, IPPROTO_IP, IP_MULTICAST_IF, $Interface);
         socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
-        if (!@socket_bind($socket, $IP, Network::SsdpLocalPort)) {
+        if (!@socket_bind($socket, $IP, 0)) {
             $this->SendDebug('Error on bind socket', $IP, 0);
             socket_close($socket);
             return false;

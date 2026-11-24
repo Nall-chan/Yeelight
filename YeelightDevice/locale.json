@@ -51,7 +51,7 @@
             "inactive": "inaktiv",
             " %": " %",
             "Instance has no active parent.": "Instanz hat keinen aktiven Parent.",
-            "Capabilities of the device could not be determined. Incoming port 1983 (UDP) must be forwarded to Symcon. Please check firewall or NAT forwarding.": "Fähigkeiten des Gerätes konnten nicht ermittelt werden. Port 1983 (UDP) muss ankommend an Symcon weitergeleitet werden. Bitte Firewall oder NAT-Weiterleitung prüfen.",
+            "Capabilities of the device could not be determined. The firewall must allow incoming UDP replies from the device. With NAT (e.g. Docker), port 1983 (UDP) must be forwarded to Symcon.": "Fähigkeiten des Gerätes konnten nicht ermittelt werden. Die Firewall muss ankommende UDP-Antworten des Gerätes zulassen. Bei NAT (z.B. Docker) muss Port 1983 (UDP) an Symcon weitergeleitet werden.",
             "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
     }

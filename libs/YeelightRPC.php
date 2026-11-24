@@ -70,11 +70,11 @@ class Network
     public const ControlPort = 55443;
     /** UDP-Port der SSDP-Anfragen an das Gerät. */
     public const SsdpPort = 1982;
-    /** Lokaler UDP-Port für die SSDP-Antworten. */
+    /** Lokaler UDP-Port für die SSDP-Antworten, nur bei NAT (muss weitergeleitet werden), sonst zufälliger Port. */
     public const SsdpLocalPort = 1983;
     /** Multicast-Adresse der SSDP-Suche. */
     public const SsdpMulticast = '239.255.255.250';
-    /** Globale Semaphore für Port 1983, damit Instanzen und Discovery ihn nacheinander nutzen. */
+    /** Globale Semaphore für Port 1983 (nur bei NAT), damit die Instanzen ihn nacheinander nutzen. */
     public const SsdpLock = 'Yeelight.SSDP1983';
     /** Wartezeit auf die Semaphore in Millisekunden. */
     public const SsdpLockTimeout = 10000;

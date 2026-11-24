@@ -8,7 +8,7 @@
             "Location": "Standort",
             "Yeelight Devices": "Yeelight Geräte",
             "No Devices found!": "Keine Geräte gefunden!",
-            "No devices were found.\r\nTo recognize devices, incoming multicast on port 1983 (UDP) must be forwarded to Symcon.\r\nPlease configure the firewall or routing accordingly.": "Es wurden keine Geräte gefunden.\r\nUm Geräte zu erkennen, muss Multicast auf Port 1983 (UDP) ankommend an Symcon weitergeleitet werden.\r\nBitte Firewall oder Routing entsprechend konfigurieren.",
+            "No devices were found.\r\nThe devices answer the multicast search with UDP packets, the firewall must allow them to reach Symcon.\r\nPlease configure the firewall or routing accordingly.": "Es wurden keine Geräte gefunden.\r\nDie Geräte beantworten die Multicast-Suche mit UDP-Paketen, die Firewall muss diese zu Symcon durchlassen.\r\nBitte Firewall oder Routing entsprechend konfigurieren.",
             "The combination of Docker and NAT is not supported because Docker does not support multicast.\r\nPlease run the container in the host network.": "Die Kombination von Docker und NAT wird nicht unterstützt, da Docker keine Unterstützung für Multicast besitzt.\r\nBitte den Container im Host-Netzwerk ausführen.",
             "This module is free for non-commercial use,\r\nDonations in support of the author are accepted here:": "Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos,\r\nSchenkungen als Unterstützung für den Autor werden hier akzeptiert:"
         }
