@@ -112,6 +112,7 @@ class DataPoints
     public const NightLightBright = 'nl_br';
     public const Flowing = 'flowing';
     public const BgFlowing = 'bg_flowing';
+    public const DelayOff = 'delayoff';
 
     /**
      * Liefert alle Properties, welche per get_prop gelesen werden.
@@ -224,6 +225,40 @@ class Variables
         'PRESENTATION' => VARIABLE_PRESENTATION_ENUMERATION,
         'ICON'         => '',
         'OPTIONS'      => [self::OptionWhite, self::OptionNightlight]
+    ];
+
+    private const SleepSlider = [
+        'PRESENTATION'        => VARIABLE_PRESENTATION_SLIDER,
+        'DIGITS'              => 0,
+        'CUSTOM_GRADIENT'     => '[]',
+        'ICON'                => 'stopwatch',
+        'GRADIENT_TYPE'       => 0,
+        'MAX'                 => 120,
+        'INTERVALS'           => [
+            [
+                'IntervalMinValue' => 0,
+                'IntervalMaxValue' => 0,
+                'ConstantActive'   => true,
+                'ConstantValue'    => 'off',
+                'ConversionFactor' => 1,
+                'DigitsActive'     => false,
+                'DigitsValue'      => 0,
+                'IconActive'       => false,
+                'IconValue'        => '',
+                'PrefixActive'     => false,
+                'PrefixValue'      => '',
+                'SuffixActive'     => false,
+                'SuffixValue'      => ''
+            ]
+        ],
+        'INTERVALS_ACTIVE'    => true,
+        'MIN'                 => 0,
+        'PERCENTAGE'          => false,
+        'PREFIX'              => '',
+        'STEP_SIZE'           => 1,
+        'SUFFIX'              => ' min',
+        'THOUSANDS_SEPARATOR' => '',
+        'USAGE_TYPE'          => 5,
     ];
 
     private const ActiveState = [
@@ -385,6 +420,13 @@ class Variables
             self::Presentation => self::ActiveState,
             self::enableAction => false,
             self::Mapping      => [0 => false, 1 => true]
+        ],
+        DataPoints::DelayOff => [
+            self::Readable     => true,
+            self::Name         => 'Sleep timer',
+            self::Type         => VARIABLETYPE_INTEGER,
+            self::Presentation => self::SleepSlider,
+            self::enableAction => true
         ]
     ];
 

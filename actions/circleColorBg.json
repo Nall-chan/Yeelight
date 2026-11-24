@@ -1,0 +1,29 @@
+{
+    "id": "{EA9BFB1E-270C-439B-AB2D-390978BD67BD}",
+    "caption": "Rotate background color",
+    "form": [],
+    "action": [
+        "YEELIGHT_RotateBgColor($_IPS['TARGET']);"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Rotate background color": "Hintergrundfarbe durchwechseln",
+            "Rotates through the colors of the background": "Rotiert durch die Farben des Hintergrunds"
+        }
+    },
+    "format": "Rotates through the colors of the background",
+    "description": "Rotates through the colors of the background"
+}

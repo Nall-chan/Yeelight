@@ -46,9 +46,9 @@ class DeviceTest extends TestCase
     public function testUnknownValuesAreIgnored(): void
     {
         [$Iid, $Intf] = $this->CreateDevice();
-        $this->ReceiveLine($Intf, '{"method":"props","params":{"power":"unknown","delayoff":"5"}}');
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"power":"unknown","music_on":"1"}}');
         $this->assertFalse(@IPS_GetObjectIDByIdent('power', $Iid));
-        $this->assertFalse(@IPS_GetObjectIDByIdent('delayoff', $Iid));
+        $this->assertFalse(@IPS_GetObjectIDByIdent('music_on', $Iid));
     }
 
     public function testActiveModeMapsToColorMode(): void
@@ -101,8 +101,45 @@ class DeviceTest extends TestCase
     {
         [, $Intf] = $this->CreateDevice(['HUESlider' => false]);
         $Decode = new ReflectionMethod($Intf, 'DecodeHSVValue');
-        $this->assertSame([62, 62], $Decode->invoke($Intf, '{"h":61.53764578576783,"s":61.8896257402005,"v":98.20657062306826}'));
-        $this->assertSame([0, 100], $Decode->invoke($Intf, '{"h":360,"s":100,"v":100}'));
+        $this->assertSame([62, 62, 98], $Decode->invoke($Intf, '{"h":61.53764578576783,"s":61.8896257402005,"v":98.20657062306826}'));
+        $this->assertSame([0, 100, 100], $Decode->invoke($Intf, '{"h":360,"s":100,"v":100}'));
+        $this->assertSame([10, 20, null], $Decode->invoke($Intf, '{"h":10,"s":20}'));
+    }
+
+    public function testHSVValueFollowsBrightness(): void
+    {
+        [$Iid, $Intf] = $this->CreateDevice();
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"bright":40,"hue":120,"sat":50}}');
+        $this->assertSame(['h' => 120, 's' => 50, 'v' => 40], json_decode(GetValue($this->Id($Iid, 'hsv')), true));
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"bright":75}}');
+        $this->assertSame(75, json_decode(GetValue($this->Id($Iid, 'hsv')), true)['v']);
+    }
+
+    public function testSleepTimerVariable(): void
+    {
+        [$Iid, $Intf] = $this->CreateDevice();
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"delayoff":30}}');
+        $Id = $this->Id($Iid, 'delayoff');
+        $this->assertSame(30, GetValue($Id));
+        $this->assertTrue(HasAction($Id));
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"delayoff":0}}');
+        $this->assertSame(0, GetValue($Id));
+    }
+
+    public function testHUESliderIsOffForNewInstances(): void
+    {
+        [$Iid, $Intf] = $this->CreateDevice();
+        $this->assertFalse(IPS_GetProperty($Iid, 'HUESlider'));
+        $this->ReceiveLine($Intf, '{"method":"props","params":{"hue":10}}');
+        $this->assertFalse(@IPS_GetObjectIDByIdent('hue', $Iid));
+    }
+
+    public function testAdjustRangeCheck(): void
+    {
+        [, $Intf] = $this->CreateDevice();
+        ob_start();
+        $this->assertFalse($Intf->AdjustBrightness(101, 500));
+        $this->assertSame(sprintf($Intf->Translate('%s out of range.'), 'Percentage') . PHP_EOL, ob_get_clean());
     }
 
     public function testCommandWithoutParentReportsError(): void

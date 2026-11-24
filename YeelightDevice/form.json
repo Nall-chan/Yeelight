@@ -32,7 +32,7 @@
         {
             "name": "HUESlider",
             "type": "CheckBox",
-            "caption": "Display HSV slider (only WebFront)"
+            "caption": "Display HSV slider (deprecated, only WebFront)"
         },
         {
             "type": "Select",

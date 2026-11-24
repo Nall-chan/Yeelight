@@ -1,0 +1,78 @@
+{
+    "id": "{CB41DA60-E3D3-4988-BCAB-DCF495F09D6B}",
+    "caption": "Adjust light by percentage",
+    "form": [
+        {
+            "caption": "Value",
+            "name": "TYPE",
+            "type": "Select",
+            "options": [
+                {
+                    "caption": "Brightness",
+                    "value": 0
+                },
+                {
+                    "caption": "Color temperature",
+                    "value": 1
+                },
+                {
+                    "caption": "Color",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "caption": "Change",
+            "name": "PERCENTAGE",
+            "type": "HorizontalSlider",
+            "minimum": -100,
+            "maximum": 100
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "$Functions = ['YEELIGHT_AdjustBrightness', 'YEELIGHT_AdjustWhiteTemp', 'YEELIGHT_AdjustColor'];",
+        "$Functions[$_IPS['TYPE']]($_IPS['TARGET'], $_IPS['PERCENTAGE'], max(30, (int) ($_IPS['DURATION'] * 1000)));"
+    ],
+    "readable": [
+        "$Functions = ['YEELIGHT_AdjustBrightness', 'YEELIGHT_AdjustWhiteTemp', 'YEELIGHT_AdjustColor'];",
+        "printf('%s(%d, %d, %d);', $Functions[$_IPS['TYPE']], $_IPS['TARGET'], $_IPS['PERCENTAGE'], max(30, (int) ($_IPS['DURATION'] * 1000)));"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Adjust light by percentage": "Licht prozentual ändern",
+            "Value": "Wert",
+            "Brightness": "Helligkeit",
+            "Color temperature": "Farbtemperatur",
+            "Color": "Farbe",
+            "Change": "Änderung",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Changes brightness, color temperature or color of the light relatively": "Ändert Helligkeit, Farbtemperatur oder Farbe vom Licht relativ",
+            "Adjust {TYPE, select, 0 {brightness} 1 {color temperature} other {color}} by {PERCENTAGE} %": "{TYPE, select, 0 {Helligkeit} 1 {Farbtemperatur} other {Farbe}} um {PERCENTAGE} % ändern"
+        }
+    },
+    "format": "Adjust {TYPE, select, 0 {brightness} 1 {color temperature} other {color}} by {PERCENTAGE} %",
+    "description": "Changes brightness, color temperature or color of the light relatively"
+}

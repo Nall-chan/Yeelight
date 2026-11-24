@@ -1,0 +1,70 @@
+{
+    "id": "{0B7AE262-7F04-4FF9-A1E6-8F081982144F}",
+    "caption": "Set or fade to color (HSV)",
+    "form": [
+        {
+            "caption": "Hue",
+            "name": "HUE",
+            "type": "NumberSpinner",
+            "minimum": 0,
+            "maximum": 359,
+            "suffix": " °"
+        },
+        {
+            "caption": "Saturation",
+            "name": "SATURATION",
+            "type": "HorizontalSlider",
+            "minimum": 0,
+            "maximum": 100
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "    YEELIGHT_SetHSV($_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION']);",
+        "} else {",
+        "    YEELIGHT_SetHSVSmooth($_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], (int) ($_IPS['DURATION'] * 1000));",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   printf('YEELIGHT_SetHSV(%d, %d, %d);', $_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION']);",
+        "} else {",
+        "   printf('YEELIGHT_SetHSVSmooth(%d, %d, %d, %d);', $_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], (int) ($_IPS['DURATION'] * 1000));",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set or fade to color (HSV)": "Farbe (HSV) setzen oder faden",
+            "Hue": "Farbton",
+            "Saturation": "Sättigung",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Set the color to a specific hue and saturation": "Setzt die Farbe auf einen bestimmten Farbton und eine Sättigung",
+            "Set color to hue {HUE}° and saturation {SATURATION} % {DURATION, select, 0 {} other {with {DURATION} seconds fading}}": "Setzt die Farbe auf Farbton {HUE}° und Sättigung {SATURATION} % {DURATION, select, 0 {} other {mit fading von {DURATION} Sekunden}}"
+        }
+    },
+    "format": "Set color to hue {HUE}° and saturation {SATURATION} % {DURATION, select, 0 {} other {with {DURATION} seconds fading}}",
+    "description": "Set the color to a specific hue and saturation"
+}

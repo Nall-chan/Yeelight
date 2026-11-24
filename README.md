@@ -96,9 +96,20 @@ Version 2.16:
 > - Symcon ab Version 8.2 wird benötigt.  
 > - Die PHP-Befehle `YEELIGHT_SetToogle`, `YEELIGHT_SetBgToogle`, `YEELIGHT_SetToogleBoth` und `YEELIGHT_CircleBgColor` heißen jetzt `YEELIGHT_SetToggle`, `YEELIGHT_SetBgToggle`, `YEELIGHT_SetToggleBoth` und `YEELIGHT_RotateBgColor`. Die alten Namen funktionieren noch, erzeugen eine Warnung im Log und werden mit Version 2.20 entfernt.  
 > - Wird 'HSV-Slider anzeigen' deaktiviert, bleiben die Variablen 'HSV Sättigung' erhalten. Nur die Slider-Variablen 'HSV Hue' werden gelöscht.  
+> - Der HSV-Slider (nur WebFront) ist veraltet und bei neuen Instanzen standardmäßig deaktiviert. Für die Farbwahl die Variable 'HSV Farbe' bzw. 'RGB Farbe' verwenden.  
+
+**Neue Funktionen und Aktionen**
+
+- Yeelight Device: `YEELIGHT_AdjustBrightness`, `YEELIGHT_AdjustWhiteTemp`, `YEELIGHT_AdjustColor` sowie `YEELIGHT_AdjustBgBrightness`, `YEELIGHT_AdjustBgWhiteTemp`, `YEELIGHT_AdjustBgColor` ändern Helligkeit, Farbtemperatur bzw. Farbe prozentual.  
+- Aktionen: Licht umschalten (Haupt-, Hintergrund- und beide Lichter), Farbe (HSV) setzen (auch Hintergrund), Hintergrundfarbe durchwechseln, Licht bzw. Hintergrundlicht prozentual ändern.  
+
+**Neue Statusvariablen**
+
+- Yeelight Device: 'Einschlaf-Timer' zeigt die Restlaufzeit in Minuten und kann den Timer setzen bzw. löschen.  
 
 **Geändertes Verhalten**
 
+- 'HSV Farbe' enthält die Helligkeit des Gerätes, eine geänderte Helligkeit in der Farbwahl wird an das Gerät gesendet.  
 - 'Aktueller Modus' ist in allen Modi als Aufzählung bedienbar.  
 - 'Ablaufprogramm aktiv' zeigt aktiv/inaktiv an.  
 - 'HSV Sättigung' wird von der Licht-Kachel nicht mehr als Helligkeit angeboten.  

@@ -2,10 +2,10 @@
     "translations": {
         "de": {
             "Change light smooth": "Licht sanft ändern",
+            "Display HSV slider (deprecated, only WebFront)": "HSV-Slider anzeigen (veraltet, nur WebFront)",
             "Device ID": "Geräte ID",
             "Apply": "Übernehmen",
             "Device reports the ID %s": "Gerät meldet die ID %s",
-            "Display HSV slider (only WebFront)": "HSV-Slider anzeigen (nur WebFront)",
             "possible modes:": "Mögliche Modi:",
             "color": "Farbe",
             "color and nightlight": "Farbe und Nachtlicht",
@@ -42,6 +42,9 @@
             "Current mode Background": "Aktueller Modus Hintergrund",
             "HSV Hue Background": "HSV Hue Hintergrund",
             "Brightness Nightlight": "Helligkeit Nachtlicht",
+            "Sleep timer": "Einschlaf-Timer",
+            " min": " min",
+            "off": "aus",
             "Sequence active": "Ablaufprogramm aktiv",
             "Sequence active Background": "Ablaufprogramm aktiv Hintergrund",
             "active": "aktiv",

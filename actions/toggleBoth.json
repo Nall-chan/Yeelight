@@ -1,0 +1,29 @@
+{
+    "id": "{AA1B53D2-137B-4C26-B4C5-A24080E15BB8}",
+    "caption": "Toggle main and background light",
+    "form": [],
+    "action": [
+        "YEELIGHT_SetToggleBoth($_IPS['TARGET']);"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Toggle main and background light": "Haupt- und Hintergrundlicht umschalten",
+            "Toggles main and background light on or off": "Schaltet Haupt- und Hintergrundlicht ein oder aus"
+        }
+    },
+    "format": "Toggles main and background light on or off",
+    "description": "Toggles main and background light on or off"
+}

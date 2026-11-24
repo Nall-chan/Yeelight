@@ -53,6 +53,8 @@ use Yeelight\Variables;
  * @property int $BG_HUE Letzter Farbton Hintergrund
  * @property int $BG_SAT Letzte Sättigung Hintergrund
  * @property bool $BgPower Letzter Zustand Hintergrund
+ * @property int $Bright Letzte Helligkeit (für v der HSV-Farbe)
+ * @property int $BgBright Letzte Helligkeit Hintergrund (für v der HSV-Farbe)
  * @property string $ReportedDeviceId Vom Gerät per SSDP gemeldete Geräte-ID
  * @property int $ConnectionState
  * @method void IOMessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data)
@@ -89,7 +91,7 @@ class YeelightDevice extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
-        $this->RegisterPropertyBoolean(Property::HUESlider, true);
+        $this->RegisterPropertyBoolean(Property::HUESlider, false);
         $this->RegisterPropertyBoolean(Property::SetSmooth, false);
         $this->RegisterPropertyInteger(Property::Mode, 0);
         $this->RegisterPropertyString(Property::DeviceId, '');
@@ -104,6 +106,8 @@ class YeelightDevice extends IPSModuleStrict
         $this->BG_HUE = 1;
         $this->BG_SAT = 1;
         $this->BgPower = false;
+        $this->Bright = 100;
+        $this->BgBright = 100;
         $this->ParentID = 0;
         $this->ConnectionState = self::isDisconnected;
     }
@@ -185,8 +189,15 @@ class YeelightDevice extends IPSModuleStrict
                 break;
             case DataPoints::HSV:
                 $HSV = $this->DecodeHSVValue($Value);
-                if ($HSV !== false) {
-                    $this->SetHSV($HSV[0], $HSV[1]);
+                if (($HSV !== false) && $this->SetHSV($HSV[0], $HSV[1]) && ($HSV[2] !== null) && ($HSV[2] != $this->Bright)) {
+                    $this->SetBrightness($HSV[2]);
+                }
+                break;
+            case DataPoints::DelayOff:
+                if ((int) $Value > 0) {
+                    $this->SetSleep((int) $Value);
+                } else {
+                    $this->DelSleep();
                 }
                 break;
             case DataPoints::SAT:
@@ -209,8 +220,8 @@ class YeelightDevice extends IPSModuleStrict
                 break;
             case DataPoints::BgHSV:
                 $HSV = $this->DecodeHSVValue($Value);
-                if ($HSV !== false) {
-                    $this->SetBgHSV($HSV[0], $HSV[1]);
+                if (($HSV !== false) && $this->SetBgHSV($HSV[0], $HSV[1]) && ($HSV[2] !== null) && ($HSV[2] != $this->BgBright)) {
+                    $this->SetBgBrightness($HSV[2]);
                 }
                 break;
             case DataPoints::BgSAT:
@@ -774,7 +785,11 @@ class YeelightDevice extends IPSModuleStrict
             echo sprintf($this->Translate('%s out of range.'), 'Minutes') . PHP_EOL;
             return false;
         }
-        return $this->SendCommand('cron_add', [0, $Minutes]);
+        if (!$this->SendCommand('cron_add', [0, $Minutes])) {
+            return false;
+        }
+        $this->UpdateSleepTimer($Minutes);
+        return true;
     }
 
     /**
@@ -799,7 +814,11 @@ class YeelightDevice extends IPSModuleStrict
      */
     public function DelSleep(): bool
     {
-        return $this->SendCommand('cron_del', [0]);
+        if (!$this->SendCommand('cron_del', [0])) {
+            return false;
+        }
+        $this->UpdateSleepTimer(0);
+        return true;
     }
 
     /**
@@ -911,6 +930,84 @@ class YeelightDevice extends IPSModuleStrict
     {
         $this->DeprecatedFunction(__FUNCTION__, 'RotateBgColor');
         return $this->RotateBgColor();
+    }
+
+    /**
+     * Ändert die Helligkeit relativ um den angegebenen Prozentwert.
+     *
+     * @param int $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function AdjustBrightness(int $Percentage, int $Duration): bool
+    {
+        return $this->SendAdjust('adjust_bright', $Percentage, $Duration);
+    }
+
+    /**
+     * Ändert die Helligkeit des Hintergrunds relativ um den angegebenen Prozentwert.
+     *
+     * @param int $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function AdjustBgBrightness(int $Percentage, int $Duration): bool
+    {
+        return $this->SendAdjust('bg_adjust_bright', $Percentage, $Duration);
+    }
+
+    /**
+     * Ändert die Farbtemperatur relativ um den angegebenen Prozentwert.
+     *
+     * @param int $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function AdjustWhiteTemp(int $Percentage, int $Duration): bool
+    {
+        return $this->SendAdjust('adjust_ct', $Percentage, $Duration);
+    }
+
+    /**
+     * Ändert die Farbtemperatur des Hintergrunds relativ um den angegebenen Prozentwert.
+     *
+     * @param int $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function AdjustBgWhiteTemp(int $Percentage, int $Duration): bool
+    {
+        return $this->SendAdjust('bg_adjust_ct', $Percentage, $Duration);
+    }
+
+    /**
+     * Ändert die Farbe relativ um den angegebenen Prozentwert.
+     *
+     * @param int $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function AdjustColor(int $Percentage, int $Duration): bool
+    {
+        return $this->SendAdjust('adjust_color', $Percentage, $Duration);
+    }
+
+    /**
+     * Ändert die Farbe des Hintergrunds relativ um den angegebenen Prozentwert.
+     *
+     * @param int $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    public function AdjustBgColor(int $Percentage, int $Duration): bool
+    {
+        return $this->SendAdjust('bg_adjust_color', $Percentage, $Duration);
     }
 
     /**
@@ -1226,6 +1323,37 @@ class YeelightDevice extends IPSModuleStrict
     }
 
     /**
+     * Führt die Variable des Einschlaf-Timers nach einem bestätigten Befehl nach.
+     * Das Gerät meldet beim Löschen des Timers kein Ereignis (live geprüft).
+     *
+     * @param int $Minutes Restlaufzeit in Minuten, 0 = kein Timer
+     */
+    private function UpdateSleepTimer(int $Minutes): void
+    {
+        if (in_array(DataPoints::DelayOff, $this->Propertys) || ($this->FindIDForIdent(DataPoints::DelayOff) > 0)) {
+            $this->SetStatusVariable(DataPoints::DelayOff, $Minutes);
+        }
+    }
+
+    /**
+     * Sendet eine relative Änderung (adjust_bright, adjust_ct, adjust_color und bg_*).
+     *
+     * @param string $Method     Name der RPC-Methode
+     * @param int    $Percentage Änderung in Prozent (-100 bis 100)
+     * @param int    $Duration   Übergangszeit in Millisekunden (ab 30)
+     *
+     * @return bool true bei Erfolg, sonst false
+     */
+    private function SendAdjust(string $Method, int $Percentage, int $Duration): bool
+    {
+        if (($Percentage < -100) || ($Percentage > 100)) {
+            echo sprintf($this->Translate('%s out of range.'), 'Percentage') . PHP_EOL;
+            return false;
+        }
+        return $this->SendCommand($Method, [$Percentage, max(Duration::Minimum, $Duration)]);
+    }
+
+    /**
      * Liefert die Übergangszeit aus der Eigenschaft 'Licht sanft ändern'.
      *
      * @return int Übergangszeit in Millisekunden
@@ -1413,7 +1541,7 @@ class YeelightDevice extends IPSModuleStrict
      *
      * @param mixed $Value JSON-String {"h":…, "s":…, "v":…}
      *
-     * @return false|array [Farbton, Sättigung in Prozent] oder false
+     * @return false|array [Farbton, Sättigung in Prozent, Helligkeit in Prozent oder null] oder false
      */
     private function DecodeHSVValue(mixed $Value): false|array
     {
@@ -1424,7 +1552,8 @@ class YeelightDevice extends IPSModuleStrict
         }
         $Hue = ((int) round((float) $HSV['h'])) % 360;
         $Saturation = (int) round((float) $HSV['s']);
-        return [$Hue, min(100, max(0, $Saturation))];
+        $Brightness = isset($HSV['v']) ? min(100, max(0, (int) round((float) $HSV['v']))) : null;
+        return [$Hue, min(100, max(0, $Saturation)), $Brightness];
     }
 
     /**
@@ -1646,6 +1775,14 @@ class YeelightDevice extends IPSModuleStrict
                 $this->BG_SAT = (int) $Value;
                 $this->UpdateHSV(DataPoints::BgHSV, null, (int) $Value);
                 break;
+            case DataPoints::Bright:
+                $this->Bright = (int) $Value;
+                $this->UpdateHSV(DataPoints::HSV, null, null);
+                break;
+            case DataPoints::BgBright:
+                $this->BgBright = (int) $Value;
+                $this->UpdateHSV(DataPoints::BgHSV, null, null);
+                break;
         }
         $StatusVariable = Variables::$List[$Ident];
         if (array_key_exists(Variables::Mapping, $StatusVariable)) {
@@ -1707,7 +1844,7 @@ class YeelightDevice extends IPSModuleStrict
 
     /**
      * Aktualisiert die HSV-Farbvariable (h von 0 bis 360, s und v von 0 bis 100 wie in der Kachel-Visualisierung).
-     * Eine neue Sättigung allein legt die Variable nicht an.
+     * v ist die Helligkeit. Eine neue Sättigung oder Helligkeit allein legt die Variable nicht an.
      *
      * @param string   $HSVIdent   Ident hsv oder bg_hsv
      * @param int|null $Hue        Neuer Farbton oder null
@@ -1724,8 +1861,8 @@ class YeelightDevice extends IPSModuleStrict
             $HSV = ['h' => 0, 's' => 100, 'v' => 100];
         }
         $HSV['s'] = $HSV['s'] ?? 100;
-        // Das Gerät liefert keinen Hellwert, v bleibt bei 100 %.
-        $HSV['v'] = 100;
+        // v entspricht der Helligkeit des Gerätes
+        $HSV['v'] = ($HSVIdent == DataPoints::HSV) ? $this->Bright : $this->BgBright;
         if ($Hue !== null) {
             $HSV['h'] = $Hue;
         }

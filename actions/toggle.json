@@ -1,0 +1,29 @@
+{
+    "id": "{A6AE484F-BAEB-4E72-BC85-FDEEC214A200}",
+    "caption": "Toggle light",
+    "form": [],
+    "action": [
+        "YEELIGHT_SetToggle($_IPS['TARGET']);"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Toggle light": "Licht umschalten",
+            "Toggles the light on or off": "Schaltet das Licht ein oder aus"
+        }
+    },
+    "format": "Toggles the light on or off",
+    "description": "Toggles the light on or off"
+}

@@ -58,6 +58,13 @@ class DefinitionsTest extends TestCase
                 foreach ($Presentation['OPTIONS'] ?? [] as $Option) {
                     $this->assertArrayHasKey($Option['Caption'], $Locale, "$Ident: option {$Option['Caption']} not translated");
                 }
+                foreach ((is_array($Presentation['INTERVALS'] ?? null) ? $Presentation['INTERVALS'] : []) as $Interval) {
+                    foreach (['ConstantValue', 'PrefixValue', 'SuffixValue'] as $Key) {
+                        if (($Interval[$Key] ?? '') !== '') {
+                            $this->assertArrayHasKey($Interval[$Key], $Locale, "$Ident: interval $Key not translated");
+                        }
+                    }
+                }
             }
         }
     }
@@ -110,7 +117,8 @@ class DefinitionsTest extends TestCase
             $Action = json_decode(file_get_contents($File), true);
             $this->assertIsArray($Action, basename($File) . ' is invalid JSON');
             $Script = implode("\n", (array) $Action['action']);
-            preg_match_all('/YEELIGHT_(\w+)\(/', $Script, $Calls);
+            // Direkte Aufrufe und Funktionsnamen als String (z.B. in einer Liste)
+            preg_match_all('/YEELIGHT_(\w+)[\(\']/', $Script, $Calls);
             $this->assertNotEmpty($Calls[1], basename($File));
             foreach ($Calls[1] as $Call) {
                 $this->assertContains(strtolower($Call), $Functions, basename($File) . ": YEELIGHT_$Call does not exist");

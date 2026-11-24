@@ -1,0 +1,70 @@
+{
+    "id": "{CC557A7F-C793-4850-973A-E42DBE188B4D}",
+    "caption": "Set or fade to background color (HSV)",
+    "form": [
+        {
+            "caption": "Hue",
+            "name": "HUE",
+            "type": "NumberSpinner",
+            "minimum": 0,
+            "maximum": 359,
+            "suffix": " °"
+        },
+        {
+            "caption": "Saturation",
+            "name": "SATURATION",
+            "type": "HorizontalSlider",
+            "minimum": 0,
+            "maximum": 100
+        },
+        {
+            "caption": "Fading duration",
+            "name": "DURATION",
+            "type": "NumberSpinner",
+            "digits": 2,
+            "minimum": 0,
+            "maximum": 900,
+            "suffix": " seconds"
+        }
+    ],
+    "action": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "    YEELIGHT_SetBgHSV($_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION']);",
+        "} else {",
+        "    YEELIGHT_SetBgHSVSmooth($_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], (int) ($_IPS['DURATION'] * 1000));",
+        "}"
+    ],
+    "readable": [
+        "if ($_IPS['DURATION'] < 0.03){",
+        "   printf('YEELIGHT_SetBgHSV(%d, %d, %d);', $_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION']);",
+        "} else {",
+        "   printf('YEELIGHT_SetBgHSVSmooth(%d, %d, %d, %d);', $_IPS['TARGET'], $_IPS['HUE'], $_IPS['SATURATION'], (int) ($_IPS['DURATION'] * 1000));",
+        "}"
+    ],
+    "category": "target",
+    "restrictions": {
+        "objectType": [
+            1
+        ],
+        "moduleID": [
+            "{BF5D53BB-EB4E-45C0-8632-5DB4EF49FA9F}"
+        ],
+        "includeEnvironments": [
+            "TestCommands",
+            "Default"
+        ]
+    },
+    "locale": {
+        "de": {
+            "Set or fade to background color (HSV)": "Hintergrundfarbe (HSV) setzen oder faden",
+            "Hue": "Farbton",
+            "Saturation": "Sättigung",
+            "Fading duration": "Fading-Dauer",
+            " seconds": " Sekunden",
+            "Set the background color to a specific hue and saturation": "Setzt die Hintergrundfarbe auf einen bestimmten Farbton und eine Sättigung",
+            "Set background color to hue {HUE}° and saturation {SATURATION} % {DURATION, select, 0 {} other {with {DURATION} seconds fading}}": "Setzt die Hintergrundfarbe auf Farbton {HUE}° und Sättigung {SATURATION} % {DURATION, select, 0 {} other {mit fading von {DURATION} Sekunden}}"
+        }
+    },
+    "format": "Set background color to hue {HUE}° and saturation {SATURATION} % {DURATION, select, 0 {} other {with {DURATION} seconds fading}}",
+    "description": "Set the background color to a specific hue and saturation"
+}
